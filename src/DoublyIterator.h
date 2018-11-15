@@ -11,10 +11,10 @@ class DoublyLinkedList;
 
 /**
 *	연결리스트에서 쓰이는 Iterator의 클래스.
-*   sample code에서 변경한 점
-*   1. Next 호출 시에 Next가 null pointer인 경우 data 반환에서 에러 발생. 이에 따라 data는 반환하지 않도록 수정함
-*   2. current pointer의 data를 반환하는 Current 함수를 추가함.
-*   3. Doubly Linked List에서 사용할 Iterator이므로, Prev 함수를 추가함.
+*   Next 호출 시에 Next가 null pointer인 경우 data 반환에서 에러 발생. 이에 따라 data는 반환하지 않도록 수정함
+*   current pointer의 data를 반환하는 Current 함수를 추가함.
+*   Doubly Linked List에서 사용할 Iterator이므로, Prev 함수를 추가함.
+*	2018.11.15 update : CurrentPtr 함수 추가
 */
 
 template <typename T>
@@ -23,10 +23,9 @@ class DoublyIterator
 	friend class DoublyLinkedList<T>;
 public:
 	/**
-	*	디폴트 생성자.
+	*	기본 생성자
 	*/
-	DoublyIterator(const DoublyLinkedList<T> &list) : m_List(list), m_pCurPointer(list.m_pFirst)
-	{}; ///< DoublyLinkedList와 친구 클래스.
+	DoublyIterator(const DoublyLinkedList<T> &list) : m_List(list), m_pCurPointer(list.m_pFirst) {};
 
 
 	/**
@@ -58,6 +57,11 @@ public:
 	*  현재 point의 data를 반환함.
 	*/
 	T Current();
+
+	/**
+	*	현재 point의 data pointer를 반환함.
+	*/
+	T* CurrentPtr();
 
 	/**
 	*  현재 pointer의 node를 반환함. (pass by value)
@@ -110,6 +114,12 @@ template <typename T>
 T DoublyIterator<T>::Current()
 {
 	return m_pCurPointer->data;
+}
+
+template <typename T>
+T* DoublyIterator<T>::CurrentPtr()
+{
+	return &m_pCurPointer->data;
 }
 
 template <typename T>

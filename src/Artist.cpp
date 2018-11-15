@@ -158,18 +158,21 @@ void Artist::DisplayAllOnScreen()
 
 	cout << "\tThe number of albums: " << albumList.GetLength() << endl;
 	cout << "\t---------------" << endl;
-	Album album;
+	
+	Album* album;
+	DoublyIterator<Album> iter(albumList);
+	int count = 1;
 
-	albumList.ResetList();
-
-	for (int i = 0; i < albumList.GetLength(); i++)
+	while (iter.NotNull())
 	{
-		albumList.GetNextItem(album);
-		cout << "\tAlbum Num: " << i + 1 << endl;
-		album.DisplayIDOnScreen();
-		album.DisplayAlbumNameOnScreen();
-		album.DisplayDateOnScreen();
+		album = iter.CurrentPtr();
+		cout << "\tAlbum Num: " << count << endl;
+		album->DisplayIDOnScreen();
+		album->DisplayAlbumNameOnScreen();
+		album->DisplayDateOnScreen();
 		cout << endl;
+		count++;
+		iter.Next();
 	}
 }
 
@@ -214,6 +217,7 @@ int Artist::ReadDataFromFile(ifstream& fin)
 	fin.ignore();
 
 	albumList.MakeEmpty();
+
 	for (int i = 0; i < albumLen; i++)
 	{
 		string id, name;
@@ -245,24 +249,23 @@ int Artist::WriteDataToFile(ofstream& fout)
 	fout << birthDate << endl;
 	fout << albumList.GetLength() << endl;
 
-	albumList.ResetList();
-	Album album;
-	while (albumList.GetNextItem(album))
+	Album* album;
+	DoublyIterator<Album> iter(albumList);
+
+	while (iter.NotNull())
 	{
-		fout << album.GetID() << endl;
-		fout << album.GetAlbumName() << endl;
-		fout << album.GetDate() << endl;
+		album = iter.CurrentPtr();
+		fout << album->GetID() << endl;
+		fout << album->GetAlbumName() << endl;
+		fout << album->GetDate() << endl;
+		iter.Next();
 	}
 
 	return 1;
 }
 
-void Artist::ResetList()
+DoublyIterator<Album>& Artist::GetIterator() const
 {
-	albumList.ResetList();
-}
-
-int Artist::GetNextAlbum(Album& data)
-{
-	return albumList.GetNextItem(data);
+	DoublyIterator<Album> iter(albumList);
+	return iter;
 }

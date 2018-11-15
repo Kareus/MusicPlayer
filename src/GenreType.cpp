@@ -6,6 +6,12 @@ GenreType::GenreType()
 	list.MakeEmpty();
 }
 
+GenreType::GenreType(const GenreType& data)
+{
+	genreName = data.GetGenre();
+	list = data.list;
+}
+
 GenreType::~GenreType()
 {
 	list.MakeEmpty();
@@ -41,9 +47,10 @@ int GenreType::Get(SimpleMusicType& music)
 	return list.Get(music);
 }
 
-DoublyLinkedList<SimpleMusicType>& GenreType::GetList()
+DoublyIterator<SimpleMusicType>& GenreType::GetIterator() const
 {
-	return list;
+	DoublyIterator<SimpleMusicType> iter(list);
+	return iter;
 }
 
 bool GenreType::operator<(const GenreType& data) const

@@ -159,10 +159,11 @@
     <ClInclude Include="Application.h" />
     <ClInclude Include="Artist.h" />
     <ClInclude Include="CircularQueueType.h" />
+    <ClInclude Include="DoublyIterator.h" />
+    <ClInclude Include="DoublyLinkedList.h" />
     <ClInclude Include="GenreTable.h" />
     <ClInclude Include="GenreType.h" />
     <ClInclude Include="ID3Reader.h" />
-    <ClInclude Include="LinkedList.h" />
     <ClInclude Include="MusicType.h" />
     <ClInclude Include="SimpleMusicType.h" />
     <ClInclude Include="SortedList.h" />

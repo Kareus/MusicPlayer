@@ -246,20 +246,22 @@ void Album::DisplayAllOnScreen()
 
 	cout << "\tThe number of musics: " << list.GetLength() << endl;
 
-	SimpleMusicType temp;
-	list.ResetList();
+	SimpleMusicType* temp;
+	DoublyIterator<SimpleMusicType> iter(list);
 
 	cout << endl << "\t---------------" << endl;
 
 	int count = 0;
-	while (list.GetNextItem(temp))
+	while (iter.NotNull())
 	{
+		temp = iter.CurrentPtr();
 		count++;
 		cout << "\tMusic No. " << count << endl;
-		temp.DisplayIDOnScreen();
-		temp.DisplayNameOnScreen();
-		temp.DisplayLengthOnScreen();
+		temp->DisplayIDOnScreen();
+		temp->DisplayNameOnScreen();
+		temp->DisplayLengthOnScreen();
 		cout << "\t---------------" << endl;
+		iter.Next();
 	}
 }
 
@@ -306,14 +308,16 @@ int Album::WriteDataToFile(ofstream& fout)
 	fout << date << endl;
 	fout << list.GetLength() << endl;
 
-	list.ResetList();
-	SimpleMusicType music;
+	SimpleMusicType* music;
+	DoublyIterator<SimpleMusicType> iter(list);
 
-	while (list.GetNextItem(music))
+	while (iter.NotNull())
 	{
-		fout << music.GetID() << endl;
-		fout << music.GetName() << endl;
-		fout << music.GetLength() << endl;
+		music = iter.CurrentPtr();
+		fout << music->GetID() << endl;
+		fout << music->GetName() << endl;
+		fout << music->GetLength() << endl;
+		iter.Next();
 	}
 	return 1;
 }

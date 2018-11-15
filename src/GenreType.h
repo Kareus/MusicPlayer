@@ -91,14 +91,6 @@ public:
 	*	@return	음악의 수.
 	*/
 	int GetMusicNum() const;
-
-	/**
-	*	@brief	장르의 음악 리스트를 반환한다.
-	*	@pre	없음.
-	*	@post	없음.
-	*	@return	장르의 음악 리스트.
-	*/
-	DoublyLinkedList<SimpleMusicType>& GetList();
 	
 	/**
 	*	@brief	현재 데이터가 비교하는 데이터보다 작은지 반환한다.
@@ -135,6 +127,14 @@ public:
 	*	@return	복사 대입한 현재 데이터를 반환한다.
 	*/
 	GenreType& operator=(const GenreType& data);
+
+	/**
+	*	@brief	장르의 수록곡 리스트에 관련한 iterator를 생성한다.
+	*	@pre	없음.
+	*	@post	iterator 객체가 생성된다.
+	*	@return 장르의 수록곡 리스트에 대한 iterator 객체.
+	*/
+	DoublyIterator<SimpleMusicType>& GetIterator() const;
 };
 
 #endif

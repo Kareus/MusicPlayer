@@ -162,15 +162,6 @@ public:
 	int ReplaceMusic(const SimpleMusicType& data);
 
 	/**
-	*	@brief	수록곡 리스트의 다음 음악을 parameter에 할당한다.
-	*	@pre	없음
-	*	@post	data에 다음 음악이 할당된다.
-	*	@param	data	음악을 할당할 데이터
-	*	@return	성공하면 1, 아니면 0을 반환.
-	*/
-	int GetNextMusic(SimpleMusicType& data);
-
-	/**
 	*	두 아이템 데이터를 비교한다.
 	*	@brief	두 아이템의 순서를 비교한다.
 	*	@pre	두 아이템에서 필요한 변수가 할당되어 있어야 한다.
@@ -231,14 +222,6 @@ public:
 	*	@post	앨범의 이름 할당한다.
 	*/
 	void SetAlbumNameFromKB();
-
-	/**
-	*	@brief	앨범의 수록곡 리스트에 관련한 iterator를 생성한다.
-	*	@pre	없음.
-	*	@post	iterator 객체가 생성된다.
-	*	@return	앨범의 수록곡 리스트에 대한 iterator 객체.
-	*/
-	DoublyIterator<SimpleMusicType>& GetIterator() const;
 
 	/**
 	*	@brief	키보드로부터 앨범의 아티스트를 입력받는다.
@@ -320,6 +303,14 @@ public:
 	*	@return	성공하면 1, 아니면 0을 반환.
 	*/
 	int WriteDataToFile(ofstream& fout);
+
+	/**
+	*	@brief	앨범의 수록곡 리스트에 관련한 iterator를 생성한다.
+	*	@pre	없음.
+	*	@post	iterator 객체가 생성된다.
+	*	@return	앨범의 수록곡 리스트에 대한 iterator 객체.
+	*/
+	DoublyIterator<SimpleMusicType>& GetIterator() const;
 
 };
 #endif

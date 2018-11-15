@@ -110,7 +110,8 @@ int Application::AddMusic()
 
 	//장르 확인
 	bool exist = false;
-	genreList.ResetList();
+	DoublyIterator<GenreType> iter(genreList);
+	GenreType* genre;
 
 	SimpleMusicType simpleMusic; //간단한 정보만 저장한 음악 데이터
 	simpleMusic.SetName(music.GetName());
@@ -118,20 +119,21 @@ int Application::AddMusic()
 	simpleMusic.SetLength(music.GetLength());
 	simpleMusic.SetPlayedTime(music.GetPlayedTime());
 
-	for (int i = 0; i < genreList.GetLength(); i++)
+	while (iter.NotNull())
 	{
-		GenreType genre;
-		genreList.GetNextItem(genre);
+		genre = iter.CurrentPtr();
 		
-		if (music.GetGenre() == genre.GetGenre()) //장르가 이미 있다면
+		if (music.GetGenre() == genre->GetGenre()) //장르가 이미 있다면
 		{
 			exist = true;
 
-			genre.Add(simpleMusic);
-			
-			genreList.Replace(genre);
+			genre->Add(simpleMusic);
+
+			//pointer이므로 replace 등의 추가 작업이 필요하지 않음
 			break;
 		}
+
+		iter.Next();
 	}
 
 	if (!exist) //리스트에 없다면
@@ -226,20 +228,24 @@ int Application::AddMusic()
 
 void Application::DisplayAllMusic()
 {
-	MusicType data;
+	MusicType* data;
 
 	cout << "\n\tCurrent music list" << endl;
 
 	// list의 모든 데이터를 화면에 출력
-	musicList.ResetList();
+	
+	DoublyIterator<MusicType> iter(musicList);
+
 	int curIndex = 1;
-	while (musicList.GetNextItem(data))
+	while (iter.NotNull())
 	{
+		data = iter.CurrentPtr();
 		cout << "\tMusic Num: " << curIndex << endl;
 		cout << "\t---------------" << endl;
-		data.DisplayAllOnScreen();
+		data->DisplayAllOnScreen();
 		cout << endl;
 		curIndex++;
+		iter.Next();
 	}
 
 	if (musicList.GetLength() == 0) cout << "\tThere is no music added" << endl;
@@ -265,6 +271,8 @@ int Application::OpenOutFile(char *fileName)
 
 int Application::ReadDataFromFile()
 {
+	//have to work with genre file i/o
+
 	int index = 0;
 	MusicType data;	// 읽기용 임시 변수
 	Album album;
@@ -337,9 +345,9 @@ int Application::ReadDataFromFile()
 
 int Application::WriteDataToFile()
 {
-	MusicType data;	// 쓰기용 임시 변수
-	Album album;
-	Artist artist;
+	MusicType* data;	// 쓰기용 임시 변수
+	Album* album;
+	Artist* artist;
 	SimpleMusicType music;
 
 	char filename[FILENAMESIZE];
@@ -352,21 +360,36 @@ int Application::WriteDataToFile()
 
 	m_outFile << musicList.GetLength() << endl; //음악 수 기록
 
-	// list 포인터를 초기화
-	musicList.ResetList();
-	albumList.ResetList();
-	artistList.ResetList();
+	// iterator 생성
+	DoublyIterator<MusicType> iter_m(musicList);
+	DoublyIterator<Album> iter_al(albumList);
+	DoublyIterator<Artist> iter_ar(artistList);
 
 	// list의 모든 데이터를 파일에 쓰기
-	while (musicList.GetNextItem(data)) data.WriteDataToFile(m_outFile);
+	while (iter_m.NotNull())
+	{
+		data = iter_m.CurrentPtr();
+		data->WriteDataToFile(m_outFile);
+		iter_m.Next();
+	}
 
 	m_outFile << albumList.GetLength() << endl;
 
-	while (albumList.GetNextItem(album)) album.WriteDataToFile(m_outFile);
+	while (iter_al.NotNull())
+	{
+		album = iter_al.CurrentPtr();
+		album->WriteDataToFile(m_outFile);
+		iter_al.Next();
+	}
 
 	m_outFile << artistList.GetLength() << endl;
 
-	while (artistList.GetNextItem(artist)) artist.WriteDataToFile(m_outFile);
+	while (iter_ar.NotNull())
+	{
+		artist = iter_ar.CurrentPtr();
+		artist->WriteDataToFile(m_outFile);
+		iter_ar.Next();
+	}
 
 	m_outFile << addedCount << endl;
 
@@ -380,12 +403,15 @@ int Application::WriteDataToFile()
 
 	m_outFile << recentListCount << endl;
 
-	recentPlayedList.ResetList();
+	SimpleMusicType* simple;
 
-	for (int i = 0; i < recentListCount; i++)
+	DoublyIterator<SimpleMusicType> iter_s(recentPlayedList);
+
+	while (iter_s.NotNull())
 	{
-		recentPlayedList.GetNextItem(music);
-		music.WriteDataToFile(m_outFile);
+		simple = iter_s.CurrentPtr();
+		simple->WriteDataToFile(m_outFile);
+		iter_s.Next();
 	}
 
 	m_outFile.close();	// file close
@@ -417,17 +443,27 @@ int Application::ReplaceMusic()
 	
 	cout << "\tInput the data of the music" << endl;
 
-	MusicType* data = musicList.GetPoint(music);
+	DoublyIterator<MusicType> iter(musicList);
+	MusicType* data = NULL; //리스트에서 찾은 아이템에 대한 포인터 변수
+
+	while (iter.NotNull())
+	{
+		data = iter.CurrentPtr();
+		if (music == *data) break;
+		iter.Next();
+	}
 
 	if (data == NULL)
 	{
 		cout << "\tThere is no music that has such ID" << endl;
 		return 0;
 	}
-
+	
 	data->SetAllFromKB();
 
 	data->SetID(data->GetName() + '_' + data->GetArtist());
+
+	//have to work on
 
 	DeleteMusic(music);
 

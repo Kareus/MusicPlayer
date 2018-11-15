@@ -231,22 +231,12 @@ public:
 	*/
 	int WriteDataToFile(ofstream& fout);
 
-
 	/**
-	*	@brief	앨범 리스트의 포인터를 리셋한다.
+	*	@brief	앨범 리스트에 관련한 iterator를 생성한다.
 	*	@pre	없음.
-	*	@post	앨범 리스트의 포인터가 리셋된다.
-	*	@return	없음.
+	*	@post	iterator 객체가 생성된다.
+	*	@return	앨범 리스트에 대한 iterator 객체.
 	*/
-	void ResetList();
-
-	/**
-	*	@brief	수록곡 리스트의 다음 앨범을 parameter에 할당한다.
-	*	@pre	없음
-	*	@post	data에 다음 앨범이 할당된다.
-	*	@param	data	앨범을 할당할 데이터
-	*	@return	성공하면 1, 아니면 0을 반환.
-	*/
-	int GetNextAlbum(Album& data);
+	DoublyIterator<Album>& GetIterator() const;
 };
 #endif

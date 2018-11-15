@@ -11,27 +11,26 @@ using namespace std;
 
 #include "DoublyIterator.h"
 
-/**
-*	Structure for NodeType to use in Linked structure.
-*/
-
 template <typename T>
 class DoublyIterator;
 
+/**
+* Doubly Linked List에 쓰일 node를 위한 structure
+*/
 template <typename T>
 struct DoublyNodeType
 {
-	T data;	///< A data for each node.
-	DoublyNodeType* prev;	///< A node pointer of previous node.
-	DoublyNodeType* next;	///< A node pointer of next node.
+	T data;	///< 저장하는 데이터
+	DoublyNodeType* prev;	///< 이전 node를 가리키는 포인터
+	DoublyNodeType* next;	///< 이후 node를 가리키는 포인터
 };
 
 
 /**
-*	Single sorted list class for managing items.
-*   sample code에서 변경한 점
-*   1. Add, Delete, Replace 함수는 이전 자료구조처럼 할당 연산자를 통해 데이터를 복사하거나 참조만 하기 때문에, parameter를 const reference로 받아오기로 함
-*   2. MakeEmpty 함수 호출 이후 아직 주소 해제가 완료되지 않은 시점에서 다시 MakeEmpty 등이 호출될 수 있으므로 코드 내용을 약간 수정함.
+*	Doubly Linked Structre을 사용하는 Doubly Linked List
+*   Add, Delete, Replace 함수는 이전 자료구조처럼 할당 연산자를 통해 데이터를 복사하거나 참조만 하기 때문에, parameter를 const reference로 받아오기로 함
+*   MakeEmpty 함수 호출 이후 아직 주소 해제가 완료되지 않은 시점에서 다시 MakeEmpty 등이 호출될 수 있으므로 코드 내용을 약간 수정함.
+*   Header/Trailer Node는 generic한 data structure에서는 사용하기 어렵다. 데이터 타입이 최소/최대값이 없을 수 있으며, 각 타입마다 생성하는 방법이 다르기 때문이다.
 */
 
 template <typename T>
@@ -40,83 +39,86 @@ class DoublyLinkedList
 	friend class DoublyIterator<T>;
 public:
 	/**
-	*	default constructor.
+	*	기본 생성자
 	*/
 	DoublyLinkedList();
 
 	/**
-	*	destructor.
+	*	소멸자
 	*/
 	~DoublyLinkedList();
 
 	/**
-	*   copy constructor
+	*   복사 생성자
 	*/
 	DoublyLinkedList(const DoublyLinkedList& list);
 
 	/**
-	*	@brief	Determines whether the list is full.
-	*	@pre	List has been initialized.
-	*	@post	None.
-	*	@return	If there is not memory left, throws bad_alloc exception and return true, otherwise false.
+	*	@brief	리스트가 꽉 차 있는지 (데이터를 더 추가할 수 없는지)를 반환한다.
+	*	@pre	없음.
+	*	@post	없음.
+	*	@return	메모리 할당에 문제가 있으면 exception을 throw하고 true 반환. 아닌 경우 false를 반환한다.
 	*/
 	bool IsFull();
 
 	/**
-	*	@brief	Determines whether the list is empty.
-	*	@pre	List has been initialized.
-	*	@post	None.
-	*	@return	Return true if the list is empty, otherwise false.
+	*	@brief	리스트가 비어있는지 반환한다.
+	*	@pre	없음.
+	*	@post	없음.
+	*	@return	리스트가 비어있으면 (first가 비어있으면) true 반환. 아닌 경우 false를 반환한다.
 	*/
 	bool IsEmpty() const;
 
 	/**
-	*	@brief	Initialize list to empty state.
-	*	@pre	None
-	*	@post	List is empty.
+	*	@brief	리스트를 비운다.
+	*	@pre	없음.
+	*	@post	리스트가 비게 된다.
 	*/
 	void MakeEmpty();
 
 	/**
-	*	@brief	Get number of elements in the list.
-	*	@pre	None.
-	*	@post	Function value = number of elements in list.
-	*	@return	Number of elements in this list.
+	*	@brief	리스트에 있는 노드의 개수를 반환한다.
+	*	@pre	없음.
+	*	@post	없음.
+	*	@return	리스트의 노드 개수를 반환한다.
 	*/
 	int GetLength() const;
 
 	/**
-	*	@brief	Add item into this list.
-	*	@pre	List is not full. item is not in list.
-	*	@post	Item is inserted in this list.
-	*	@return	1 if this function works well, otherwise 0.
+	*	@brief	리스트에 아이템을 추가한다.
+	*	@pre	없음.
+	*	@post	아이템이 리스트에 추가된다.
+	*	@param	item	추가할 아이템
+	*	@return	성공하면 1, 실패하면 0을 반환한다.
 	*/
 	int Add(const T& item);
 
 	/**
-	*	@brief	Retrieve list element whose key matches item's key (if present).
-	*	@pre	Key member of item is initialized.
-	*	@post	If there is an element whose key matches with item's key then the element's record is copied to the item.
-	*	@return	1 if any element's primary key matches with item's, otherwise 0.
+	*	@brief	item의 key와 같은 데이터를 리스트에서 찾고, 성공하면 parameter에 할당한다.
+	*	@pre	item의 key가 유효해야 한다.
+	*	@post	데이터가 존재한다면, parameter에 할당된다.
+	*	@param	item	검색하려는 key를 가진 아이템
+	*	@return	아이템을 찾으면 1, 실패하면 0을 반환한다.
 	*/
 	int Get(T& item);
 
 	/**
-	*	@brief	Primary key를 바탕으로 검색하여 해당하는 정보를 삭제함.
-	*	@pre	리스트가 존재/초기화 완료되어있는 상태여야 함.
-	*	@post	일치하는 데이터가 리스트에 있을 경우 삭제됨.
-	*	@param	data	primary key가 반드시 포함되어 있는 item 객체.
-	*	@return 삭제할 일치하는 데이터가 있으면 삭제 후 1, 없으면 0을 리턴.
+	*	@brief	item의 key와 같은 데이터를 찾아 삭제한다.
+	*	@pre	item의 key가 유효해야 한다.
+	*	@post	데이터가 존재한다면, 삭제한다.
+	*	@param	item	삭제하려는 key를 가진 아이템
+	*	@return 아이템을 찾아 삭제하면 1, 실패하면 0을 반환한다.
 	*/
-	int Delete(const T& data);
+	int Delete(const T& item);
 
 	/**
-	*	@brief	Primary key를 바탕으로 검색하여 해당하는 정보를 새로 채워넣음.
-	*	@pre	리스트가 존재/초기화 완료되어있는 상태여야 함.
-	*	@post	일치하는 데이터가 리스트에 있을 경우 새로운 데이터로 교체됨.
-	*	@param	data	primary key가 반드시 포함되어 있는 item 객체.
+	*	@brief	item의 key와 같은 데이터를 찾고, parameter의 데이터로 교체한다.
+	*	@pre	item의 key가 유효해야 한다.
+	*	@post	데이터가 존재한다면, parameter의 데이터로 교체한다.
+	*	@param	item	교체하려는 key를 가진 아이템
+	*	@return	아이템을 찾아 교체하면 1, 실패하면 0을 반환한다.
 	*/
-	int Replace(const T& data);
+	int Replace(const T& item);
 
 	/**
 	*	@brief	현재 데이터에 대상 데이터의 값을 복사하여 할당한다.
@@ -128,52 +130,55 @@ public:
 	DoublyLinkedList<T>& operator=(const DoublyLinkedList<T>& list);
 
 	/**
-	*	@brief	비교 함수를 교체한다.
-	*	@pre	비교 함수에서는 t1 < t2일 때 음수, t1 = t2일 때 0, t1 > t2일 때 양수를 반환해야 한다.
-	*	@post	비교 함수가 parameter의 함수로 교체된다.
-	*	@param	func	교체할 비교 함수
+	*	@brief	데이터 비교 함수를 설정한다.
+	*	@pre	비교 함수는 t1, t2를 비교할 때 t1 > t2이면 양수, t1 = t2이면 0, t1 < t2이면 음수를 반환해야 한다.
+	*	@post	데이터 비교 함수가 parameter의 함수로 설정된다.
+	*	@param	func	설정할 데이터 비교 함수
 	*/
 	void SetCompareFunction(function<int(const T&, const T&)>& func);
 
-
 private:
-	///< Header node와 Trailer node는 generic한 data structure에서 key의 최소/최댓값을 알기 어려우므로, 사용하지 않음.
-	DoublyNodeType<T>* m_pFirst;	///< Pointer for pointing a first node.
-	DoublyNodeType<T>* m_pLast; ///< Last node.
-	int m_nLength;	///< Number of node in the list.
-	function<int(const T&, const T&)> compareFunc;	///< 비교 함수
+
+	DoublyNodeType<T>* m_pFirst;	///< 첫번째 노드를 가리키는 포인터
+	DoublyNodeType<T>* m_pLast; ///< 마지막 노드를 가리키는 포인터
+	int m_nLength;	///< 노드의 개수 (길이)
+	function<int(const T&, const T&)> compareFunc; ///< 데이터 비교 함수
 };
 
 
-// Class constructor
 template <typename T>
 DoublyLinkedList<T>::DoublyLinkedList()
 {
 	m_nLength = 0;
-	m_pFirst = nullptr;
-	m_pLast = nullptr;
-	compareFunc = [](const T& t1, const T& t2) { return (t1 > t2) - (t1 < t2); }
+	m_pFirst = NULL;
+	m_pLast = NULL;
+	compareFunc = [](const T& t1, const T& t2)
+	{
+		return (t1 > t2) - (t1 < t2);
+	};
 }
 
 template <typename T>
 DoublyLinkedList<T>::DoublyLinkedList(const DoublyLinkedList<T>& list)
 {
 	m_nLength = 0;
-	m_pFirst = nullptr;
-	m_pLast = nullptr;
-
-	DoublyIterator<T> iter(list);
+	m_pFirst = NULL;
+	m_pLast = NULL; //복사해오기 전 초기화
+	compareFunc = list.compareFunc;
 	
 	if (!list.IsEmpty()) return; //비어있다면 종료
 
-	while (iter.NotNull())
+	DoublyIterator<T> iter(list);
+	iter.m_pCurPointer = list.m_pLast; //마지막 포인터로 설정 (접근 횟수를 낮추기 위함)
+
+	while (iter.NotNull()) //iteration을 역방향으로 돌면서 아이템을 각각 추가
 	{
 		Add(iter.Current());
-		iter.Next();
+		iter.Prev();
 	}
 }
 
-// Class destructor
+
 template <typename T>
 DoublyLinkedList<T>::~DoublyLinkedList()
 {
@@ -181,53 +186,45 @@ DoublyLinkedList<T>::~DoublyLinkedList()
 	MakeEmpty();
 }
 
-// Determines whether the list is full.
-// 개수제한은 없지만, 실제 메모리가 가득 차서 더 이상 할당이 불가능한 경우 시스템 예외 처리
 template <typename T>
 bool DoublyLinkedList<T>::IsFull() {
 	try {
-		DoublyNodeType<T>* temp = nullptr;	// if there is not memory left, temp would not be initialized as NULL and
-		delete temp;					// deleting temp(pointer) could not be executed.
+		DoublyNodeType<T>* temp = new DoublyNodeType<T>(); //node 동적할당을 시도한다.
+		delete temp; //성공했다면 메모리가 충분하므로 지우고 false 반환
 		return false;
 	}
-	catch (bad_alloc& e_ba) {
-		cerr << "bad_alloc exception caught : " << e_ba.what() << endl;
+	catch (bad_alloc& e) { //동적 할당에 문제가 생기면 out of memory. bad_alloc 예외가 처리된다.
+		cerr << "bad alloc exception: " << e.what() << endl;
 		return true;
 	}
 }
 
-// Determines whether the list is empty.
 template <typename T>
 bool DoublyLinkedList<T>::IsEmpty() const {
-	if (m_pFirst == nullptr) {
-		return true;
-	}
-	else return false;
+	return m_pFirst == NULL; //첫 노드가 NULL이면 비어있다.
 }
 
-// Initialize list to empty state.
 template <typename T>
 void DoublyLinkedList<T>::MakeEmpty()
 {
-	// 리스트내의 모든 노드 제거 하고 리스트의 length를 초기화
 	DoublyNodeType<T>* tempPtr;
-	DoublyIterator<T> iter(*this);
+	DoublyIterator<T> iter(*this); //iterator 선언
 
-	while (iter.NotNull())
+	while (iter.NotNull()) //NULL 포인터가 나올 때 까지
 	{
-		tempPtr = iter.m_pCurPointer;
-		iter.Next();
-		delete tempPtr;
+		tempPtr = iter.m_pCurPointer; //현재 포인터
+		iter.Next(); //다음 포인터로 넘기고
+		delete tempPtr; //그 포인터를 해제한다.
 	}
 
 	m_nLength = 0;
-	m_pFirst = nullptr;
-	m_pLast = nullptr;
+	m_pFirst = NULL;
+	m_pLast = NULL;
+	//첫 노드, 마지막 노드에 NULL pointer를 할당한다.
+	//메모리 해제가 완전히 끝나지 않았을 때 MakeEmpty가 다시 호출되면 error가 발생하므로 해결하기 위해 추가함.
 
 }
 
-
-// Get number of elements in the list.
 template <typename T>
 int DoublyLinkedList<T>::GetLength() const
 {
@@ -235,146 +232,146 @@ int DoublyLinkedList<T>::GetLength() const
 }
 
 
-// Add item into this list.
 template <typename T>
 int DoublyLinkedList<T>::Add(const T& item)
 {
-	if (!IsFull()) {
-		DoublyNodeType<T>* node = new DoublyNodeType<T>;
-		DoublyIterator<T> iter(*this);
+	if (IsFull()) return 0; //꽉 찼으면 실패
 
-		node->data = item;
-		node->prev = nullptr;
-		node->next = nullptr;
+	DoublyNodeType<T>* node = new DoublyNodeType<T>; //추가할 노드 생성
+	DoublyIterator<T> iter(*this);
 
-		// 비어있는 경우
-		if (m_pFirst == nullptr) {
-			m_pFirst = node;
-			m_pLast = m_pFirst;
-		}
-		// 1개 이상
-		else {
-			DoublyNodeType<T>* pNode;	// iterator에서 나오는 데이터 객체
-			while (iter.NotNull()) {
-				// GetCurrentNode는 return by value이므로 수정 및 실 메모리 접근 불가해서 사용 못함
-				pNode = iter.m_pCurPointer;
+	node->data = item;
+	node->prev = NULL;
+	node->next = NULL;
 
-				if (node->data < pNode->data) { // 넣으려고 하는게 더 작음
-					node->next = pNode;
-					if (m_nLength == 1) {	// 맨 앞
-						m_pFirst = node;
-					}
-					else {	// 중간
-						node->prev = pNode->prev;
-						node->prev->next = node;
-					}
-					pNode->prev = node;
+	if (m_pFirst == NULL)
+	{ //비어 있는 경우
+		m_pFirst = node;
+		m_pLast = m_pFirst;
+	}
+	else
+	{ //아닌 경우
+
+		DoublyNodeType<T>* current;	// iterator에서 접근할 노드
+		while (iter.NotNull())
+		{
+			current = iter.m_pCurPointer;
+
+			if (node->data < current->data)
+			{  //추가하려는 노드가 현재보다 작다면
+				node->next = current; //다음 노드를 current로 설정
+
+				if (current == m_pFirst) m_pFirst = node; //맨 앞인 경우 first로 설정
+				else current->prev->next = node; //아닌 경우 current의 이전 노드가 다음을 node로 가리키도록 설정
+
+				node->prev = current->prev; //이전 노드를 current의 이전 노드로 설정
+				current->prev = node; //current의 이전 노드를 node로 설정
+				break;
+			}
+			else if (node->data > current->data)
+			{	//추가하려는 노드가 현재보다 크다면
+
+				if (current->next == NULL) //current의 다음이 NULL이 없다면 (데이터가 더 없다면) 맨 뒤.
+				{
+					current->next = node;
+					node->prev = current;
+					m_pLast = node; //마지막 노드를 node로 설정
 					break;
 				}
-				else {
-					if (!iter.NextNotNull()) {	// 맨 뒤
-						pNode->next = node;
-						node->prev = pNode;
-						m_pLast = node;
-						break;
-					}
-					else iter.Next();
-				}
+				else iter.Next();
+			}
+			else //같은 데이터를 발견하면
+			{
+				delete node; //메모리를 해제하고 0 반환
+				return 0;
 			}
 		}
-
-		m_nLength++;
-		return 1;
 	}
-	else return 0;
+
+	m_nLength++;
+	return 1;
 }
 
-
-// Retrieve list element whose key matches item's key (if present).
 template <typename T>
 int DoublyLinkedList<T>::Get(T& item)
 {
 	DoublyIterator<T> iter(*this);
-	int count = 0;	// 몇 번째에 위치하고 있는지 리턴 (없으면 0)
-				// iterator를 사용하면서 curPointer를 재사용할 수 없으므로 return value의 의미를 변경
-	bool found = false;
-	while (iter.NotNull()) {
-		count++;
-		T current = iter.Current();
-		if (item == current) {
-			found = true;
-			item = current;
-			break;
+
+	while (iter.NotNull()) //현재 포인터가 NULL이 아니면
+	{
+		if (iter.m_pCurPointer->data == item) //찾으면
+		{
+			item = iter.m_pCurPointer->data; //할당 후 반환
+			return 1;
 		}
-		else if (item < current) {
-			break;
-		}
-		else {
-			iter.Next();
-		}
+		else if (iter.m_pCurPointer->data > item) //item보다 현재 아이템이 크면
+			return 0; //없다는 뜻이므로 0 반환
+
+		iter.Next(); //못 찾았다면 다음 포인터로 이동
 	}
 
-	if (found) {
-		return count;
-	}
-	else return 0;
-
+	return 0; //없으면 0 반환
 }
 
-
-
-// 특정 요소를 찾아 삭제하는 함수
 template <typename T>
-int DoublyLinkedList<T>::Delete(const T& data) {
-	DoublyNodeType<T>* pNode = m_pFirst;
-	T temp = data; //데이터를 지우기 위해 찾는 객체
+int DoublyLinkedList<T>::Delete(const T& item)
+{
+	DoublyIterator<T> iter(*this);
 
-	int positionIndex = Get(temp);
-	if (positionIndex) {
-		for (int i = 1; i < positionIndex; i++) {
-			pNode = pNode->next;
+	while (iter.NotNull()) //현재 포인터가 NULL이 아니면
+	{
+		if (iter.m_pCurPointer->data == item) //찾으면
+		{
+			DoublyNodeType<T>* node = iter.m_pCurPointer;
+			node->prev->next = node->next; //이전 노드의 다음을 다음 노드로 설정
+			node->next->prev = node->prev; //다음 노드의 이전을 이전 노드로 설정
+			delete node; //메모리 해제
+			return 1;
 		}
-		if (pNode->next != nullptr) {	// 끝이 아니면
-			pNode->next->prev = pNode->prev;
-		}
-		else m_pLast = pNode->prev;
-		if (pNode->prev != nullptr) {	// 처음이 아니면
-			pNode->prev->next = pNode->next;
-		}
-		else m_pFirst = pNode->next;
-		delete pNode;
-		m_nLength--;
-		return 1;
+		else if (iter.m_pCurPointer->data > item) //item보다 현재 아이템이 크면
+			return 0; //없다는 뜻이므로 0 반환
+
+		iter.Next(); //못 찾았다면 다음 포인터로 이동
 	}
-	else return 0;
 
+	return 0; //못 찾았다면 0 반환
 }
 
-// 특정 요소를 찾아 새로운 내용으로 대치시키는 함수
 template <typename T>
-int DoublyLinkedList<T>::Replace(const T& data) {
+int DoublyLinkedList<T>::Replace(const T& item)
+{
 
-	T target = data;
-	DoublyNodeType<T>* pNode = m_pFirst;
-	int positionIndex = Get(target);
-	if (!positionIndex) return 0;
-	for (int i = 1; i < positionIndex; i++) {
-		pNode = pNode->next;
+	DoublyIterator<T> iter(*this);
+
+	while (iter.NotNull()) //현재 포인터가 NULL이 아니면
+	{
+		if (iter.m_pCurPointer->data == item) //찾으면
+		{
+			iter.m_pCurPointer->data = item; //item을 할당하여 교체
+			return 1;
+		}
+		else if (iter.m_pCurPointer->data > item) //item보다 현재 아이템이 크면
+			return 0; //없다는 뜻이므로 0 반환
+
+		iter.Next(); //못 찾았다면 다음 포인터로 이동
 	}
-	pNode->data = data;
-	return 1;
+
+	return 0; //못 찾았다면 0 반환
 }
 
 template <typename T>
 DoublyLinkedList<T>& DoublyLinkedList<T>::operator=(const DoublyLinkedList<T>& list)
 {
 	MakeEmpty();
-	DoublyIterator<T> iter(list);
+	if (list.IsEmpty()) return *this; //비어있다면 바로 반환
 
-	while (iter.NotNull())
+	DoublyIterator<T> iter(list);
+	iter.m_pCurPointer = list.m_pLast; //마지막 포인터로 설정 (접근 횟수를 낮추기 위함)
+
+	while (iter.NotNull()) //iteration을 역방향으로 돌면서 아이템을 각각 추가
 	{
 		Add(iter.Current());
-		iter.Next();
+		iter.Prev();
 	}
 
 	return *this;
@@ -383,6 +380,7 @@ DoublyLinkedList<T>& DoublyLinkedList<T>::operator=(const DoublyLinkedList<T>& l
 template <typename T>
 void DoublyLinkedList<T>::SetCompareFunction(function<int(const T&, const T&)>& func)
 {
-	this->compareFunc = func;
+	compareFunc = func;
 }
+
 #endif
