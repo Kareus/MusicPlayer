@@ -463,11 +463,11 @@ int Application::ReplaceMusic()
 
 	data->SetID(data->GetName() + '_' + data->GetArtist());
 
-	//have to work on
+	music = *data; //backup
 
-	DeleteMusic(music);
+	musicList.Delete(iter); //iterator를 이용해 빠르게 아이템을 제거한다.
 
-	if (ReplaceMusic(music))
+	if (ReplaceMusic(music)) //다시 정렬하여 추가
 	{
 		cout << "\tMusic has been successfully replaced" << endl;
 		return 1;
@@ -479,27 +479,30 @@ int Application::ReplaceMusic()
 
 int Application::SearchMusicByName()
 {
-	MusicType music;
-
-	music.SetNameFromKB();
+	string name;
+	cout << "\t Name: ";
+	getline(cin, name);
 
 	int success = 0;
 	
-	nameList.ResetList();
+	DoublyIterator<SimpleMusicType> iter(nameList);
 
 	cout << "\t---------------" << endl;
-	for (int i = 0; i < nameList.GetLength(); i++)
+	
+	SimpleMusicType* data;
+	while (iter.NotNull())
 	{
-		SimpleMusicType data;
-		nameList.GetNextItem(data);
-		if ((int)data.GetName().find(music.GetName()) >= 0)
+		data = iter.CurrentPtr();
+
+		if ((int)data->GetName().find(name) >= 0)
 		{
 			success++;
 			cout << "\tMusic num : " << success << endl;
-			data.DisplayIDOnScreen();
-			data.DisplayNameOnScreen();
+			data->DisplayIDOnScreen();
+			data->DisplayNameOnScreen();
 			cout << endl;
 		}
+		iter.Next();
 	}
 
 	if (success > 0) return 1;
@@ -510,28 +513,30 @@ int Application::SearchMusicByName()
 
 int Application::SearchMusicByArtist()
 {
-	MusicType music;
-
-	music.SetArtistFromKB();
+	string artist;
+	cout << "\t Artist: ";
+	getline(cin, artist);
 
 	int success = 0;
 
-	musicList.ResetList();
+	DoublyIterator<MusicType> iter(musicList);
 	cout << "\t---------------" << endl;
 
-	for (int i = 0; i < musicList.GetLength(); i++)
+	MusicType* data;
+	while (iter.NotNull())
 	{
-		MusicType data;
-		musicList.GetNextItem(data);
-		if ((int)data.GetArtist().find(music.GetArtist()) >= 0)
+		data = iter.CurrentPtr();
+
+		if ((int)data->GetArtist().find(artist) >= 0)
 		{
 			success++;
 			cout << "\tMusic Num: " << success << endl;
 			cout << "\t---------------" << endl;
-			data.DisplayIDOnScreen();
-			data.DisplayNameOnScreen();
+			data->DisplayIDOnScreen();
+			data->DisplayNameOnScreen();
 			cout << endl;
 		}
+		iter.Next();
 	}
 
 	if (success > 0) return 1;
@@ -542,28 +547,29 @@ int Application::SearchMusicByArtist()
 
 int Application::SearchMusicByAlbum()
 {
-	MusicType music;
-
-	music.SetAlbumFromKB();
+	string album;
+	cout << "\t Album: ";
+	getline(cin, album);
 
 	int success = 0;
 
-	musicList.ResetList();
+	DoublyIterator<MusicType> iter(musicList);
 	cout << "\t---------------" << endl;
 
-	for (int i = 0; i < musicList.GetLength(); i++)
+	MusicType* data;
+	while (iter.NotNull())
 	{
-		MusicType data;
-		musicList.GetNextItem(data);
-		if ((int)data.GetAlbum().find(music.GetAlbum()) >= 0)
+		data = iter.CurrentPtr();
+		if ((int)data->GetAlbum().find(album) >= 0)
 		{
 			success++;
 			cout << "\tMusic Num: " << success << endl;
 			cout << "\t---------------" << endl;
-			data.DisplayIDOnScreen();
-			data.DisplayNameOnScreen();
+			data->DisplayIDOnScreen();
+			data->DisplayNameOnScreen();
 			cout << endl;
 		}
+		iter.Next();
 	}
 
 	if (success > 0) return 1;
@@ -574,28 +580,29 @@ int Application::SearchMusicByAlbum()
 
 int Application::SearchMusicByGenre()
 {
-	MusicType music;
-
-	music.SetGenreFromKB();
+	string genre;
+	cout << "\t Genre: ";
+	getline(cin, genre);
 
 	int success = 0;
 
-	musicList.ResetList();
+	DoublyIterator<MusicType> iter(musicList);
 	cout << "\t---------------" << endl;
 
-	for (int i = 0; i < musicList.GetLength(); i++)
+	MusicType* data;
+	while (iter.NotNull())
 	{
-		MusicType data;
-		musicList.GetNextItem(data);
-		if ((int)data.GetGenre().find(music.GetGenre()) >= 0)
+		data = iter.CurrentPtr();
+		if ((int)data->GetGenre().find(genre) >= 0)
 		{
 			success++;
 			cout << "\tMusic Num: " << success << endl;
 			cout << "\t---------------" << endl;
-			data.DisplayIDOnScreen();
-			data.DisplayNameOnScreen();
+			data->DisplayIDOnScreen();
+			data->DisplayNameOnScreen();
 			cout << endl;
 		}
+		iter.Next();
 	}
 
 	if (success > 0) return 1;
@@ -643,7 +650,6 @@ void Application::DisplayNewMusic()
 void Application::DisplayMusicByGenre()
 {
 	cout << "\t장르별 음악들" << endl;
-	genreList.ResetList();
 
 	if (genreList.GetLength() == 0)
 	{
@@ -651,51 +657,58 @@ void Application::DisplayMusicByGenre()
 		return;
 	}
 
-	for (int i = 0; i < genreList.GetLength(); i++)
+	DoublyIterator<GenreType> iter(genreList);
+	GenreType* genre;
+	SimpleMusicType* music;
+
+	while (iter.NotNull())
 	{
-		GenreType genre;
+		genre = iter.CurrentPtr();
 
-		genreList.GetNextItem(genre);
-
-		SimpleMusicType music;
-		cout << "Genre : " << genre.GetGenre() << endl;
+		cout << "Genre : " << genre->GetGenre() << endl;
 		cout << "\t---------------" << endl;
 
-		DoublyLinkedList<SimpleMusicType> list = genre.GetList();
-		list.ResetList();
-		for (int j = 0; j < list.GetLength(); j++)
+		DoublyIterator<SimpleMusicType> iter_s = genre->GetIterator();
+
+		int count = 1;
+		while (iter_s.NotNull())
 		{
-			cout << "\tMusic Num: " << i + 1 << endl;
+			cout << "\tMusic Num: " << count << endl;
 			cout << "\t---------------" << endl;
-			list.GetNextItem(music);
-			music.DisplayIDOnScreen();
-			music.DisplayNameOnScreen();
+			music = iter_s.CurrentPtr();
+			music->DisplayIDOnScreen();
+			music->DisplayNameOnScreen();
 			cout << endl;
+			count++;
+			iter_s.Next();
 		}
 
 		cout << endl;
+		iter.Next();
 	}
 }
 
 void Application::RetreiveByNameNGenre()
 {
-	MusicType music;
-	music.SetNameFromKB();
-	music.SetGenreFromKB();
+	string name, genre;
+	cout << "\t Name: ";
+	getline(cin, name);
+	cout << "\t Genre: ";
+	getline(cin, genre);
 
-	MusicType temp;
-	musicList.ResetList();
+	DoublyIterator<MusicType> iter(musicList);
+	MusicType* music;
 
 	int success = 0;
 
 	cout << "\t---------------" << endl;
-	for (int i = 0; i < musicList.GetLength(); i++)
+	while (iter.NotNull())
 	{
-		musicList.GetNextItem(temp);
-		if (music.GetName() != temp.GetName()) continue; //이름이 다르면 스킵
-		if (music.GetGenre() != temp.GetGenre()) continue; //장르가 다르면 스킵
+		music = iter.CurrentPtr();
+		if (music->GetName() != name) continue; //이름이 다르면 스킵
+		if (music->GetGenre() != genre) continue; //장르가 다르면 스킵
 		
-		temp.DisplayAllOnScreen(); //발견했으므로 출력
+		music->DisplayAllOnScreen(); //발견했으므로 출력
 		cout << endl;
 		success++;
 	}
@@ -847,9 +860,8 @@ void Application::AddToRecentPlayed(const MusicType& music)
 
 	if (recentPlayedList.GetLength() > 30)
 	{
-		recentPlayedList.ResetList();
-		recentPlayedList.GetNextItem(simpleMusic); //첫번째 아이템 찾기
-		recentPlayedList.Delete(simpleMusic);
+		DoublyIterator<SimpleMusicType> iter(recentPlayedList);
+		recentPlayedList.Delete(iter.First());
 	}
 }
 
@@ -865,9 +877,9 @@ void Application::AddToMostPlayed(const MusicType& music)
 
 	if (mostPlayedList.GetLength() > 30)
 	{
-		mostPlayedList.ResetList();
-		while (mostPlayedList.GetNextItem(simpleMusic)); //가장 마지막 아이템 찾기
-		mostPlayedList.Delete(simpleMusic);
+		DoublyIterator<SimpleMusicType> iter(mostPlayedList);
+		iter.ResetToLastPointer();
+		mostPlayedList.Delete(iter);
 	}
 }
 
@@ -875,8 +887,8 @@ void Application::DisplayRecentPlayed()
 {
 	cout << "\t최근 재생한 30곡" << endl;
 
-	recentPlayedList.ResetList();
-	SimpleMusicType music;
+	SimpleMusicType* music;
+	DoublyIterator<SimpleMusicType> iter(recentPlayedList);
 
 	if (recentPlayedList.GetLength() == 0)
 	{
@@ -886,23 +898,26 @@ void Application::DisplayRecentPlayed()
 
 	cout << "\t---------------" << endl;
 
-	for (int i = 0; i < recentPlayedList.GetLength(); i++)
+	int count = 1;
+	while (iter.NotNull())
 	{
-		recentPlayedList.GetNextItem(music);
+		music = iter.CurrentPtr();
 
-		cout << "\tMusic Num: " << i + 1<< endl;
+		cout << "\tMusic Num: " << count << endl;
 		cout << "\t---------------" << endl;
-		music.DisplayIDOnScreen();
-		music.DisplayNameOnScreen();
+		music->DisplayIDOnScreen();
+		music->DisplayNameOnScreen();
+		count++;
 		cout << endl;
+		iter.Next();
 	}
 }
 
 void Application::DisplayMostPlayed()
 {
 	cout << "\t가장 많이 재생한 30곡" << endl;
-	mostPlayedList.ResetList();
-	SimpleMusicType music;
+	SimpleMusicType* music;
+	DoublyIterator<SimpleMusicType> iter(mostPlayedList);
 
 	if (mostPlayedList.GetLength() == 0)
 	{
@@ -912,15 +927,17 @@ void Application::DisplayMostPlayed()
 
 	cout << "\t---------------" << endl;
 	
-	int count = 0;
-	while (mostPlayedList.GetNextItem(music))
+	int count = 1;
+	while (iter.NotNull())
 	{
-		count++;
+		music = iter.CurrentPtr();
 		cout << "\tMusic Num: " << count << endl;
 		cout << "\t---------------" << endl;
-		music.DisplayIDOnScreen();
-		music.DisplayNameOnScreen();
-		music.DisplayPlayedTimeOnScreen();
+		music->DisplayIDOnScreen();
+		music->DisplayNameOnScreen();
+		music->DisplayPlayedTimeOnScreen();
+		iter.Next();
+		count++;
 		cout << endl;
 	}
 }
@@ -938,23 +955,28 @@ int Application::ReplaceMusic(const MusicType& music)
 
 	nameList.Replace(simple);
 
-	genreList.ResetList();
+	DoublyIterator<GenreType> iter(genreList);
 
-	GenreType genre;
-	while (genreList.GetNextItem(genre))
+	GenreType* genre;
+	while (iter.NotNull())
 	{
-		if (!strcmp(genre.GetGenre().c_str(), music.GetGenre().c_str()))
+		if (!strcmp(genre->GetGenre().c_str(), music.GetGenre().c_str()))
 		{
-			genre.Replace(simple);
+			genre->Replace(simple);
 			break;
 		}
+		iter.Next();
 	}
 
-	albumList.ResetList();
+	Album* album;
+	DoublyIterator<Album> iter_a(albumList);
 
-	Album album;
-
-	while (albumList.GetNextItem(album)) if (album.ReplaceMusic(simple)) albumList.Replace(album);
+	while (iter_a.NotNull())
+	{
+		album = iter_a.CurrentPtr();
+		album->ReplaceMusic(simple);
+		iter_a.Next();
+	}
 
 	recentPlayedList.Replace(simple);
 	mostPlayedList.Replace(simple);
@@ -971,19 +993,29 @@ int Application::DeleteMusic(const MusicType& music)
 
 	nameList.Delete(simpleMusic);
 
-	GenreType genre;
-	genre.SetGenre(music.GetGenre());
-	genreList.Get(genre);
-	genre.Delete(simpleMusic);
-	if (genre.GetMusicNum() > 0) genreList.Replace(genre);
-	else genreList.Delete(genre);
+	GenreType* genre;
 
-	Album album;
+	DoublyIterator<GenreType> iter(genreList);
+
+	while (iter.NotNull())
+	{
+		genre = iter.CurrentPtr();
+		if (genre->Delete(simpleMusic)) break;
+		iter.Next();
+	}
+
+	if (genre->GetMusicNum() == 0) genreList.Delete(iter);
+
+	Album* album;
 	
-	albumList.ResetList();
+	DoublyIterator<Album> iter_a(albumList);
 
-	while (albumList.GetNextItem(album))
-		if (album.DeleteMusic(simpleMusic)) albumList.Replace(album);
+	while (iter_a.NotNull())
+	{
+		album = iter_a.CurrentPtr();
+		if (album->DeleteMusic(simpleMusic)) break;
+		iter_a.Next();
+	}
 
 	recentPlayedList.Delete(simpleMusic);
 	mostPlayedList.Delete(simpleMusic);
@@ -993,33 +1025,46 @@ int Application::DeleteMusic(const MusicType& music)
 
 int Application::GetArtistByName(const string& name, Artist& data)
 {
-	artistList.ResetList();
-	Artist artist;
-	for (int i = 0; i < artistList.GetLength(); i++)
+	Artist* artist;
+
+	DoublyIterator<Artist> iter(artistList);
+
+	while (iter.NotNull())
 	{
-		artistList.GetNextItem(artist);
-		if (artist.GetName() == name)
+		artist = iter.CurrentPtr();
+
+		if (artist->GetName() == name)
 		{
-			data = artist;
+			data = *artist;
 			return 1;
 		}
+		iter.Next();
 	}
 	return 0;
 }
 
 void Application::ClearEmptyAlbums()
 {
-	albumList.ResetList();
+	Album* album;
+	Artist* artist;
 
-	Album album;
-	while (albumList.GetNextItem(album))
+	DoublyIterator<Album> iter(albumList);
+
+	while (iter.NotNull())
 	{
-		if (album.GetMusicNum() != 0) continue;
+		album = iter.CurrentPtr();
 
-		albumList.Delete(album);
-		Artist artist;
+		if (album->GetMusicNum() != 0) continue;
 
-		if (GetArtistByName(album.GetArtist(), artist) == 0) continue;
+		albumList.Delete(iter);
+
+		DoublyIterator<Artist> iter_a(artistList);
+
+		while (iter_a.NotNull())
+		{
+			artist = iter_a.CurrentPtr();
+			if (!strcmp(artist->GetName().c_str(),album->GetArtist().c_str()); //getartistname
+		}
 		artist.DeleteAlbum(album);
 		artistList.Replace(artist);
 	}

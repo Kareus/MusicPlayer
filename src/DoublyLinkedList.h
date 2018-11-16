@@ -31,6 +31,7 @@ struct DoublyNodeType
 *   Add, Delete, Replace 함수는 이전 자료구조처럼 할당 연산자를 통해 데이터를 복사하거나 참조만 하기 때문에, parameter를 const reference로 받아오기로 함
 *   MakeEmpty 함수 호출 이후 아직 주소 해제가 완료되지 않은 시점에서 다시 MakeEmpty 등이 호출될 수 있으므로 코드 내용을 약간 수정함.
 *   Header/Trailer Node는 generic한 data structure에서는 사용하기 어렵다. 데이터 타입이 최소/최대값이 없을 수 있으며, 각 타입마다 생성하는 방법이 다르기 때문이다.
+*	2018.11.16 update : iterator 객체를 reference로 받아 delete하는 함수 추가.
 */
 
 template <typename T>
@@ -111,6 +112,15 @@ public:
 	*/
 	int Delete(const T& item);
 
+	/**
+	*	@brief	iterator가 가리키는 노드를 리스트에서 제거한다.
+	*	@pre	iterator는 유효한 객체이어야 한다.
+	*	@post	iterator의 노드 데이터가 리스트에 포함되는 유효한 데이터라면, 삭제하고 iterator를 다음으로 넘긴다.
+	*	@param	iter	삭제하려는 노드를 가리키는 iterator 객체
+	*	@return	노드를 삭제하면 1, 실패하면 0을 반환한다.
+	*/
+	int Delete(DoublyIterator<T>& iter);
+	
 	/**
 	*	@brief	item의 key와 같은 데이터를 찾고, parameter의 데이터로 교체한다.
 	*	@pre	item의 key가 유효해야 한다.
@@ -383,4 +393,19 @@ void DoublyLinkedList<T>::SetCompareFunction(function<int(const T&, const T&)>& 
 	compareFunc = func;
 }
 
+template <typename T>
+int DoublyLinkedList<T>::Delete(DoublyIterator<T>& iter)
+{
+	if (&iter.m_List != this) return 0; //리스트의 포인터가 같지 않으면 0 반환
+
+	DoublyNodeType<T>* node = iter->m_pCurPointer;
+	if (node == NULL) return 0; //현재 포인터가 NULL이면 0 반환
+
+	node->prev->next = node->next;
+	node->next->prev = node->prev;
+	iter.Next();
+
+	delete node;
+	return 1;
+}
 #endif

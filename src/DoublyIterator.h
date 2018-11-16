@@ -15,7 +15,7 @@ class DoublyLinkedList;
 *   current pointer의 data를 반환하는 Current 함수를 추가함.
 *   Doubly Linked List에서 사용할 Iterator이므로, Prev 함수를 추가함.
 *	2018.11.15 update : CurrentPtr 함수 추가
-*	2018.11.16 update : Reset 함수 추가
+*	2018.11.16 update : Reset 함수 추가, Last 관련 함수 추가
 */
 
 template <typename T>
@@ -65,6 +65,12 @@ public:
 	T* CurrentPtr();
 
 	/**
+	*  마지막 Node의 data를 반환함.
+	*/
+
+	T Last();
+
+	/**
 	*	현재 pointer의 node를 반환함. (pass by value)
 	*/
 	DoublyNodeType<T> GetCurrentNode();
@@ -73,6 +79,11 @@ public:
 	*	처음 노드로 포인터를 초기화하는 함수.
 	*/
 	void Reset();
+
+	/**
+	*	마지막 노드로 포인터를 초기화하는 함수.
+	*/
+	void ResetToLastPointer();
 
 private:
 	const DoublyLinkedList<T> &m_List;
@@ -139,5 +150,17 @@ template <typename T>
 void DoublyIterator<T>::Reset()
 {
 	m_pCurPointer = list.m_pFirst;
+}
+
+template <typename T>
+T DoublyIterator<T>::Last()
+{
+	return list.m_pLast->data;
+}
+
+template <typename T>
+void DoublyIterator<T>::ResetToLastPointer()
+{
+	return m_pCurPointer = list.m_pLast;
 }
 #endif
