@@ -145,7 +145,7 @@ public:
 	*	@post	데이터 비교 함수가 parameter의 함수로 설정된다.
 	*	@param	func	설정할 데이터 비교 함수
 	*/
-	void SetCompareFunction(function<int(const T&, const T&)>& func);
+	void SetCompareFunction(const function<int(const T&, const T&)>& func);
 
 private:
 
@@ -388,7 +388,7 @@ DoublyLinkedList<T>& DoublyLinkedList<T>::operator=(const DoublyLinkedList<T>& l
 }
 
 template <typename T>
-void DoublyLinkedList<T>::SetCompareFunction(function<int(const T&, const T&)>& func)
+void DoublyLinkedList<T>::SetCompareFunction(const function<int(const T&, const T&)>& func)
 {
 	compareFunc = func;
 }

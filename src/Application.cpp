@@ -1063,10 +1063,9 @@ void Application::ClearEmptyAlbums()
 		while (iter_a.NotNull())
 		{
 			artist = iter_a.CurrentPtr();
-			if (!strcmp(artist->GetName().c_str(),album->GetArtist().c_str()); //getartistname
+			if (!strcmp(artist->GetName().c_str(), album->GetArtist().c_str())) artist->DeleteAlbum(*album);
+			iter_a.Next();
 		}
-		artist.DeleteAlbum(album);
-		artistList.Replace(artist);
 	}
 
 	cout << "\tRemoved all empty album data" << endl;
@@ -1090,28 +1089,31 @@ int Application::SearchMusicByID()
 
 int Application::SearchMusicByComposer()
 {
-	MusicType music;
-	music.SetComposerFromKB();
+	cout << "\tComposer : ";
+	string composer;
+	getline(cin, composer);
 
 	int success = 0;
 	cout << "\t---------------" << endl;
-	musicList.ResetList();
 
-
-	for (int i = 0; i < musicList.GetLength(); i++)
+	DoublyIterator<MusicType> iter(musicList);
+	MusicType* music;
+	
+	while (iter.NotNull())
 	{
-		MusicType temp;
-		musicList.GetNextItem(temp);
+		music = iter.CurrentPtr();
 
-		if ((int)(music.GetComposer().find(temp.GetComposer())) >= 0)
+		if ((int)(music->GetComposer().find(composer)) >= 0)
 		{
 			success++;
 			cout << "\tMusic Num: " << success << endl;
 			cout << "\t---------------" << endl;
-			temp.DisplayIDOnScreen();
-			temp.DisplayNameOnScreen();
+			music->DisplayIDOnScreen();
+			music->DisplayNameOnScreen();
 			cout << endl;
 		}
+
+		iter.Next();
 	}
 
 	if (success > 0) return 1;
@@ -1144,24 +1146,27 @@ int Application::SearchAlbumByName()
 	cout << "\tAlbum Name: ";
 	getline(cin, albumName);
 
-	albumList.ResetList();
+	DoublyIterator<Album> iter(albumList);
+	Album* temp;
 
 	int success = 0;
 
 	cout << "\t---------------" << endl;
-	for (int i = 0; i < albumList.GetLength(); i++)
+	
+	while (iter.NotNull())
 	{
-		Album temp;
-		albumList.GetNextItem(temp);
+		temp = iter.CurrentPtr();
 
-		if ((int)(temp.GetAlbumName().find(albumName)) >= 0)
+		if ((int)(temp->GetAlbumName().find(albumName)) >= 0)
 		{
 			success++;
 			cout << "\tAlbum Num: " << success << endl;
 			cout << "\t---------------" << endl;
-			temp.DisplayAllOnScreen();
+			temp->DisplayAllOnScreen();
 			cout << endl;
 		}
+
+		iter.Next();
 	}
 
 	if (success > 0) return 1;
@@ -1176,23 +1181,25 @@ int Application::SearchAlbumByArtist()
 	
 	getline(cin, artist);
 
-	albumList.ResetList();
+	DoublyIterator<Album> iter(albumList);
+	Album* temp;
 	
 	cout << "\t---------------" << endl;
 	int success = 0;
-	for (int i = 0; i < albumList.GetLength(); i++)
+	while (iter.NotNull())
 	{
-		Album temp;
-		albumList.GetNextItem(temp);
+		temp = iter.CurrentPtr();
 
-		if ((int)(temp.GetArtist().find(artist)) >= 0)
+		if ((int)(temp->GetArtist().find(artist)) >= 0)
 		{
 			success++;
 			cout << "\tAlbum Num: " << success << endl;
 			cout << "\t---------------" << endl;
-			temp.DisplayAllOnScreen();
+			temp->DisplayAllOnScreen();
 			cout << endl;
 		}
+
+		iter.Next();
 	}
 
 	if (success > 0) return 1;
@@ -1209,20 +1216,24 @@ void Application::DisplayAlbumByName()
 	}
 
 	//primary key가 이름 순이므로 그냥 출력
-	albumList.ResetList();
-	Album album;
+	Album* album;
+	DoublyIterator<Album> iter(albumList);
 
+	int count = 1;
 	cout << "\t---------------" << endl;
-	for (int i = 0; i < albumList.GetLength(); i++)
+	while (iter.NotNull())
 	{
-		cout << "\tAlbum Num: " << i + 1 << endl;
+		album = iter.CurrentPtr();
+		cout << "\tAlbum Num: " << count << endl;
 		cout << "\t---------------" << endl;
-		albumList.GetNextItem(album);
 
-		album.DisplayIDOnScreen();
-		album.DisplayAlbumNameOnScreen();
-		album.DisplayArtistOnScreen();
+		album->DisplayIDOnScreen();
+		album->DisplayAlbumNameOnScreen();
+		album->DisplayArtistOnScreen();
 		cout << endl;
+
+		iter.Next();
+		count++;
 	}
 }
 
@@ -1245,27 +1256,33 @@ void Application::DisplayAlbumByArtist()
 
 	Album album;
 
-	albumList.ResetList();
+	DoublyIterator<Album> iter(albumList);
 
-	for (int i = 0; i < albumList.GetLength(); i++)
+	while (iter.NotNull())
 	{
-		albumList.GetNextItem(album);
+		album = iter.Current();
 		list.Add(album);
+		iter.Next();
 	}
 
 
 	cout << "\t---------------" << endl;
-	list.ResetList();
+	
+	DoublyIterator<Album> iter2(list);
+	int count = 1;
 
-	for (int i = 0; i < list.GetLength(); i++)
+	while (iter2.NotNull())
 	{
-		list.GetNextItem(album);
-		cout << "\tAlbum Num: " << i + 1 << endl;
+		album = iter2.Current();
+		cout << "\tAlbum Num: " << count << endl;
 		cout << "\t---------------" << endl;
 		album.DisplayIDOnScreen();
 		album.DisplayAlbumNameOnScreen();
 		album.DisplayArtistOnScreen();
 		cout << endl;
+
+		iter2.Next();
+		count++;
 	}
 
 }
@@ -1288,27 +1305,34 @@ void Application::DisplayAlbumByDate()
 	//개선할 여지가 있음
 	Album album;
 
-	albumList.ResetList();
+	DoublyIterator<Album> iter(albumList);
 
-	for (int i = 0; i < albumList.GetLength(); i++)
+	while (iter.NotNull())
 	{
-		albumList.GetNextItem(album);
+		album = iter.Current();
 		list.Add(album);
+		iter.Next();
 	}
 
-	cout << "\t---------------" << endl;
-	list.ResetList();
 
-	for (int i = 0; i < list.GetLength(); i++)
+	cout << "\t---------------" << endl;
+
+	DoublyIterator<Album> iter2(list);
+	int count = 1;
+
+	while (iter2.NotNull())
 	{
-		list.GetNextItem(album);
-		cout << "\tAlbum Num: " << i + 1 << endl;
+		album = iter2.Current();
+		cout << "\tAlbum Num: " << count << endl;
 		cout << "\t---------------" << endl;
 		album.DisplayIDOnScreen();
 		album.DisplayAlbumNameOnScreen();
 		album.DisplayArtistOnScreen();
 		album.DisplayDateOnScreen();
 		cout << endl;
+
+		iter2.Next();
+		count++;
 	}
 }
 
@@ -1319,34 +1343,36 @@ int Application::SearchAlbumByMusic()
 	
 	getline(cin, musicName);
 
-	albumList.ResetList();
-
-	Album album;
+	DoublyIterator<Album> iter(albumList);
+	Album* album;
 
 	int success = 0;
 
 	cout << "\t---------------" << endl;
-	for (int i = 0; i < albumList.GetLength(); i++)
+	while (iter.NotNull())
 	{
-		albumList.GetNextItem(album);
-		album.ResetList();
+		album = iter.CurrentPtr();
 
-		SimpleMusicType music;
+		DoublyIterator<SimpleMusicType> iter_s = album->GetIterator();
 
-		for (unsigned int j = 0; j < album.GetMusicNum(); j++)
+		SimpleMusicType* music;
+
+		while (iter_s.NotNull())
 		{
-			album.GetNextMusic(music);
-
-			if ((int)(music.GetName().find(musicName)) >= 0)
+			music = iter_s.CurrentPtr();
+			if ((int)(music->GetName().find(musicName)) >= 0)
 			{
 				success++;
 				cout << "\tAlbum Num: " << success << endl;
 				cout << "\t---------------" << endl;
-				album.DisplayAllOnScreen();
+				album->DisplayAllOnScreen();
 				cout << endl;
 				break;
 			}
+			iter_s.Next();
 		}
+
+		iter.Next();
 	}
 
 	if (success > 0) return 1;
@@ -1386,21 +1412,24 @@ int Application::SearchArtistByName()
 	cout << "\t---------------" << endl;
 
 	int success = 0;
-	artistList.ResetList();
 
-	for (int i = 0; i < artistList.GetLength(); i++)
+	DoublyIterator<Artist> iter(artistList);
+	Artist* temp;
+	
+	while (iter.NotNull())
 	{
-		Artist temp;
-		artistList.GetNextItem(temp);
+		temp = iter.CurrentPtr();
 
-		if ((int)(temp.GetName().find(artistName)) >= 0)
+		if ((int)(temp->GetName().find(artistName)) >= 0)
 		{
 			success++;
 			cout << "\tArtist Num: " << success << endl;
 			cout << "\t---------------" << endl;
-			temp.DisplayAllOnScreen();
+			temp->DisplayAllOnScreen();
 			cout << endl;
 		}
+
+		iter.Next();
 	}
 
 	if (success >= 0) return 1;
@@ -1418,30 +1447,33 @@ int Application::SearchArtistByAlbum()
 	cout << "\t---------------" << endl;
 
 	int success = 0;
-	artistList.ResetList();
+	DoublyIterator<Artist> iter(artistList);
+	Artist* temp;
 
-	for (int i = 0; i < artistList.GetLength(); i++)
+	while (iter.NotNull())
 	{
-		Artist temp;
-		artistList.GetNextItem(temp);
+		DoublyIterator<Album> iter_a = temp->GetIterator();
 
-		Album album;
+		Album* album;
 
-		temp.ResetList();
-
-		while (temp.GetNextAlbum(album))
+		while (iter_a.NotNull())
 		{
+			album = iter_a.CurrentPtr();
 
-			if ((int)(album.GetAlbumName().find(albumName)) >= 0)
+			if ((int)(album->GetAlbumName().find(albumName)) >= 0)
 			{
 				success++;
 				cout << "\tArtist Num: " << success << endl;
 				cout << "\t---------------" << endl;
-				temp.DisplayAllOnScreen();
+				temp->DisplayAllOnScreen();
 				cout << endl;
 				break;
 			}
+
+			iter_a.Next();
 		}
+
+		iter.Next();
 	}
 
 	if (success >= 0) return 1;
@@ -1457,20 +1489,24 @@ void Application::DisplayArtistByName()
 		return;
 	}
 
-	artistList.ResetList();
-	Artist artist;
+	DoublyIterator<Artist> iter(artistList);
+	Artist* artist;
 
 	cout << "\t---------------" << endl;
-	for (int i = 0; i < artistList.GetLength(); i++)
-	{
-		cout << "\tArtist Num: " << i + 1 << endl;
-		cout << "\t---------------" << endl;
-		artistList.GetNextItem(artist);
+	int count = 1;
 
-		artist.DisplayIDOnScreen();
-		artist.DisplayNameOnScreen();
-		artist.DisplayBirthDateOnScreen();
+	while (iter.NotNull())
+	{
+		artist = iter.CurrentPtr();
+		cout << "\tArtist Num: " << count << endl;
+		cout << "\t---------------" << endl;
+
+		artist->DisplayIDOnScreen();
+		artist->DisplayNameOnScreen();
+		artist->DisplayBirthDateOnScreen();
 		cout << endl;
+		count++;
+		iter.Next();
 	}
 }
 
@@ -1698,10 +1734,15 @@ int Application::DeleteAlbum()
 
 	if (albumList.Delete(album))
 	{
-		Artist artist;
-		artistList.ResetList();
+		Artist* artist;
+		DoublyIterator<Artist> iter(artistList);
 
-		while (artistList.GetNextItem(artist)) if (artist.DeleteAlbum(album)) artistList.Replace(artist);
+		while (iter.NotNull())
+		{
+			artist = iter.CurrentPtr();
+			artist->DeleteAlbum(album);
+			iter.Next();
+		}
 
 		cout << "\tAlbum has been successfully deleted" << endl;
 		return 1;
@@ -1721,14 +1762,20 @@ int Application::ReplaceAlbum()
 	album.SetDateFromKB();
 
 	album.SetID(album.GetAlbumName() + '_' + album.GetArtist());
+
 	if (albumList.Replace(album))
 	{
 		cout << "\tAlbum has been successfully replaced" << endl;
 
-		artistList.ResetList();
-		Artist artist;
+		DoublyIterator<Artist> iter(artistList);
+		Artist* artist;
 
-		while (artistList.GetNextItem(artist)) if (artist.ReplaceAlbum(album)) artistList.Replace(artist);
+		while (iter.NotNull())
+		{
+			artist = iter.CurrentPtr();
+			artist->ReplaceAlbum(album);
+			iter.Next();
+		}
 		return 1;
 	}
 
@@ -1942,14 +1989,16 @@ int Application::DeleteAlbumFromArtist()
 
 void Application::ClearEmptyArtists()
 {
-	artistList.ResetList();
+	DoublyIterator<Artist> iter(artistList);
+	Artist* artist;
 
-	Artist artist;
-	while (artistList.GetNextItem(artist))
+	while (iter.NotNull())
 	{
-		if (artist.GetAlbumNum() != 0) continue;
+		artist = iter.CurrentPtr();
+		if (artist->GetAlbumNum() != 0) continue;
 
-		artistList.Delete(artist);
+		artistList.Delete(iter);
+		iter.Next();
 	}
 
 	cout << "\tRemoved all empty artist data" << endl;
@@ -1969,19 +2018,19 @@ int Application::AddMusic(const MusicType& data)
 	
 	bool exist = false;
 
-	genreList.ResetList();
+	DoublyIterator<GenreType> iter(genreList);
+	GenreType* genre;
 
-	GenreType genre;
-
-	while (genreList.GetNextItem(genre))
+	while (iter.NotNull())
 	{
-		if (!strcmp(genre.GetGenre().c_str(), data.GetGenre().c_str()))
+		genre = iter.CurrentPtr();
+		if (!strcmp(genre->GetGenre().c_str(), data.GetGenre().c_str()))
 		{
-			genre.Add(music);
-			genreList.Replace(genre);
+			genre->Add(music);
 			exist = true;
 			break;
 		}
+		iter.Next();
 	}
 
 	if (!exist)
