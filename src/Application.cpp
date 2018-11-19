@@ -1,5 +1,6 @@
 #include "Application.h"
 #include <Windows.h>
+#include "PlayListWriter.h"
 
 #undef max //max macro È¥¿ë ¹æÁö
 
@@ -958,8 +959,10 @@ int Application::ReplaceMusic(const MusicType& music)
 	DoublyIterator<GenreType> iter(genreList);
 
 	GenreType* genre;
+
 	while (iter.NotNull())
 	{
+		genre = iter.CurrentPtr();
 		if (!strcmp(genre->GetGenre().c_str(), music.GetGenre().c_str()))
 		{
 			genre->Replace(simple);
@@ -993,7 +996,7 @@ int Application::DeleteMusic(const MusicType& music)
 
 	nameList.Delete(simpleMusic);
 
-	GenreType* genre;
+	GenreType* genre = NULL;
 
 	DoublyIterator<GenreType> iter(genreList);
 
@@ -1004,7 +1007,7 @@ int Application::DeleteMusic(const MusicType& music)
 		iter.Next();
 	}
 
-	if (genre->GetMusicNum() == 0) genreList.Delete(iter);
+	if (genre != NULL && genre->GetMusicNum() == 0) genreList.Delete(iter);
 
 	Album* album;
 	
@@ -1452,6 +1455,7 @@ int Application::SearchArtistByAlbum()
 
 	while (iter.NotNull())
 	{
+		temp = iter.CurrentPtr();
 		DoublyIterator<Album> iter_a = temp->GetIterator();
 
 		Album* album;

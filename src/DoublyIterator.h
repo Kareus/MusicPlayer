@@ -149,18 +149,18 @@ DoublyNodeType<T> DoublyIterator<T> :: GetCurrentNode()
 template <typename T>
 void DoublyIterator<T>::Reset()
 {
-	m_pCurPointer = list.m_pFirst;
+	m_pCurPointer = m_List.m_pFirst;
 }
 
 template <typename T>
 T DoublyIterator<T>::Last()
 {
-	return list.m_pLast->data;
+	return m_List.m_pLast->data;
 }
 
 template <typename T>
 void DoublyIterator<T>::ResetToLastPointer()
 {
-	return m_pCurPointer = list.m_pLast;
+	m_pCurPointer = m_List.m_pLast;
 }
 #endif

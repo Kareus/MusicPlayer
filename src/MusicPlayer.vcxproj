@@ -147,27 +147,32 @@
     <ClCompile Include="Album.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Artist.cpp" />
+    <ClCompile Include="DirectoryReader.cpp" />
+    <ClCompile Include="FileDialog.cpp" />
     <ClCompile Include="GenreType.cpp" />
     <ClCompile Include="ID3Reader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MusicType.cpp" />
     <ClCompile Include="SimpleMusicType.cpp" />
-    <ClCompile Include="WPLWriter.cpp" />
+    <ClCompile Include="PlayListWriter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Album.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Artist.h" />
     <ClInclude Include="CircularQueueType.h" />
+    <ClInclude Include="DirectoryReader.h" />
+    <ClInclude Include="dirent.h" />
     <ClInclude Include="DoublyIterator.h" />
     <ClInclude Include="DoublyLinkedList.h" />
+    <ClInclude Include="FileDialog.h" />
     <ClInclude Include="GenreTable.h" />
     <ClInclude Include="GenreType.h" />
     <ClInclude Include="ID3Reader.h" />
     <ClInclude Include="MusicType.h" />
     <ClInclude Include="SimpleMusicType.h" />
     <ClInclude Include="SortedList.h" />
-    <ClInclude Include="WPLWriter.h" />
+    <ClInclude Include="PlayListWriter.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

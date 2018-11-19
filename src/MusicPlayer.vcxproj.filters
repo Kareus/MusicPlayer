@@ -36,10 +36,16 @@
     <ClCompile Include="SimpleMusicType.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="WPLWriter.cpp">
+    <ClCompile Include="ID3Reader.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="ID3Reader.cpp">
+    <ClCompile Include="PlayListWriter.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectoryReader.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="FileDialog.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -68,9 +74,6 @@
     <ClInclude Include="SimpleMusicType.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="WPLWriter.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="ID3Reader.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -81,6 +84,18 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="DoublyLinkedList.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayListWriter.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectoryReader.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="dirent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="FileDialog.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

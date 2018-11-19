@@ -33,6 +33,11 @@ public:
 	Album();
 
 	/**
+	* 복사 생성자
+	*/
+	Album(const Album& data);
+
+	/**
 	* 기본 소멸자
 	*/
 	~Album();

@@ -398,7 +398,7 @@ int DoublyLinkedList<T>::Delete(DoublyIterator<T>& iter)
 {
 	if (&iter.m_List != this) return 0; //리스트의 포인터가 같지 않으면 0 반환
 
-	DoublyNodeType<T>* node = iter->m_pCurPointer;
+	DoublyNodeType<T>* node = iter.m_pCurPointer;
 	if (node == NULL) return 0; //현재 포인터가 NULL이면 0 반환
 
 	node->prev->next = node->next;
