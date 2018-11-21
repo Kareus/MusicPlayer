@@ -5,8 +5,7 @@
 #include <fstream>
 #include <string>
 #include <stdexcept>
-
-#include <map>
+#include "AVLTree.h"
 
 /**
 * id3 정보를 읽다가 발생한 문제에 대한 예외 처리 class
@@ -23,6 +22,22 @@ public:
 	{
 		return msg.c_str();
 	}
+};
+
+class ID3Frame
+{
+private:
+	std::string frame;
+	std::wstring content;
+
+public:
+	ID3Frame(const std::string& Frame = "", const std::wstring& Content = L"") : frame(Frame), content(Content) {}
+	void setContent(const std::wstring& content) { this->content = content; }
+	std::wstring getContent() const { return content; }
+	std::string getFrame() const { return frame; }
+	bool operator<(const ID3Frame& data) const { return strcmp(frame.c_str(), data.getFrame().c_str()) < 0; }
+	bool operator>(const ID3Frame& data) const { return strcmp(frame.c_str(), data.getFrame().c_str()) > 0; }
+	bool operator==(const ID3Frame& data) const { return !strcmp(frame.c_str(), data.getFrame().c_str()); }
 };
 
 /**
@@ -49,7 +64,7 @@ private:
 	char genre;
 
 	int tagSize;
-	std::map<std::string, std::wstring> frames;
+	AVLTree<ID3Frame> frames;
 
 	int decodeSync(char* byte);
 

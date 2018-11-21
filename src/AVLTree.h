@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <functional>
 
 /**
 * AVL 트리의 노드
@@ -17,6 +18,8 @@ struct AVLTreeNode
 	int height;
 };
 
+template <typename T>
+class AVLTreeIterator;
 /**
 * AVL 트리 클래스
 * @date 2018.11.21
@@ -26,7 +29,8 @@ template <typename T>
 class AVLTree
 {
 private:
-	friend void test(AVLTree<T>& a);
+	friend class AVLTreeIterator<T>;
+
 	AVLTreeNode<T>* root;
 
 	void CopyNode(AVLTreeNode<T>*& node, AVLTreeNode<T>* copy);
@@ -47,15 +51,18 @@ private:
 
 	int height(AVLTreeNode<T>*& node);
 
-	AVLTreeNode<T>* SingleLeftRotate(AVLTreeNode<T>*& node);
+	AVLTreeNode<T>* SingleLeftRotate(AVLTreeNode<T>* node);
 
-	AVLTreeNode<T>* SingleRightRotate(AVLTreeNode<T>*& node);
+	AVLTreeNode<T>* SingleRightRotate(AVLTreeNode<T>* node);
 
-	AVLTreeNode<T>* DoubleLeftRotate(AVLTreeNode<T>*& node);
+	AVLTreeNode<T>* DoubleLeftRotate(AVLTreeNode<T>* node);
 
-	AVLTreeNode<T>* DoubleRightRotate(AVLTreeNode<T>*& node);
+	AVLTreeNode<T>* DoubleRightRotate(AVLTreeNode<T>* node);
+
+	void findNode(AVLTreeNode<T>*& node, std::function<bool(const T&)>& search, std::function<void(const T&)>& todo);
 
 public:
+
 	AVLTree();
 
 	AVLTree(const AVLTree& tree);
@@ -80,6 +87,7 @@ public:
 
 	AVLTree<T>& operator=(const AVLTree<T>& tree);
 
+	void Find(std::function<bool(const T&)>& search, std::function<void(const T&)>& todo);
 };
 
 template <typename T>
@@ -138,19 +146,19 @@ int AVLTree<T>::Add(const T& data)
 template <typename T>
 int AVLTree<T>::Delete(const T& data)
 {
-	DeleteNode(root, data);
+	return DeleteNode(root, data);
 }
 
 template <typename T>
 int AVLTree<T>::Replace(const T& data)
 {
-	ReplaceNode(root, data);
+	return ReplaceNode(root, data);
 }
 
 template <typename T>
 int AVLTree<T>::Get(T& data)
 {
-	GetNode(root, data);
+	return GetNode(root, data);
 }
 
 template <typename T>
@@ -165,6 +173,12 @@ AVLTree<T>& AVLTree<T>::operator=(const AVLTree<T>& tree)
 	MakeEmpty();
 	CopyNode(root, tree.root);
 	return *this;
+}
+
+template <typename T>
+void AVLTree<T>::Find(std::function<bool(const T&)>& search, std::function<void(const T&)>& todo)
+{
+	findNode(root, search, todo);
 }
 
 /* -------- recursive functions -------- */
@@ -229,7 +243,8 @@ int AVLTree<T>::AddNode(AVLTreeNode<T>*& node, const T& data)
 
 		if ((height(node->right) - height(node->left)) == 2) //불균형이 발생한 경우
 		{
-			if (data > node->left->data) node = SingleLeftRotate(node); //data가 오른쪽 subtree의 오른쪽에 추가된 경우 = 단순 left rotation
+
+			if (data > node->right->data) node = SingleLeftRotate(node); //data가 오른쪽 subtree의 오른쪽에 추가된 경우 = 단순 left rotation
 			else node = DoubleLeftRotate(node); //data가 오른쪽 subtree의 왼쪽에 추가된 경우 = 이중 left rotation
 		}
 
@@ -270,25 +285,27 @@ int AVLTree<T>::DeleteNode(AVLTreeNode<T>*& node, const T& data)
 			delete temp;
 			temp = nullptr;
 		}
-
-		CalculateHeight(node);
-
-		if (height(node->left) - height(node->right) == 2) //왼쪽 불균형
-		{
-			if (height(node->left->left) - height(node->left->right) == 1) //왼쪽의 왼쪽
-				node = SingleLeftRotate(node);
-			else //왼쪽의 오른쪽
-				node = DoubleLeftRotate(node);
-		}
-		else if (height(node->right) - height(node->left) == 2) //오른쪽 불균형
-		{
-			if (height(node->right->right) - height(node->right->left) == 1) //오른쪽의 오른쪽
-				node = SingleRightRotate(node);
-			else //오른쪽의 왼쪽
-				node = DoubleRightRotate(node);
-		}
-
+		return 1;
 	}
+
+	CalculateHeight(node);
+
+	if (height(node->left) - height(node->right) == 2) //왼쪽 불균형
+	{
+		if (height(node->left->left) - height(node->left->right) == 1) //왼쪽의 왼쪽
+			node = SingleRightRotate(node);
+		else //왼쪽의 오른쪽
+			node = DoubleRightRotate(node);
+	}
+	else if (height(node->right) - height(node->left) == 2) //오른쪽 불균형
+	{
+		if (height(node->right->right) - height(node->right->left) == 1) //오른쪽의 오른쪽
+			node = SingleLeftRotate(node);
+		else //오른쪽의 왼쪽
+			node = DoubleLeftRotate(node);
+	}
+
+	return success;
 }
 
 template <typename T>
@@ -322,7 +339,7 @@ int AVLTree<T>::GetNode(AVLTreeNode<T>*& node, T& data)
 }
 
 template <typename T>
-AVLTreeNode<T>* AVLTree<T>::SingleLeftRotate(AVLTreeNode<T>*& node)
+AVLTreeNode<T>* AVLTree<T>::SingleLeftRotate(AVLTreeNode<T>* node)
 {
 	AVLTreeNode<T>* right = node->right;
 	node->right = right->left;
@@ -333,7 +350,7 @@ AVLTreeNode<T>* AVLTree<T>::SingleLeftRotate(AVLTreeNode<T>*& node)
 }
 
 template <typename T>
-AVLTreeNode<T>* AVLTree<T>::SingleRightRotate(AVLTreeNode<T>*& node)
+AVLTreeNode<T>* AVLTree<T>::SingleRightRotate(AVLTreeNode<T>* node)
 {
 	AVLTreeNode<T>* left = node->left;
 	node->left = left->right;
@@ -344,14 +361,14 @@ AVLTreeNode<T>* AVLTree<T>::SingleRightRotate(AVLTreeNode<T>*& node)
 }
 
 template <typename T>
-AVLTreeNode<T>* AVLTree<T>::DoubleLeftRotate(AVLTreeNode<T>*& node)
+AVLTreeNode<T>* AVLTree<T>::DoubleLeftRotate(AVLTreeNode<T>* node)
 {
 	node->right = SingleRightRotate(node->right);
 	return SingleLeftRotate(node);
 }
 
 template <typename T>
-AVLTreeNode<T>* AVLTree<T>::DoubleRightRotate(AVLTreeNode<T>*& node)
+AVLTreeNode<T>* AVLTree<T>::DoubleRightRotate(AVLTreeNode<T>* node)
 {
 	node->left = SingleLeftRotate(node->left);
 	return SingleRightRotate(node);
@@ -375,5 +392,15 @@ template <typename T>
 int AVLTree<T>::height(AVLTreeNode<T>*& node)
 {
 	return node == nullptr ? -1 : node->height;
+}
+
+template <typename T>
+void AVLTree<T>::findNode(AVLTreeNode<T>*& node, std::function<bool(const T&)>& search, std::function<void(const T&)>& todo)
+{
+	if (node == nullptr) return;
+
+	findNode(node->left, search, todo);
+	if (search(node->data)) todo(node->data);
+	findNode(node->right, search, todo);
 }
 #endif

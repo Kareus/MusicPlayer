@@ -161,6 +161,7 @@
     <ClInclude Include="Application.h" />
     <ClInclude Include="Artist.h" />
     <ClInclude Include="AVLTree.h" />
+    <ClInclude Include="AVLTreeIterator.h" />
     <ClInclude Include="CircularQueueType.h" />
     <ClInclude Include="DirectoryReader.h" />
     <ClInclude Include="dirent.h" />

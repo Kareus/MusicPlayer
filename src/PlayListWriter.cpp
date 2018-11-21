@@ -172,7 +172,7 @@ void M3U8Writer::addMedia(unsigned int length, const wstring& name, const wstrin
 
 void M3U8Writer::addMedia(const MusicType& music)
 {
-	addMedia(music.GetLength(), music.GetArtist() + ' - ' + music.GetName(), music.GetPath());
+//	addMedia(music.GetLength(), music.GetArtist() + ' - ' + music.GetName(), music.GetPath());
 }
 
 

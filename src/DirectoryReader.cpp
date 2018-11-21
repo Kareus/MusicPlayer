@@ -7,7 +7,7 @@ using namespace std;
 
 DirectoryReader::DirectoryReader()
 {
-	pathList.clear();
+	pathList.MakeEmpty();
 }
 
 void DirectoryReader::openDirWithFileBox()
@@ -24,34 +24,17 @@ void DirectoryReader::openDirWithFileBox()
 
 bool DirectoryReader::openDirectory(const wstring& filepath)
 {
-	pathList.clear();
+	pathList.MakeEmpty();
 
 	WDIR *dir;
 	struct wdirent *ent;
 
 	if ((dir = wopendir(filepath.c_str())) != NULL) {
-		/* print all the files and directories within directory */
+		//디렉토리 및 파일을 찾아서 추가
 
 		while ((ent = wreaddir(dir)) != NULL) {
 			wstring name = ent->d_name;
-			pathList.push_back(name);
-
-			wcout << name << L' ';
-
-			if (name.size() < 4)
-			{
-				cout << endl;
-				continue;
-			}
-
-			wstring ext = name.substr(name.size() - 4, 4).c_str();
-			wcout << ext;
-			if (!wcscmp(ext.c_str(), L".mp3"))
-			{
-				cout << " It is mp3 file";
-			}
-
-			cout << endl;
+			pathList.Add(name);
 		}
 
 		wclosedir(dir);

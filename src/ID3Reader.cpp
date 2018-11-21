@@ -13,7 +13,7 @@ ID3Reader::ID3Reader()
 	tagSize = 0;
 	track = 0;
 	genre = -1;
-	frames.clear();
+	frames.MakeEmpty();
 }
 
 ID3Reader::ID3Reader(const wstring& filepath)
@@ -24,14 +24,14 @@ ID3Reader::ID3Reader(const wstring& filepath)
 	revision = 0;
 	track = 0;
 	genre = -1;
-	frames.clear();
+	frames.MakeEmpty();
 	read(filepath);
 }
 
 ID3Reader::~ID3Reader()
 {
 	if (m_inFile) m_inFile.close();
-	frames.clear();
+	frames.MakeEmpty();
 }
 
 bool ID3Reader::read(const wstring& filepath)
@@ -169,7 +169,8 @@ bool ID3Reader::read(const wstring& filepath)
 				for (int i = 1; i < realSize; i += 2) frame += *(uint8_t*)(data + i); //UTF8의 경우 BOM이 없거나 상관 없으므로 1번째 문자부터 옮긴다.
 			}
 
-			frames.insert(std::pair<string, wstring>(id, frame)); //frame 추가
+			ID3Frame id3frame(id, frame);
+			frames.Add(id3frame); //frame 추가
 			delete data; //메모리 해제
 
 			offset += realSize + 10; //frame + id size (= 4) + frame size (= 4) + flag size (= 2)
@@ -344,6 +345,7 @@ int ID3Reader::decodeSync(char* byte)
 
 wstring ID3Reader::getFrame(const string& frameName)
 {
-	if (frames.count(frameName)) return frames.at(frameName); //frameName에 해당하는 값이 존재하면 그 값을 반환
+	ID3Frame frame(frameName);
+	if (frames.Get(frame)) return frame.getContent(); //frameName에 해당하는 값이 존재하면 그 값을 반환
 	return L""; //없다면 빈 문자열 반환
 }
