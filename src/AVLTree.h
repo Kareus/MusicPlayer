@@ -26,6 +26,7 @@ template <typename T>
 class AVLTree
 {
 private:
+	friend void test(AVLTree<T>& a);
 	AVLTreeNode<T>* root;
 
 	void CopyNode(AVLTreeNode<T>*& node, AVLTreeNode<T>* copy);
@@ -44,9 +45,7 @@ private:
 
 	void CalculateHeight(AVLTreeNode<T>*& node);
 
-	AVLTreeNode* GetMinNode(AVLTreeNode<T>*& node);
-
-	AVLTreeNode* GetMaxNode(AVLTreeNode<T>*& node);
+	int height(AVLTreeNode<T>*& node);
 
 	AVLTreeNode<T>* SingleLeftRotate(AVLTreeNode<T>*& node);
 
@@ -213,9 +212,9 @@ int AVLTree<T>::AddNode(AVLTreeNode<T>*& node, const T& data)
 	}
 	else if (node->data > data) //data가 작은 경우
 	{
-		int success = AddNode(node->left, data, success); //왼쪽 subtree 업데이트
+		int success = AddNode(node->left, data); //왼쪽 subtree 업데이트
 
-		if ((node->left->height - node->right->height) == 2) //불균형이 발생한 경우
+		if ((height(node->left) - height(node->right)) == 2) //불균형이 발생한 경우
 		{
 			if (data < node->left->data) node = SingleRightRotate(node); //data가 왼쪽 subtree의 왼쪽에 추가된 경우 = 단순 right rotation
 			else node = DoubleRightRotate(node); //data가 왼쪽 subtree의 오른쪽에 추가된 경우 = 이중 right rotation
@@ -226,9 +225,9 @@ int AVLTree<T>::AddNode(AVLTreeNode<T>*& node, const T& data)
 	}
 	else if (node->data < data)
 	{
-		int success = AddNode(node->right, data, success); //오른쪽 subtree 업데이트
+		int success = AddNode(node->right, data); //오른쪽 subtree 업데이트
 
-		if ((node->right->height - node->left->height) == 2) //불균형이 발생한 경우
+		if ((height(node->right) - height(node->left)) == 2) //불균형이 발생한 경우
 		{
 			if (data > node->left->data) node = SingleLeftRotate(node); //data가 오른쪽 subtree의 오른쪽에 추가된 경우 = 단순 left rotation
 			else node = DoubleLeftRotate(node); //data가 오른쪽 subtree의 왼쪽에 추가된 경우 = 이중 left rotation
@@ -239,6 +238,87 @@ int AVLTree<T>::AddNode(AVLTreeNode<T>*& node, const T& data)
 	}
 	
 	return 0; //same data found
+}
+
+template <typename T>
+int AVLTree<T>::DeleteNode(AVLTreeNode<T>*& node, const T& data)
+{
+	if (node == nullptr) return 0;
+	int success = 0;
+
+	if (node->data > data) //data가 작은 경우
+		success = DeleteNode(node->left, data);
+	else if (node->data < data) //data가 큰 경우
+		success = DeleteNode(node->right, data);
+	else //찾은 경우
+	{
+		if (node->left && node->right) //child가 둘인 경우
+		{
+			AVLTreeNode<T>* r = node->right;
+			while (r->right) r = r->right;
+			//현재 data보다 큰 값 중 가장 작은 값을 찾는다. (되도록 complete tree를 만들기 위함)
+
+			node->data = r->data;
+			delete r;
+			r = nullptr;
+		}
+		else //child가 없거나 하나인 경우
+		{
+			AVLTreeNode<T>* temp = node;
+			if (node->left == nullptr) node = node->right;
+			else if (node->right == nullptr) node = node->left;
+			delete temp;
+			temp = nullptr;
+		}
+
+		CalculateHeight(node);
+
+		if (height(node->left) - height(node->right) == 2) //왼쪽 불균형
+		{
+			if (height(node->left->left) - height(node->left->right) == 1) //왼쪽의 왼쪽
+				node = SingleLeftRotate(node);
+			else //왼쪽의 오른쪽
+				node = DoubleLeftRotate(node);
+		}
+		else if (height(node->right) - height(node->left) == 2) //오른쪽 불균형
+		{
+			if (height(node->right->right) - height(node->right->left) == 1) //오른쪽의 오른쪽
+				node = SingleRightRotate(node);
+			else //오른쪽의 왼쪽
+				node = DoubleRightRotate(node);
+		}
+
+	}
+}
+
+template <typename T>
+int AVLTree<T>::ReplaceNode(AVLTreeNode<T>*& node, const T& data)
+{
+	if (node == nullptr) return 0;
+
+	if (node->data > data) //데이터가 작은 경우
+		return ReplaceNode(node->left, data);
+	else if (node->data < data) //데이터가 큰 경우
+		return ReplaceNode(node->right, data);
+
+	//same data found
+	node->data = data;
+	return 1;
+}
+
+template <typename T>
+int AVLTree<T>::GetNode(AVLTreeNode<T>*& node, T& data)
+{
+	if (node == nullptr) return 0;
+
+	if (node->data > data) //데이터가 작은 경우
+		return GetNode(node->left, data);
+	else if (node->data < data) //데이터가 큰 경우
+		return GetNode(node->right, data);
+
+	//same data found
+	data = node->data;
+	return 1;
 }
 
 template <typename T>
@@ -289,5 +369,11 @@ void AVLTree<T>::CalculateHeight(AVLTreeNode<T>*& node)
 	if (node->right != nullptr) rightH = node->right->height;
 
 	node->height = 1 + (leftH > rightH ? leftH : rightH);
+}
+
+template <typename T>
+int AVLTree<T>::height(AVLTreeNode<T>*& node)
+{
+	return node == nullptr ? -1 : node->height;
 }
 #endif

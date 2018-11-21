@@ -1,6 +1,7 @@
 #include "Application.h"
 #include <Windows.h>
 #include "PlayListWriter.h"
+#include "AVLTree.h"
 
 #undef max //max macro È¥¿ë ¹æÁö
 
@@ -27,8 +28,21 @@ Application::~Application()
 {
 }
 
+template <typename T>
+void test(AVLTree<T>& a)
+{
+	
+}
+
 void Application::Run()
 {
+	AVLTree<int> a;
+	a.Add(1);
+	a.Add(2);
+	a.Add(3);
+	a.Add(4);
+
+	test(a);
 	while (1)
 	{
 		m_Command = GetCommand();
