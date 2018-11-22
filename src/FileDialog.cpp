@@ -60,7 +60,7 @@ DialogResult FileDialog::setDefaultPath(IFileDialog* dialog)
 }
 
 //비트맵 파일, 사운드 파일을 찾는 두 개의 필터를 만들고 싶다면 jpg,png;mp3,wav 식으로 추가해야 함.
-DialogResult FileDialog::setFilterToDialog(IFileOpenDialog* dialog, const std::wstring& filter)
+DialogResult FileDialog::setFilterToDialog(IFileDialog* dialog, const std::wstring& filter)
 {
 	if (filter.empty()) return DIALOG_CANCEL; //빈 문자열인 경우 cancel 반환. (에러는 아님)
 	//openFileDialog에서는 빈 문자열이 아님을 보장한다.
@@ -238,7 +238,7 @@ DialogResult FileDialog::openFileDialog(std::wstring& resultPath, const std::wst
 	DialogResult dialogResult = DIALOG_ERROR; //goto문을 사용하기 때문에 필요한 지역변수는 여기서 모두 선언한다. (return할 결과)
 	bool setFilter = false; //파일 필터 설정에 관한 변수
 
-	HRESULT result = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+	HRESULT result = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE); //COM 생성
 
 	IFileOpenDialog *fileOpenDialog(NULL);
 
@@ -312,6 +312,87 @@ DialogResult FileDialog::openFileDialog(std::wstring& resultPath, const std::wst
 end:
 	CoUninitialize();
 	fileOpenDialog->Release();
+
+	return dialogResult;
+}
+
+DialogResult FileDialog::saveFileDialog(std::wstring& resultPath, const std::wstring& filter)
+{
+	DialogResult dialogResult = DIALOG_ERROR;
+	bool setFilter = false;
+
+	HRESULT result = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE); //COM 생성
+
+	if (!SUCCEEDED(result))
+	{
+		throw filedialog_error("failed to initialized COM object");
+		return dialogResult;
+	}
+
+	IFileSaveDialog *fileSaveDialog(NULL);
+
+	result = CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_ALL, IID_IFileSaveDialog, reinterpret_cast<void**>(&fileSaveDialog)); //다이얼로그 생성
+
+	if (!SUCCEEDED(result))
+	{
+		throw filedialog_error("failed to create the dialog.");
+		goto end;
+	}
+
+	// 파일 필터 설정
+	if (filter.empty()) setFilter = setFilterToDialog(fileSaveDialog, L"*.*"); //빈 문자열일 경우 와일드 문자열로 자동 설정
+	else setFilter = setFilterToDialog(fileSaveDialog, filter);
+
+	if (setFilter != DIALOG_SUCCESS)
+	{
+		throw filedialog_error("failed to set the file filter");
+		goto end;
+	}
+
+	// 기본 경로 설정
+	if (setDefaultPath(fileSaveDialog) != DIALOG_SUCCESS)
+		goto end;
+
+	// 다이얼로그 열기
+	result = fileSaveDialog->Show(NULL);
+	if (SUCCEEDED(result))
+	{
+		// 파일 경로 가져오기
+		IShellItem *shellItem;
+		result = fileSaveDialog->GetResult(&shellItem);
+
+		if (!SUCCEEDED(result))
+		{
+			throw filedialog_error("error occured getting result from the dialog");
+			goto end;
+		}
+
+		wchar_t *filePath = NULL;
+		result = shellItem->GetDisplayName(SIGDN_FILESYSPATH, &filePath);
+
+		if (!SUCCEEDED(result))
+		{
+			throw filedialog_error("failed to get the path from the dialog");
+			goto end;
+		}
+
+		resultPath = filePath;
+		CoTaskMemFree(filePath);
+
+		dialogResult = DIALOG_SUCCESS;
+		shellItem->Release();
+	}
+	else if (result == HRESULT_FROM_WIN32(ERROR_CANCELLED))
+		dialogResult = DIALOG_CANCEL;
+	else
+	{
+		throw filedialog_error("error occured showing the dialog");
+		dialogResult = DIALOG_ERROR;
+	}
+
+end:
+	CoUninitialize();
+	fileSaveDialog->Release();
 
 	return dialogResult;
 }

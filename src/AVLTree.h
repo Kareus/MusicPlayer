@@ -270,12 +270,19 @@ int AVLTree<T>::DeleteNode(AVLTreeNode<T>*& node, const T& data)
 		if (node->left && node->right) //child가 둘인 경우
 		{
 			AVLTreeNode<T>* r = node->right;
-			while (r->right) r = r->right;
+			AVLTreeNode<T>* n = r; //r의 부모 노드
+			while (r->left)
+			{
+				n = r;
+				r = r->left;
+			}
 			//현재 data보다 큰 값 중 가장 작은 값을 찾는다. (되도록 complete tree를 만들기 위함)
+			//r은 leaf node임이 보장된다.
 
 			node->data = r->data;
 			delete r;
-			r = nullptr;
+
+			n->left = nullptr; //부모 노드가 dangling pointer를 가리키지 않도록 방지
 		}
 		else //child가 없거나 하나인 경우
 		{
@@ -283,25 +290,29 @@ int AVLTree<T>::DeleteNode(AVLTreeNode<T>*& node, const T& data)
 			if (node->left == nullptr) node = node->right;
 			else if (node->right == nullptr) node = node->left;
 			delete temp;
-			temp = nullptr;
+
+			if (root == temp) root = nullptr; //최상위 노드인 경우 root가 dangling pointer를 가리키지 않도록 방지 (노드가 root 하나 뿐이므로)
+			//이외 발생하는 dangling pointer는 회전 과정에서 해결된다.
+
+			return 1; //child가 하나인 경우엔 node가 overwrite되고, 이 node는 leaf node가 되므로 회전 과정 불필요
+			//child가 없는 경우엔 node가 delete되고 nullptr이 됨. 회전 과정이 불필요할 뿐더러, 접근 자체가 불가능
 		}
-		return 1;
 	}
 
-	CalculateHeight(node);
+	CalculateHeight(node); //삭제 실행 후 height을 계산
 
 	if (height(node->left) - height(node->right) == 2) //왼쪽 불균형
 	{
-		if (height(node->left->left) - height(node->left->right) == 1) //왼쪽의 왼쪽
+		if (height(node->left->left) - height(node->left->right) == 1) //왼쪽의 왼쪽 (left left case)
 			node = SingleRightRotate(node);
-		else //왼쪽의 오른쪽
+		else //왼쪽의 오른쪽 (left right case)
 			node = DoubleRightRotate(node);
 	}
 	else if (height(node->right) - height(node->left) == 2) //오른쪽 불균형
 	{
-		if (height(node->right->right) - height(node->right->left) == 1) //오른쪽의 오른쪽
+		if (height(node->right->right) - height(node->right->left) == 1) //오른쪽의 오른쪽 (right right case)
 			node = SingleLeftRotate(node);
-		else //오른쪽의 왼쪽
+		else //오른쪽의 왼쪽 (right left case)
 			node = DoubleLeftRotate(node);
 	}
 
@@ -341,6 +352,7 @@ int AVLTree<T>::GetNode(AVLTreeNode<T>*& node, T& data)
 template <typename T>
 AVLTreeNode<T>* AVLTree<T>::SingleLeftRotate(AVLTreeNode<T>* node)
 {
+	//단순 left rotation. 오른쪽 subtree의 오른쪽 node에 불균형이 발생한 경우. (outside, right right case)
 	AVLTreeNode<T>* right = node->right;
 	node->right = right->left;
 	right->left = node;
@@ -352,6 +364,7 @@ AVLTreeNode<T>* AVLTree<T>::SingleLeftRotate(AVLTreeNode<T>* node)
 template <typename T>
 AVLTreeNode<T>* AVLTree<T>::SingleRightRotate(AVLTreeNode<T>* node)
 {
+	//단순 right rotation. 왼쪽 subtree의 왼쪽 node에 불균형이 발생한 경우. (outside, left left case)
 	AVLTreeNode<T>* left = node->left;
 	node->left = left->right;
 	left->right = node;
@@ -363,6 +376,7 @@ AVLTreeNode<T>* AVLTree<T>::SingleRightRotate(AVLTreeNode<T>* node)
 template <typename T>
 AVLTreeNode<T>* AVLTree<T>::DoubleLeftRotate(AVLTreeNode<T>* node)
 {
+	//이중 left rotation. 오른쪽 subtree의 왼쪽 node에 불균형이 발생한 경우. (inside, right left case)
 	node->right = SingleRightRotate(node->right);
 	return SingleLeftRotate(node);
 }
@@ -370,6 +384,7 @@ AVLTreeNode<T>* AVLTree<T>::DoubleLeftRotate(AVLTreeNode<T>* node)
 template <typename T>
 AVLTreeNode<T>* AVLTree<T>::DoubleRightRotate(AVLTreeNode<T>* node)
 {
+	//이중 right rotation. 왼쪽 subtree의 오른쪽 node에 불균형이 발생한 경우. (inside, left right case)
 	node->left = SingleLeftRotate(node->left);
 	return SingleRightRotate(node);
 }
@@ -377,30 +392,31 @@ AVLTreeNode<T>* AVLTree<T>::DoubleRightRotate(AVLTreeNode<T>* node)
 template <typename T>
 void AVLTree<T>::CalculateHeight(AVLTreeNode<T>*& node)
 {
-	if (node == nullptr) return;
+	//해당 노드의 height를 계산
+	if (node == nullptr) return; //null이면 return
 
-	int leftH = -1;
-	int rightH = -1;
+	int leftH = -1; //기본값 -1 (left가 null인 경우)
+	int rightH = -1; //기본값 -1 (right가 null인 경우)
 
-	if (node->left != nullptr) leftH = node->left->height;
-	if (node->right != nullptr) rightH = node->right->height;
+	if (node->left != nullptr) leftH = node->left->height; //null이 아니면 left의 height를 가져옴
+	if (node->right != nullptr) rightH = node->right->height; //null이 아니면 right의 height를 가져옴
 
-	node->height = 1 + (leftH > rightH ? leftH : rightH);
+	node->height = 1 + (leftH > rightH ? leftH : rightH); //둘 중 더 큰 값 + 1로 설정 (null이 -1, leaf node가 0이기 때문)
 }
 
 template <typename T>
 int AVLTree<T>::height(AVLTreeNode<T>*& node)
 {
-	return node == nullptr ? -1 : node->height;
+	return node == nullptr ? -1 : node->height; //node->height은 nullptr인 경우 에러가 발생하므로 분기 판단하여 -1 혹은 height를 반환함
 }
 
 template <typename T>
 void AVLTree<T>::findNode(AVLTreeNode<T>*& node, std::function<bool(const T&)>& search, std::function<void(const T&)>& todo)
 {
-	if (node == nullptr) return;
+	if (node == nullptr) return; //node가 null이면 return
 
-	findNode(node->left, search, todo);
-	if (search(node->data)) todo(node->data);
-	findNode(node->right, search, todo);
+	findNode(node->left, search, todo); //왼쪽 노드에 대한 search and do something 실행
+	if (search(node->data)) todo(node->data); //search function에 parameter로 현재 노드의 아이템을 넣고 실행. 결과가 true면 todo 함수를 실행.
+	findNode(node->right, search, todo); //오른쪽 노드에 대한 search and do something 실행
 }
 #endif
