@@ -1,4 +1,5 @@
 #include "MusicType.h"
+#include "ID3Reader.h"
 
 MusicType::MusicType() {
 	name = "";
@@ -9,8 +10,11 @@ MusicType::MusicType() {
 	composer = "";
 	writer = "";
 	record = "";
+	path = L"";
 	date = 0;
 	time = 0;
+	length = 0;
+	ID = "";
 }
 
 MusicType::~MusicType() {
@@ -69,6 +73,10 @@ string MusicType::GetNote() const {
 	return note;
 }
 
+wstring MusicType::GetPath() const {
+	return path;
+}
+
 void MusicType::SetName(const string& musicName) {
 	name = musicName;
 }
@@ -119,6 +127,10 @@ void MusicType::SetPlayedTime(unsigned int time) {
 
 void MusicType::SetNote(const string& note) {
 	this->note = note;
+}
+
+void MusicType::SetPath(const wstring& path) {
+	this->path = path;
 }
 
 void MusicType::DisplayNameOnScreen()
@@ -445,4 +457,24 @@ bool MusicType::operator==(const MusicType &data) const
 bool MusicType::operator!=(const MusicType &data) const
 {
 	return Compare(data) != EQUAL;
+}
+
+int MusicType::ReadDataFromID3()
+{
+	ID3Reader reader;
+	if (!reader.read(path)) return 0;
+	reader.getTitle();
+	reader.getArtist();
+	reader.getAlbum();
+	reader.getGenre();
+	reader.getYear();
+
+	if (reader.getMajorVersion() == 2) //id3v2
+	{
+		reader.getFrame("TCOM"); //composer
+		reader.getFrame("TOLY"); //writer
+		reader.getFrame("TEXT"); //writer
+		reader.getFrame("SYLT"); //lyrics
+		reader.getFrame("USLT"); //lyrics
+	}
 }

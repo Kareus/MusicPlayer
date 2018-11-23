@@ -6,6 +6,7 @@
 #include <fstream>
 #include <string>
 #include <functional>
+#include "SimpleMusicType.h"
 
 using namespace std;
 
@@ -35,6 +36,7 @@ private:
 	string note;	///<악보
 	string lyrics;	///<가사
 	string ID; ///<고유 키
+	wstring path; ///<경로
 
 public:
 	/**
@@ -123,6 +125,14 @@ public:
 	*	@return	음반 회사명.
 	*/
 	string GetRecord() const;
+
+	/**
+	*	@brief	음악의 파일 경로를 반환한다.
+	*	@pre	path가 할당되어 있어야 한다.
+	*	@post	없음.
+	*	@return	파일 경로.
+	*/
+	wstring GetPath() const;
 
 	/**
 	*	@brief	발표년월일을 반환한다.
@@ -263,6 +273,14 @@ public:
 	*	@param	note	설정할 곡의 악보.
 	*/
 	void SetNote(const string& note);
+
+	/**
+	*	@brief	경로를 설정한다.
+	*	@pre	없음.
+	*	@post	path 변수가 할당된다.
+	*	@param	path	설정할 파일 경로.
+	*/
+	void SetPath(const wstring& path);
 
 	//------------------------------
 	//------------------------------기타 함수들
@@ -541,5 +559,29 @@ public:
 	*/
 	MusicType& operator=(const MusicType &data);
 
+	/**
+	*	@brief	곡의 파일 경로로부터 ID3 태그를 읽어와 정보를 저장한다.
+	*	@pre	올바른 파일 경로가 지정되어 있어야 한다.
+	*	@post	ID3 태그로부터 읽은 정보를 저장한다.
+	*	@return	성공하면 1, 그렇지 않으면 0을 반환한다.
+	*/
+	int ReadDataFromID3();
+
+	/**
+	*	@brief	SimpleMusicType으로 형변환하는 연산자.
+	*	@return	형변환된 SimpleMusicType 객체를 반환한다.
+	*/
+	operator SimpleMusicType()
+	{
+		SimpleMusicType simple;
+		simple.SetID(ID);
+		simple.SetLength(length);
+		simple.SetName(name);
+		simple.SetPlayedTime(time);
+
+		return simple;
+	}
+
+	explicit 
 };
 #endif
