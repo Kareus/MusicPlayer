@@ -164,6 +164,7 @@
     <ClCompile Include="FolderType.cpp" />
     <ClCompile Include="GenreType.cpp" />
     <ClCompile Include="GlobalFunctions.cpp" />
+    <ClCompile Include="GraphicElement.cpp" />
     <ClCompile Include="ID3Reader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MediaPlayer.cpp" />
@@ -189,6 +190,7 @@
     <ClInclude Include="GenreTable.h" />
     <ClInclude Include="GenreType.h" />
     <ClInclude Include="GlobalFunctions.h" />
+    <ClInclude Include="GraphicElement.h" />
     <ClInclude Include="ID3Reader.h" />
     <ClInclude Include="MediaPlayer.h" />
     <ClInclude Include="MFFunctions.h" />
