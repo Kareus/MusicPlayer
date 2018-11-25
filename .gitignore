@@ -13,6 +13,7 @@
 *.dylib
 *.dll
 !opencv*.dll
+!sfml-*.dll
 
 # Fortran module files
 *.mod
@@ -22,6 +23,8 @@
 *.la
 *.a
 *.lib
+!freetype.lib
+!sfml-*.lib
 
 # Executables
 *.exe
