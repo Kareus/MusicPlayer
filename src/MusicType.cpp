@@ -307,7 +307,7 @@ void MusicType::SetDateFromKB()
 	{
 		cout << "\tYou should input integer value" << endl;
 		cin.clear();
-		cin.ignore(std::numeric_limits<streamsize>::max(), '\n');
+		Stream::IgnoreJunk(cin);
 		cout << "\tDate (YYYYMMDD) : ";
 		cin >> date;
 	}
@@ -323,7 +323,7 @@ void MusicType::SetLengthFromKB()
 	{
 		cout << "\tYou should input integer value" << endl;
 		cin.clear();
-		cin.ignore(std::numeric_limits<streamsize>::max(), '\n');
+		Stream::IgnoreJunk(cin);
 		cout << "\tLength (Seconds) : ";
 		cin >> length;
 	}
@@ -339,7 +339,7 @@ void MusicType::SetPlayedTimeFromKB()
 	{
 		cout << "\tYou should input integer value" << endl;
 		cin.clear();
-		cin.ignore(std::numeric_limits<streamsize>::max(), '\n');
+		Stream::IgnoreJunk(cin);
 		cout << "\tPlayed Time : ";
 		cin >> time;
 	}
@@ -463,18 +463,20 @@ int MusicType::ReadDataFromID3()
 {
 	ID3Reader reader;
 	if (!reader.read(path)) return 0;
-	reader.getTitle();
-	reader.getArtist();
-	reader.getAlbum();
-	reader.getGenre();
-	reader.getYear();
+	name = String::WstrToStr(reader.getTitle());
+	artist = String::WstrToStr(reader.getArtist());
+	album = String::WstrToStr(reader.getAlbum());
+	genre = String::WstrToStr(reader.getGenre());
+	date = reader.getYearAsInteger() * 10000; //년도이므로 10000을 곱함.
 
 	if (reader.getMajorVersion() == 2) //id3v2
 	{
-		reader.getFrame("TCOM"); //composer
-		reader.getFrame("TOLY"); //writer
-		reader.getFrame("TEXT"); //writer
-		reader.getFrame("SYLT"); //lyrics
-		reader.getFrame("USLT"); //lyrics
+		composer = String::WstrToStr(reader.getFrame("TCOM")); //composer
+		writer = String::WstrToStr(reader.getFrame("TOLY")); //writer
+		if (writer.empty()) writer = String::WstrToStr(reader.getFrame("TEXT")); //writer
+		lyrics = String::WstrToStr(reader.getFrame("SYLT")); //lyrics
+		if (lyrics.empty()) lyrics = String::WstrToStr(reader.getFrame("USLT")); //lyrics
 	}
+
+	return 1;
 }

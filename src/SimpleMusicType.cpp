@@ -6,6 +6,16 @@ SimpleMusicType::SimpleMusicType()
 	length = 0;
 	name = "";
 	time = 0;
+	path = L"";
+}
+
+SimpleMusicType::SimpleMusicType(const SimpleMusicType& data)
+{
+	name = data.GetName();
+	id = data.GetID();
+	length = data.GetLength();
+	time = data.GetPlayedTime();
+	path = data.GetPath();
 }
 
 SimpleMusicType::~SimpleMusicType()
@@ -32,6 +42,11 @@ void SimpleMusicType::SetPlayedTime(unsigned int time)
 	this->time = time;
 }
 
+void SimpleMusicType::SetPath(const wstring& path)
+{
+	this->path = path;
+}
+
 string SimpleMusicType::GetName() const
 {
 	return name;
@@ -50,6 +65,11 @@ unsigned int SimpleMusicType::GetLength() const
 unsigned int SimpleMusicType::GetPlayedTime() const
 {
 	return time;
+}
+
+wstring SimpleMusicType::GetPath() const
+{
+	return path;
 }
 
 void SimpleMusicType::DisplayIDOnScreen()
@@ -116,6 +136,7 @@ SimpleMusicType& SimpleMusicType::operator=(const SimpleMusicType& data)
 	id = data.GetID();
 	length = data.GetLength();
 	time = data.GetPlayedTime();
+	path = data.GetPath();
 
 	return *this;
 }

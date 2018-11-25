@@ -581,7 +581,5 @@ public:
 
 		return simple;
 	}
-
-	explicit 
 };
 #endif

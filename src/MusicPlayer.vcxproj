@@ -87,13 +87,16 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SFML_STATIC;NOMINMAX;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp14</LanguageStandard>
+      <AdditionalIncludeDirectories>D:\내 문서\성주꺼\기타\Download\경희대\자료구조\GIT\prj-2017103967\src\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>sfml-window-s-d.lib;sfml-system-s-d.lib;sfml-graphics-s-d.lib;opengl32.lib;winmm.lib;gdi32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\내 문서\성주꺼\기타\Download\경희대\자료구조\GIT\prj-2017103967\src\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -101,12 +104,15 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SFML_STATIC;NOMINMAX;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>D:\내 문서\성주꺼\기타\Download\경희대\자료구조\GIT\prj-2017103967\src\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>sfml-window-s-d.lib;sfml-system-s-d.lib;sfml-graphics-s-d.lib;opengl32.lib;winmm.lib;gdi32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\내 문서\성주꺼\기타\Download\경희대\자료구조\GIT\prj-2017103967\src\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -116,14 +122,17 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SFML_STATIC;NOMINMAX;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>D:\내 문서\성주꺼\기타\Download\경희대\자료구조\GIT\prj-2017103967\src\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>sfml-window-s.lib;sfml-system-s.lib;sfml-graphics-s.lib;opengl32.lib;winmm.lib;gdi32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\내 문서\성주꺼\기타\Download\경희대\자료구조\GIT\prj-2017103967\src\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -133,14 +142,17 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SFML_STATIC;NOMINMAX;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>D:\내 문서\성주꺼\기타\Download\경희대\자료구조\GIT\prj-2017103967\src\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>sfml-window-s.lib;sfml-system-s.lib;sfml-graphics-s.lib;opengl32.lib;winmm.lib;gdi32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\내 문서\성주꺼\기타\Download\경희대\자료구조\GIT\prj-2017103967\src\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -149,10 +161,15 @@
     <ClCompile Include="Artist.cpp" />
     <ClCompile Include="DirectoryReader.cpp" />
     <ClCompile Include="FileDialog.cpp" />
+    <ClCompile Include="FolderType.cpp" />
     <ClCompile Include="GenreType.cpp" />
+    <ClCompile Include="GlobalFunctions.cpp" />
     <ClCompile Include="ID3Reader.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MediaPlayer.cpp" />
+    <ClCompile Include="MFFunctions.cpp" />
     <ClCompile Include="MusicType.cpp" />
+    <ClCompile Include="PlayList.cpp" />
     <ClCompile Include="SimpleMusicType.cpp" />
     <ClCompile Include="PlayListWriter.cpp" />
   </ItemGroup>
@@ -168,12 +185,16 @@
     <ClInclude Include="DoublyIterator.h" />
     <ClInclude Include="DoublyLinkedList.h" />
     <ClInclude Include="FileDialog.h" />
+    <ClInclude Include="FolderType.h" />
     <ClInclude Include="GenreTable.h" />
     <ClInclude Include="GenreType.h" />
+    <ClInclude Include="GlobalFunctions.h" />
     <ClInclude Include="ID3Reader.h" />
+    <ClInclude Include="MediaPlayer.h" />
+    <ClInclude Include="MFFunctions.h" />
     <ClInclude Include="MusicType.h" />
+    <ClInclude Include="PlayList.h" />
     <ClInclude Include="SimpleMusicType.h" />
-    <ClInclude Include="SortedList.h" />
     <ClInclude Include="PlayListWriter.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

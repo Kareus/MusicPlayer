@@ -37,7 +37,7 @@ private:
 
 	void ClearNode(AVLTreeNode<T>*& node);
 
-	int CountNode(AVLTreeNode<T>*& node) const;
+	int CountNode(const AVLTreeNode<T>* node) const;
 
 	int AddNode(AVLTreeNode<T>*& node, const T& data);
 
@@ -206,10 +206,10 @@ void AVLTree<T>::ClearNode(AVLTreeNode<T>*& node)
 }
 
 template <typename T>
-int AVLTree<T>::CountNode(AVLTreeNode<T>*& node) const
+int AVLTree<T>::CountNode(const AVLTreeNode<T>* node) const
 {
 	if (node == nullptr) return 0;
-	return 1 + CountNode(node->left) + CoundNode(node->right);
+	return 1 + CountNode(node->left) + CountNode(node->right);
 }
 
 template <typename T>

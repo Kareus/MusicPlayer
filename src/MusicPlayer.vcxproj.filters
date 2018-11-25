@@ -48,6 +48,21 @@
     <ClCompile Include="FileDialog.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="MediaPlayer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MFFunctions.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="FolderType.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayList.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="GlobalFunctions.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Album.h">
@@ -63,9 +78,6 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="MusicType.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="SortedList.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="GenreType.h">
@@ -102,6 +114,21 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="AVLTreeIterator.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="FolderType.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MediaPlayer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="MFFunctions.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayList.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="GlobalFunctions.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

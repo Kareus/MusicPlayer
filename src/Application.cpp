@@ -1,9 +1,6 @@
 #include "Application.h"
-#include <Windows.h>
 #include "PlayListWriter.h"
-#include "AVLTree.h"
-
-#undef max //max macro È¥¿ë ¹æÁö
+#include "GlobalFunctions.h"
 
 Application::Application()
 {
@@ -81,7 +78,7 @@ int Application::GetCommand()
 	{
 		cout << "\t You should input integer value" << endl;
 		cin.clear();
-		cin.ignore(std::numeric_limits<streamsize>::max(), '\n');
+		Stream::IgnoreJunk(cin);
 		cout << endl << "\t Choose a Command--> ";
 		cin >> command;
 	}
@@ -171,7 +168,7 @@ int Application::AddMusic()
 	{
 		cout << "\tPut Y(y) for yes, or N(n) for no:";
 		cin.clear();
-		cin.ignore(std::numeric_limits<streamsize>::max(), '\n');
+		Stream::IgnoreJunk(cin);
 		cin >> answer;
 
 		yes = (answer == 'Y' || answer == 'y');
@@ -840,7 +837,7 @@ int Application::GetMusicCommand()
 	{
 		cout << "\t You should input integer value" << endl;
 		cin.clear();
-		cin.ignore(std::numeric_limits<streamsize>::max(), '\n');
+		Stream::IgnoreJunk(cin);
 		cout << endl << "\t Choose a Command--> ";
 		cin >> command;
 	}
@@ -1542,7 +1539,7 @@ int Application::GetAlbumCommand()
 	{
 		cout << "\t You should input integer value" << endl;
 		cin.clear();
-		cin.ignore(std::numeric_limits<streamsize>::max(), '\n');
+		Stream::IgnoreJunk(cin);
 		cout << endl << "\t Choose a Command--> ";
 		cin >> command;
 	}
@@ -2068,9 +2065,4 @@ int Application::PlayMusic()
 
 	cout << "\tPlaying the music..." << endl;
 	return 1;
-}
-
-void Application::OpenURLOnBrowser(const string& path)
-{
-	ShellExecuteA(0, 0, path.c_str(), 0, 0, SW_SHOW);
 }

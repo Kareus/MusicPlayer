@@ -6,6 +6,7 @@
 #include <string>
 #include <stdexcept>
 #include "AVLTree.h"
+#include "GlobalFunctions.h"
 
 /**
 * id3 정보를 읽다가 발생한 문제에 대한 예외 처리 class
@@ -24,6 +25,9 @@ public:
 	}
 };
 
+/**
+* id3 frame 정보 저장을 위한 클래스 구조.
+*/
 class ID3Frame
 {
 private:

@@ -6,6 +6,7 @@
 #include "CircularQueueType.h"
 #include "DoublyLinkedList.h"
 #include "SimpleMusicType.h"
+#include "AVLTree.h"
 
 #define FILENAMESIZE 1024
 
@@ -523,8 +524,6 @@ public:
 	*	@return	성공하면 1, 실패하면 0을 반환한다.
 	*/
 	int PlayMusic();
-
-	void OpenURLOnBrowser(const string& path);
 };
 #pragma once
 #endif

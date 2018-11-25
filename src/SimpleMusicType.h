@@ -20,12 +20,18 @@ private:
 	string name; ///<곡명
 	unsigned int length; ///<길이
 	unsigned int time; ///<재생 횟수
+	wstring path; ///<파일 경로
 
 public:
 	/**
 	* 기본 생성자
 	*/
 	SimpleMusicType();
+
+	/**
+	* 복사 생성자
+	*/
+	SimpleMusicType(const SimpleMusicType& data);
 
 	/**
 	* 기본 소멸자
@@ -63,6 +69,14 @@ public:
 	*	@return	곡의 재생 횟수.
 	*/
 	unsigned int GetPlayedTime() const;
+
+	/**
+	*	@brief	곡의 파일 경로를 반환한다.
+	*	@pre	path 변수가 할당되어 있어야 한다.
+	*	@post	없음.
+	*	@return	파일 경로.
+	*/
+	wstring GetPath() const;
 	
 	/**
 	*	@brief	곡명을 설정한다.
@@ -95,6 +109,14 @@ public:
 	*	@param	time	설정할 곡의 재생횟수.
 	*/
 	void SetPlayedTime(unsigned int time);
+
+	/**
+	*	@brief	곡의 파일 경로를 설정한다.
+	*	@pre	없음.
+	*	@post	곡의 파일 경로를 할당한다.
+	*	@param	path	설정할 파일 경로.
+	*/
+	void SetPath(const wstring& path);
 
 	/**
 	*	@brief	곡번호를 콘솔에 출력한다.
