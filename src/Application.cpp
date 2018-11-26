@@ -1,6 +1,12 @@
 #include "Application.h"
 #include "PlayListWriter.h"
 #include "GlobalFunctions.h"
+#include <thread>
+#include <atomic>
+#include <chrono>
+#include <iostream>
+
+extern MediaPlayer* player;
 
 Application::Application()
 {
@@ -10,6 +16,8 @@ Application::Application()
 	nameList.SetCompareFunction(compareMusicName);
 	recentPlayedList.SetCompareFunction(compareToLast);
 	mostPlayedList.SetCompareFunction(comparePlayedTime);
+	backColor = sf::Color::White;
+
 	/*
 	ID가 제목_가수이름 이지만, 두 곡이 각각
 	1. ABC_ARTIST1
@@ -23,38 +31,79 @@ Application::Application()
 
 Application::~Application()
 {
+	player->Release(); //플레이어 메모리 해제
 }
 
-void Application::Run()
+void Application::Render()
 {
-	while (1)
+	while (window.isOpen())
 	{
-		m_Command = GetCommand();
+		window.clear(backColor);
+		//draw goes here
 
-		switch (m_Command)
+		window.display();
+	}
+}
+void Application::Run(HINSTANCE instance)
+{
+	WNDCLASS WindowClass;
+	WindowClass.style = 0;
+	WindowClass.lpfnWndProc = &WndProc; //global function에 정의된 프로토콜 이벤트를 사용
+	WindowClass.cbClsExtra = 0;
+	WindowClass.cbWndExtra = 0;
+	WindowClass.hInstance = instance;
+	WindowClass.hIcon = NULL;
+	WindowClass.hCursor = 0;
+	WindowClass.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BACKGROUND);
+	WindowClass.lpszMenuName = NULL;
+	WindowClass.lpszClassName = L"Music Player";
+	RegisterClass(&WindowClass); //윈도우 생성을 위한 class 등록
+
+	HWND Window = CreateWindow(L"Music Player", L"Music Player Application", WS_SYSMENU | WS_VISIBLE, 0, 0, 800, 600, NULL, NULL, instance, NULL); //윈도우 생성
+
+	DWORD Style = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS;
+	HWND  View1 = CreateWindow(L"STATIC", NULL, Style, 0, 0, 800, 600, Window, NULL, instance, NULL); //윈도우에 대한 SFML View 생성.
+
+	window.create(View1); //생성한 View를 윈도우에 할당
+
+	t = std::thread([this]() {
+		this->Render();
+	}); //렌더 함수를 쓰레드를 생성하여 실행. (윈도우 메세지 수신과 별개로 렌더링이 작동한다.)
+	t.detach(); //현재 쓰레드로부터 독립시킨다. (별개로 돌아가야 하기 때문)
+	//join 또는 detach를 호출했으므로 이 쓰레드는 함수가 종료되면 안전하게 해제된다.
+
+	MediaPlayer::create(Window, Window, &player); //플레이어 생성
+
+	MSG Message;
+	Message.message = ~WM_QUIT; //시스템으로부터 받아올 윈도우의 메세지
+
+	while (Message.message != WM_QUIT) //종료 메시지가 아닌 경우 무한 루프를 돈다.
+	{
+		if (PeekMessage(&Message, NULL, 0, 0, PM_REMOVE))
 		{
-		case 1:	// 음악 메뉴
-			ShowMusicMenu();
-			break;
-		case 2:	// 앨범 메뉴
-			ShowAlbumMenu();
-			break;
-		case 3:	// 아티스트 메뉴
-			ShowArtistMenu();
-			break;
-		case 4:	// txt 파일에서 음악정보를 읽어온다
-			ReadDataFromFile();
-			break;
-		case 5:	// txt 파일에 음악정보를 쓴다
-			WriteDataToFile();
-			break;
-		case 0:
-			return;
-		default:
-			cout << "\tIllegal selection...\n";
-			break;
+			// If a message was waiting in the message queue, process it
+			TranslateMessage(&Message);
+			DispatchMessage(&Message);
+		}
+		else
+		{
+			sf::Event e; //윈도우 이벤트 수신
+
+			while (window.pollEvent(e))
+			{
+
+				if (e.type == sf::Event::Closed) //종료 이벤트 처리
+				{
+					window.close();
+					break;
+				}
+			}
 		}
 	}
+
+	DestroyWindow(Window); //종료되면 윈도우를 해제한다.
+
+	UnregisterClass(L"Music Player", instance); //클래스 등록을 해제하고 종료.
 }
 
 

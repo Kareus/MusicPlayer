@@ -7,6 +7,9 @@
 #include <atlconv.h> //string <-> wstring 변환을 위한 헤더
 #include <Windows.h>
 #include <shellapi.h>
+#include <functional>
+#include <SFML/Graphics.hpp>
+#include "MediaPlayer.h"
 
 //전역 함수 정의를 위한 헤더 파일
 
@@ -30,4 +33,13 @@ namespace Internet
 	//url을 브라우저의 새 탭으로 여는 함수
 	void OpenURL(const std::wstring& path);
 }
+
+//플레이어에 의해 윈도우를 업데이트하는 함수
+void Update(HWND hwnd, PlayerState state);
+
+//윈도우 프로토콜을 처리할 함수
+LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+
+//플레이어를 실행 중일 때 처리할 이벤트
+void OnPlayerEvent(HWND hwnd, WPARAM pUnkPtr);
 #endif

@@ -102,5 +102,7 @@ public:
 	bool stop();
 
 	HRESULT ShutDown();
+
+	PlayerState GetState() { return playState; }
 };
 #endif

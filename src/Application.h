@@ -7,6 +7,9 @@
 #include "DoublyLinkedList.h"
 #include "SimpleMusicType.h"
 #include "AVLTree.h"
+#include <SFML/Graphics.hpp>
+#include "MediaPlayer.h"
+#include "GraphicElement.h"
 
 #define FILENAMESIZE 1024
 
@@ -34,6 +37,10 @@ private:
 	int recentListCount; ///< 최근 재생한 음악 수 (<= 30)
 	int addedCount; ///< 최근 추가한 음악 수 (<= 30)
 
+	sf::RenderWindow window; ///<뮤직 플레이어의 윈도우 객체
+	sf::Color backColor; ///<백그라운드 컬러
+	std::thread t; ///<렌더링용 쓰레드
+
 	function<int(const SimpleMusicType&, const SimpleMusicType&)> compareMusicName = [] (const SimpleMusicType& m1, const SimpleMusicType& m2) {
 		if (m1.GetName().size() > 0 && m2.GetName().size() > 0) //둘 모두 유효한 이름을 가지고 있을 때
 		{
@@ -57,6 +64,9 @@ private:
 		return (m1 < m2) - (m1 > m2); //횟수가 같으면 ID 순으로
 	};
 
+	//멀티 쓰레드에서 윈도우를 렌더링할 때 쓸 함수
+	void Render();
+
 public:
 	/**
 	*	기본 생성자
@@ -72,8 +82,9 @@ public:
 	*	@brief	프로그램을 실행한다.
 	*	@pre	프로그램이 시작되어야 한다.
 	*	@post	프로그램이 끝난다.
+	*	@param	instance	현재 윈도우의 인스턴스 객체.
 	*/
-	void Run();
+	void Run(HINSTANCE instance);
 
 	/**
 	*	@brief	커맨드를 화면에 출력하고 키보드로부터 커맨드를 입력받는다.
