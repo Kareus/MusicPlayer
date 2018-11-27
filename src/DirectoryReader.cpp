@@ -35,6 +35,7 @@ bool DirectoryReader::openDirectory(const wstring& filepath)
 		while ((ent = wreaddir(dir)) != NULL) {
 			wstring name = ent->d_name;
 			pathList.Add(name);
+			OutputDebugStringW((name + L'\n').c_str());
 		}
 
 		wclosedir(dir);

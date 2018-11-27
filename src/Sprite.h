@@ -37,6 +37,8 @@ public:
 
 	void SetPositionY(float y);
 
+	bool pollEvent(sf::Event e) override { return false; }
+
 	sf::Vector2f GetPosition();
 };
 #endif

@@ -1,6 +1,7 @@
 #include "Application.h"
 #include "PlayListWriter.h"
 #include "GlobalFunctions.h"
+#include "DirectoryReader.h"
 
 #include "TextBox.h"
 
@@ -8,6 +9,7 @@ extern MediaPlayer* player;
 
 Application::Application()
 {
+	focus = nullptr;
 	m_Command = 0;
 	recentListCount = 0;
 	addedCount = 0;
@@ -30,18 +32,13 @@ Application::Application()
 Application::~Application()
 {
 	player->Release(); //플레이어 메모리 해제
-
-	/*
 	DoublyIterator<Graphic*> iter(drawings);
 
 	while (iter.NotNull())
 	{
 		if (iter.Current() != nullptr) delete iter.Current();
 		iter.Next();
-	}
-
-	drawings.MakeEmpty();
-	*/
+	} //그래픽 할당 해제
 }
 
 void Application::Render()
@@ -49,7 +46,7 @@ void Application::Render()
 	while (window.isOpen())
 	{
 		window.clear(backColor);
-		
+
 		DoublyIterator<Graphic*> iter(drawings);
 
 		while (iter.NotNull())
@@ -57,15 +54,16 @@ void Application::Render()
 			iter.Current()->draw(&window); //각 그래픽을 렌더링한다
 			iter.Next();
 		}
-		//draw goes here
 
 		window.display();
 	}
-	
 }
+	
+
 void Application::Run(HINSTANCE instance)
 {
-	TextBox* box = new TextBox(0,0,100,100);
+	
+	TextBox* box = new TextBox(0,0,300,36, true);
 	sf::Font font;
 	font.loadFromFile("C:/Windows/Fonts/Arial.ttf");
 	box->setFont(font);
@@ -82,56 +80,63 @@ void Application::Run(HINSTANCE instance)
 	WindowClass.hCursor = 0;
 	WindowClass.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BACKGROUND);
 	WindowClass.lpszMenuName = NULL;
-	WindowClass.lpszClassName = L"Music Player";
+	WindowClass.lpszClassName = L"MusicPlayer";
 	RegisterClass(&WindowClass); //윈도우 생성을 위한 class 등록
+	HWND Window = CreateWindow(L"MusicPlayer", L"Music Player Application", WS_SYSMENU | WS_VISIBLE, 0, 0, 800, 600, NULL, NULL, instance, NULL); //윈도우 생성
 
-	HWND Window = CreateWindow(L"Music Player", L"Music Player Application", WS_SYSMENU | WS_VISIBLE, 0, 0, 800, 600, NULL, NULL, instance, NULL); //윈도우 생성
-
-	DWORD Style = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS;
+	DWORD Style = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS & ~WS_SIZEBOX;
 	HWND  View1 = CreateWindow(L"STATIC", NULL, Style, 0, 0, 800, 600, Window, NULL, instance, NULL); //윈도우에 대한 SFML View 생성.
 
 	window.create(View1); //생성한 View를 윈도우에 할당
-
-	t = std::thread([this]() {
-		this->Render();
-	}); //렌더 함수를 쓰레드를 생성하여 실행. (윈도우 메세지 수신과 별개로 렌더링이 작동한다.)
-	t.detach(); //현재 쓰레드로부터 독립시킨다. (별개로 돌아가야 하기 때문)
-	//join 또는 detach를 호출했으므로 이 쓰레드는 함수가 종료되면 안전하게 해제된다.
 
 	MediaPlayer::create(Window, Window, &player); //플레이어 생성
 
 	MSG Message;
 	Message.message = ~WM_QUIT; //시스템으로부터 받아올 윈도우의 메세지
 
+	window.setActive(false); //윈도우 메시지 처리를 수동으로 하기 위해 false로 설정.
+
+	std::thread renderer([this]() {
+		this->Render();
+
+	}); //렌더 함수를 쓰레드를 생성하여 실행. (윈도우 메세지 수신과 별개로 렌더링이 작동한다.)
+	renderer.detach(); //현재 쓰레드로부터 독립시킨다. (별개로 돌아가야 하기 때문)
+	//join 또는 detach를 호출했으므로 이 쓰레드는 함수가 종료되면 안전하게 해제된다.
+
 	while (Message.message != WM_QUIT) //종료 메시지가 아닌 경우 무한 루프를 돈다.
 	{
 		if (PeekMessage(&Message, NULL, 0, 0, PM_REMOVE))
 		{
-			// If a message was waiting in the message queue, process it
+			//윈도우로부터 이벤트 응답을 받으면 메시지 전달
 			TranslateMessage(&Message);
 			DispatchMessage(&Message);
 		}
-		else
-		{
-			sf::Event e; //윈도우 이벤트 수신
-
-			while (window.pollEvent(e))
-			{
-
-				if (e.type == sf::Event::Closed) //종료 이벤트 처리
-				{
-					window.close();
-					break;
-				}
-			}
-		}
 	}
+
+	window.close(); //SFML 렌더 종료
 
 	DestroyWindow(Window); //종료되면 윈도우를 해제한다.
 
-	UnregisterClass(L"Music Player", instance); //클래스 등록을 해제하고 종료.
+	UnregisterClass(L"MusicPlayer", instance); //클래스 등록을 해제하고 종료.
 }
 
+bool Application::pollEvent(sf::Event e)
+{
+	DoublyIterator<Graphic*> iter(drawings);
+	switch (e.type)
+	{
+	case sf::Event::MouseButtonPressed:
+		if (iter.First()->pollEvent(e)) focus = iter.First();
+		break;
+
+	case sf::Event::TextEntered:
+	case sf::Event::KeyPressed:
+		if (focus) focus->pollEvent(e);
+		break;
+	}
+
+	return true;
+}
 
 int Application::GetCommand()
 {

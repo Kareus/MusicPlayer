@@ -40,8 +40,8 @@ private:
 
 	sf::RenderWindow window; ///<뮤직 플레이어의 윈도우 객체
 	sf::Color backColor; ///<백그라운드 컬러
-	std::thread t; ///<렌더링용 쓰레드
 	DoublyLinkedList<Graphic*> drawings; ///<렌더링할 그래픽 리스트. 특정 아이템 탐색 보다 전체 탐색이 빈번하므로 linked list 사용.
+	Graphic* focus; ///<포커싱 중인 그래픽
 
 	function<int(const SimpleMusicType&, const SimpleMusicType&)> compareMusicName = [] (const SimpleMusicType& m1, const SimpleMusicType& m2) {
 		if (m1.GetName().size() > 0 && m2.GetName().size() > 0) //둘 모두 유효한 이름을 가지고 있을 때
@@ -537,6 +537,8 @@ public:
 	*	@return	성공하면 1, 실패하면 0을 반환한다.
 	*/
 	int PlayMusic();
+
+	bool pollEvent(sf::Event e);
 };
 #pragma once
 #endif

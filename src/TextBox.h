@@ -4,6 +4,7 @@
 
 #include "Graphic.h"
 #include <string>
+#include <Windows.h>
 
 class TextBox : public Graphic
 {
@@ -19,14 +20,18 @@ private:
 	float y;
 	float width;
 	float height;
+	bool multiLine;
+
+	bool textEvent(sf::Uint32 code);
 
 public:
-	TextBox(float x, float y, float width, float height);
+	TextBox(float x, float y, float width, float height, bool multi_line = false);
+	virtual ~TextBox() {};
 	void draw(sf::RenderWindow* window) override;
 	void setText(const std::wstring& str);
 	void setFont(sf::Font& font);
 	std::wstring getText();
-	bool pollEvent(sf::Event e);
+	bool pollEvent(sf::Event e) override;
 	void setFocus(bool f);
 
 };
