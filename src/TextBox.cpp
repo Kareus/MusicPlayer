@@ -86,12 +86,12 @@ bool TextBox::textEvent(sf::Uint32 code)
 			if (!multiLine) return true;
 			else
 			{
-				str += L'\n';
+				if (str.size() < maxLen) str += L'\n';
 				height += text.getCharacterSize();
 				shape.setSize(sf::Vector2f(width, height));
 			}
 		}
-		else str += (wchar_t)code; //다른 경우	
+		else if (str.size() < maxLen) str += (wchar_t)code; //다른 경우	
 		cursorPos++;
 	}
 
@@ -180,4 +180,28 @@ float TextBox::getBorderSize()
 sf::Color TextBox::getTextColor()
 {
 	return text.getFillColor();
+}
+
+void TextBox::setMaxLength(unsigned int len)
+{
+	maxLen = len;
+	if (maxLen >= 0) setText(str.substr(0, len));
+}
+
+unsigned int TextBox::getMaxLength()
+{
+	return maxLen;
+}
+
+void TextBox::setCharacterSize(unsigned int size)
+{
+	unsigned int lines = height / text.getCharacterSize();
+	text.setCharacterSize(size);
+	height = lines * size; //height 재설정
+	shape.setSize(sf::Vector2f(width, height));
+}
+
+unsigned int TextBox::getCharacterSize()
+{
+	return text.getCharacterSize();
 }

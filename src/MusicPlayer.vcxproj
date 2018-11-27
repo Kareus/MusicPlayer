@@ -174,6 +174,7 @@
     <ClCompile Include="SimpleMusicType.cpp" />
     <ClCompile Include="PlayListWriter.cpp" />
     <ClCompile Include="TextBox.cpp" />
+    <ClCompile Include="TextLabel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Album.h" />
@@ -192,6 +193,7 @@
     <ClInclude Include="GenreType.h" />
     <ClInclude Include="GlobalFunctions.h" />
     <ClInclude Include="Graphic.h" />
+    <ClInclude Include="TextLabel.h" />
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="ID3Reader.h" />
     <ClInclude Include="MediaPlayer.h" />

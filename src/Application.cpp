@@ -4,6 +4,7 @@
 #include "DirectoryReader.h"
 
 #include "TextBox.h"
+#include "TextLabel.h"
 
 extern MediaPlayer* player;
 
@@ -17,16 +18,7 @@ Application::Application()
 	recentPlayedList.SetCompareFunction(compareToLast);
 	mostPlayedList.SetCompareFunction(comparePlayedTime);
 	backColor = sf::Color::White;
-
-	/*
-	ID가 제목_가수이름 이지만, 두 곡이 각각
-	1. ABC_ARTIST1
-	2. ABCA_ARTIST2
-	일때 제목 순으로는 1 -> 2이지만
-	ID순으로는 2 -> 1 (A의 ascii code가 65, _의 ascii code가 95)이므로
-	이런 상황을 막기 위해 compare function을 새로 설정.
-	*/
-
+	drawings.MakeEmpty();
 }
 
 Application::~Application()
@@ -39,6 +31,8 @@ Application::~Application()
 		if (iter.Current() != nullptr) delete iter.Current();
 		iter.Next();
 	} //그래픽 할당 해제
+
+	drawings.MakeEmpty();
 }
 
 void Application::Render()
@@ -68,13 +62,20 @@ int Application::AddGraphic(Graphic* graphic)
 
 void Application::Run(HINSTANCE instance)
 {
-	
-	TextBox* box = new TextBox(0,0,300,36, true);
+	//test functions
+	TextBox* box = new TextBox(0, 0, 300, 36, true);
 	sf::Font font;
 	font.loadFromFile("C:/Windows/Fonts/Arial.ttf");
 	box->setFont(font);
 	box->setText(L"Textbox test.");
 	AddGraphic(box);
+
+	TextLabel* label = new TextLabel(L"TextLabel Test\nMulti Line");
+	label->setFont(font);
+	label->setCharacterSize(16);
+	label->SetPosition(0, 200);
+	AddGraphic(label);
+	//test functions end.
 
 	WNDCLASS WindowClass;
 	WindowClass.style = 0;
@@ -100,7 +101,7 @@ void Application::Run(HINSTANCE instance)
 	MSG Message;
 	Message.message = ~WM_QUIT; //시스템으로부터 받아올 윈도우의 메세지
 
-	window.setActive(false); //렌더링 분리를 위해 잠시 비활성화.
+	window.setActive(false); //렌더링 분리를 위해 비활성화.
 
 	std::thread renderer([this]() {
 		this->Render();
@@ -108,8 +109,6 @@ void Application::Run(HINSTANCE instance)
 	}); //렌더 함수를 쓰레드를 생성하여 실행. (윈도우 메세지 수신과 별개로 렌더링이 작동한다.)
 	renderer.detach(); //현재 쓰레드로부터 독립시킨다. (별개로 돌아가야 하기 때문)
 	//join 또는 detach를 호출했으므로 이 쓰레드는 함수가 종료되면 안전하게 해제된다.
-
-	window.setActive(true); //분리 후 재활성화.
 
 	while (Message.message != WM_QUIT) //종료 메시지가 아닌 경우 무한 루프를 돈다.
 	{
@@ -120,6 +119,7 @@ void Application::Run(HINSTANCE instance)
 			DispatchMessage(&Message);
 		}
 	}
+
 
 	window.close(); //SFML 렌더 종료
 
