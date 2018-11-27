@@ -1,10 +1,8 @@
 #include "Application.h"
 #include "PlayListWriter.h"
 #include "GlobalFunctions.h"
-#include <thread>
-#include <atomic>
-#include <chrono>
-#include <iostream>
+
+#include "TextBox.h"
 
 extern MediaPlayer* player;
 
@@ -32,6 +30,18 @@ Application::Application()
 Application::~Application()
 {
 	player->Release(); //플레이어 메모리 해제
+
+	/*
+	DoublyIterator<Graphic*> iter(drawings);
+
+	while (iter.NotNull())
+	{
+		if (iter.Current() != nullptr) delete iter.Current();
+		iter.Next();
+	}
+
+	drawings.MakeEmpty();
+	*/
 }
 
 void Application::Render()
@@ -39,13 +49,29 @@ void Application::Render()
 	while (window.isOpen())
 	{
 		window.clear(backColor);
+		
+		DoublyIterator<Graphic*> iter(drawings);
+
+		while (iter.NotNull())
+		{
+			iter.Current()->draw(&window); //각 그래픽을 렌더링한다
+			iter.Next();
+		}
 		//draw goes here
 
 		window.display();
 	}
+	
 }
 void Application::Run(HINSTANCE instance)
 {
+	TextBox* box = new TextBox(0,0,100,100);
+	sf::Font font;
+	font.loadFromFile("C:/Windows/Fonts/Arial.ttf");
+	box->setFont(font);
+	box->setText(L"Textbox test.");
+	drawings.Add(box);
+
 	WNDCLASS WindowClass;
 	WindowClass.style = 0;
 	WindowClass.lpfnWndProc = &WndProc; //global function에 정의된 프로토콜 이벤트를 사용

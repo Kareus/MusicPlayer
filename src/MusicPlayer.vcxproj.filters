@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="헤더 파일\Graphics">
+      <UniqueIdentifier>{f9830294-567e-401c-bc98-3b6ca2193633}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Graphics">
+      <UniqueIdentifier>{6c807938-9840-4892-bd60-59ad95a8fff3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Album.cpp">
@@ -63,8 +69,11 @@
     <ClCompile Include="GlobalFunctions.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="GraphicElement.cpp">
-      <Filter>소스 파일</Filter>
+    <ClCompile Include="TextBox.cpp">
+      <Filter>소스 파일\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Sprite.cpp">
+      <Filter>소스 파일\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -134,8 +143,14 @@
     <ClInclude Include="GlobalFunctions.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="GraphicElement.h">
-      <Filter>헤더 파일</Filter>
+    <ClInclude Include="TextBox.h">
+      <Filter>헤더 파일\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphic.h">
+      <Filter>헤더 파일\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Sprite.h">
+      <Filter>헤더 파일\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

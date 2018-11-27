@@ -1,8 +1,8 @@
 #pragma once
-#ifndef __GRAPHIC_ELEMENT__
-#define __GRAPHIC_ELEMENT__
+#ifndef __SPRITE__
+#define __SPRITE__
 
-#include <SFML\Graphics.hpp>
+#include "Graphic.h"
 #include <functional>
 #include <memory>
 #include <thread>
@@ -13,7 +13,7 @@
 * @date 2018.11.26
 * @author 김성주
 */
-class GraphicElement
+class Sprite : public Graphic
 {
 private:
 	sf::Sprite* sprite; ///<실제로 그래픽을 출력하는 스프라이트 포인터 변수.
@@ -23,13 +23,13 @@ private:
 	void updatePosition();
 
 public:
-	GraphicElement(const std::string& texturePath);
+	Sprite(const std::string& texturePath);
 
-	GraphicElement(const GraphicElement& data);
+	Sprite(const Sprite& data);
 
-	~GraphicElement();
+	~Sprite();
 
-	sf::Sprite* GetSprite() const;
+	void draw(sf::RenderWindow* window) override;
 
 	void SetPosition(float x, float y);
 

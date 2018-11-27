@@ -90,13 +90,13 @@
       <PreprocessorDefinitions>SFML_STATIC;NOMINMAX;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp14</LanguageStandard>
-      <AdditionalIncludeDirectories>D:\내 문서\성주꺼\기타\Download\경희대\자료구조\GIT\prj-2017103967\src\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>sfml-window-s-d.lib;sfml-system-s-d.lib;sfml-graphics-s-d.lib;opengl32.lib;winmm.lib;gdi32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\내 문서\성주꺼\기타\Download\경희대\자료구조\GIT\prj-2017103967\src\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -106,13 +106,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>SFML_STATIC;NOMINMAX;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\내 문서\성주꺼\기타\Download\경희대\자료구조\GIT\prj-2017103967\src\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>sfml-window-s-d.lib;sfml-system-s-d.lib;sfml-graphics-s-d.lib;opengl32.lib;winmm.lib;gdi32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\내 문서\성주꺼\기타\Download\경희대\자료구조\GIT\prj-2017103967\src\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -124,7 +124,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>SFML_STATIC;NOMINMAX;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\내 문서\성주꺼\기타\Download\경희대\자료구조\GIT\prj-2017103967\src\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -132,7 +132,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>sfml-window-s.lib;sfml-system-s.lib;sfml-graphics-s.lib;opengl32.lib;winmm.lib;gdi32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\내 문서\성주꺼\기타\Download\경희대\자료구조\GIT\prj-2017103967\src\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -144,7 +144,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>SFML_STATIC;NOMINMAX;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\내 문서\성주꺼\기타\Download\경희대\자료구조\GIT\prj-2017103967\src\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -152,7 +152,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>sfml-window-s.lib;sfml-system-s.lib;sfml-graphics-s.lib;opengl32.lib;winmm.lib;gdi32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\내 문서\성주꺼\기타\Download\경희대\자료구조\GIT\prj-2017103967\src\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)\SFML\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -164,7 +164,7 @@
     <ClCompile Include="FolderType.cpp" />
     <ClCompile Include="GenreType.cpp" />
     <ClCompile Include="GlobalFunctions.cpp" />
-    <ClCompile Include="GraphicElement.cpp" />
+    <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="ID3Reader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MediaPlayer.cpp" />
@@ -173,6 +173,7 @@
     <ClCompile Include="PlayList.cpp" />
     <ClCompile Include="SimpleMusicType.cpp" />
     <ClCompile Include="PlayListWriter.cpp" />
+    <ClCompile Include="TextBox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Album.h" />
@@ -190,7 +191,8 @@
     <ClInclude Include="GenreTable.h" />
     <ClInclude Include="GenreType.h" />
     <ClInclude Include="GlobalFunctions.h" />
-    <ClInclude Include="GraphicElement.h" />
+    <ClInclude Include="Graphic.h" />
+    <ClInclude Include="Sprite.h" />
     <ClInclude Include="ID3Reader.h" />
     <ClInclude Include="MediaPlayer.h" />
     <ClInclude Include="MFFunctions.h" />
@@ -198,6 +200,7 @@
     <ClInclude Include="PlayList.h" />
     <ClInclude Include="SimpleMusicType.h" />
     <ClInclude Include="PlayListWriter.h" />
+    <ClInclude Include="TextBox.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

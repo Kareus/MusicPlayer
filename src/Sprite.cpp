@@ -1,6 +1,6 @@
-#include "GraphicElement.h"
+#include "Sprite.h"
 
-GraphicElement::GraphicElement(const std::string& texturePath)
+Sprite::Sprite(const std::string& texturePath)
 {
 	texture = std::make_shared<sf::Texture>();
 	texture->loadFromFile(texturePath);
@@ -9,7 +9,7 @@ GraphicElement::GraphicElement(const std::string& texturePath)
 	position.y = 0;
 }
 
-GraphicElement::GraphicElement(const GraphicElement& data)
+Sprite::Sprite(const Sprite& data)
 {
 	if (sprite != nullptr)
 	{
@@ -25,7 +25,7 @@ GraphicElement::GraphicElement(const GraphicElement& data)
 	position = data.position;
 }
 
-GraphicElement::~GraphicElement()
+Sprite::~Sprite()
 {
 	delete sprite;
 	texture.reset();
@@ -34,36 +34,36 @@ GraphicElement::~GraphicElement()
 	texture = nullptr;
 }
 
-void GraphicElement::updatePosition()
+void Sprite::updatePosition()
 {
 	sprite->setPosition(position);
 }
 
-sf::Sprite* GraphicElement::GetSprite() const
+void Sprite::draw(sf::RenderWindow* window)
 {
-	return sprite;
+	window->draw(*sprite);
 }
 
-void GraphicElement::SetPosition(float x, float y)
+void Sprite::SetPosition(float x, float y)
 {
 	position.x = x;
 	position.y = y;
 	updatePosition();
 }
 
-void GraphicElement::SetPositionX(float x)
+void Sprite::SetPositionX(float x)
 {
 	position.x = x;
 	updatePosition();
 }
 
-void GraphicElement::SetPositionY(float y)
+void Sprite::SetPositionY(float y)
 {
 	position.y = y;
 	updatePosition();
 }
 
-sf::Vector2f GraphicElement::GetPosition()
+sf::Vector2f Sprite::GetPosition()
 {
 	return position;
 }
