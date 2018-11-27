@@ -31,14 +31,18 @@ public:
 
 	void draw(sf::RenderWindow* window) override;
 
-	void SetPosition(float x, float y);
+	void SetPosition(float x, float y) override;
 
-	void SetPositionX(float x);
+	void SetPositionX(float x) override;
 
-	void SetPositionY(float y);
+	void SetPositionY(float y) override;
+
+	sf::Vector2f GetPosition() override;
+
+	sf::Vector2f GetSize() override;
 
 	bool pollEvent(sf::Event e) override { return false; }
 
-	sf::Vector2f GetPosition();
+	bool hasPoint(const sf::Vector2f& point) override;
 };
 #endif

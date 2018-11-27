@@ -539,6 +539,8 @@ public:
 	int PlayMusic();
 
 	bool pollEvent(sf::Event e);
+
+	int AddGraphic(Graphic* graphic);
 };
 #pragma once
 #endif

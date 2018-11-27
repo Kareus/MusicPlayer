@@ -67,3 +67,15 @@ sf::Vector2f Sprite::GetPosition()
 {
 	return position;
 }
+
+sf::Vector2f Sprite::GetSize()
+{
+	sf::FloatRect rect = sprite->getLocalBounds();
+	return sf::Vector2f(rect.width, rect.height);
+}
+
+bool Sprite::hasPoint(const sf::Vector2f& point)
+{
+	sf::FloatRect rect = sprite->getLocalBounds();
+	return position.x <= point.x && point.x < position.x + rect.width && position.y <= point.y && point.y < position.y + rect.height;
+}

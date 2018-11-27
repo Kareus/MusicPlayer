@@ -58,7 +58,13 @@ void Application::Render()
 		window.display();
 	}
 }
-	
+
+int Application::AddGraphic(Graphic* graphic)
+{
+	graphic->setID(drawings.GetLength());
+	if (graphic->getID() < 0) return 0; //오버플로우
+	return drawings.Add(graphic);
+}
 
 void Application::Run(HINSTANCE instance)
 {
@@ -68,7 +74,7 @@ void Application::Run(HINSTANCE instance)
 	font.loadFromFile("C:/Windows/Fonts/Arial.ttf");
 	box->setFont(font);
 	box->setText(L"Textbox test.");
-	drawings.Add(box);
+	AddGraphic(box);
 
 	WNDCLASS WindowClass;
 	WindowClass.style = 0;
@@ -94,7 +100,7 @@ void Application::Run(HINSTANCE instance)
 	MSG Message;
 	Message.message = ~WM_QUIT; //시스템으로부터 받아올 윈도우의 메세지
 
-	window.setActive(false); //윈도우 메시지 처리를 수동으로 하기 위해 false로 설정.
+	window.setActive(false); //렌더링 분리를 위해 잠시 비활성화.
 
 	std::thread renderer([this]() {
 		this->Render();
@@ -102,6 +108,8 @@ void Application::Run(HINSTANCE instance)
 	}); //렌더 함수를 쓰레드를 생성하여 실행. (윈도우 메세지 수신과 별개로 렌더링이 작동한다.)
 	renderer.detach(); //현재 쓰레드로부터 독립시킨다. (별개로 돌아가야 하기 때문)
 	//join 또는 detach를 호출했으므로 이 쓰레드는 함수가 종료되면 안전하게 해제된다.
+
+	window.setActive(true); //분리 후 재활성화.
 
 	while (Message.message != WM_QUIT) //종료 메시지가 아닌 경우 무한 루프를 돈다.
 	{
@@ -123,10 +131,33 @@ void Application::Run(HINSTANCE instance)
 bool Application::pollEvent(sf::Event e)
 {
 	DoublyIterator<Graphic*> iter(drawings);
+	iter.ResetToLastPointer(); //id가 z-order 역할을 하므로 역순 검색
+	Graphic* g;
+
 	switch (e.type)
 	{
 	case sf::Event::MouseButtonPressed:
-		if (iter.First()->pollEvent(e)) focus = iter.First();
+
+		if (focus) //기존의 포커스가 있을 경우
+		{
+			focus->setFocus(false); //기존의 포커싱을 해제
+			focus = nullptr; //포커스 객체를 null로 설정
+		}
+
+		while (iter.NotNull()) //포커싱할 그래픽을 찾는다.
+		{
+			g = iter.Current();
+
+			if (g->hasPoint(sf::Vector2f(e.mouseButton.x, e.mouseButton.y)))
+			{
+				if (g->pollEvent(e)) focus = g; // 포커싱에 성공하면 포커싱 객체로 설정
+				break;
+			}
+
+			iter.Prev();
+		}
+
+		if (focus) focus->setFocus(true); //포커싱 객체의 포커스 설정
 		break;
 
 	case sf::Event::TextEntered:
