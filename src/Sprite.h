@@ -19,6 +19,11 @@ private:
 	sf::Sprite* sprite; ///<실제로 그래픽을 출력하는 스프라이트 포인터 변수.
 	std::shared_ptr<sf::Texture> texture; ///<텍스처를 보관하는 포인터 변수. 같은 텍스처를 여러 객체가 공유할 수 있으므로 shared pointer로 선언함.
 	sf::Vector2f position; ///<스프라이트의 위치 변수.
+	std::function<void(Sprite*)> clickFunc; ///<클릭할 때 실행할 함수
+	sf::Color overColor;
+	sf::Color normalColor;
+	bool mouseOver;
+	bool button;
 
 	void updatePosition();
 
@@ -41,8 +46,14 @@ public:
 
 	sf::Vector2f GetSize() override;
 
-	bool pollEvent(sf::Event e) override { return false; }
-	bool pollEvent(CustomWinEvent e) override { return false; }
+	void SetButton(bool b);
+
+	bool isButton() const;
+
+	void setClickFunction(std::function<void(Sprite*)>& func);
+
+	bool pollEvent(sf::Event e);
+	bool pollEvent(CustomWinEvent e) override;
 
 	bool hasPoint(const sf::Vector2f& point) override;
 };

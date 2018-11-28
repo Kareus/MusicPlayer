@@ -10,11 +10,18 @@ public:
 		wchar_t code;
 	};
 
+	struct MouseOverEvent
+	{
+		int x;
+		int y;
+	};
+
 	enum CustomEventType
 	{
 		IMEComposing,
 		IMEResult,
-		IMEEnd
+		IMEEnd,
+		MouseOver
 	};
 
 	CustomEventType type;
@@ -22,6 +29,7 @@ public:
 	union
 	{
 		IMEEvent ime;
+		MouseOverEvent mouseOver;
 	};
 };
 #endif

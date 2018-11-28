@@ -5,6 +5,7 @@
 
 #include "TextBox.h"
 #include "TextLabel.h"
+#include "Sprite.h"
 
 extern MediaPlayer* player;
 
@@ -106,6 +107,13 @@ void Application::Run(HINSTANCE instance)
 	label->setCharacterSize(16);
 	label->SetPosition(0, 200);
 	AddGraphic(label);
+
+	Sprite* sprite = new Sprite("C:/test.png");
+	sprite->SetPosition(300, 300);
+	sprite->SetButton(true);
+	std::function<void(Sprite*)> func = [](Sprite*) {OutputDebugStringA("hello\n"); };
+	sprite->setClickFunction(func);
+	AddGraphic(sprite);
 	//test functions end.
 
 	while (Message.message != WM_QUIT) //종료 메시지가 아닌 경우 무한 루프를 돈다.
@@ -144,6 +152,7 @@ bool Application::pollEvent(CustomWinEvent e)
 
 bool Application::pollEvent(sf::Event e)
 {
+	CustomWinEvent custom;
 	DoublyIterator<Graphic*> iter(drawings);
 	iter.ResetToLastPointer(); //id가 z-order 역할을 하므로 역순 검색
 	Graphic* g;
@@ -164,7 +173,7 @@ bool Application::pollEvent(sf::Event e)
 
 			if (g->hasPoint(sf::Vector2f(e.mouseButton.x, e.mouseButton.y)))
 			{
-				if (g->pollEvent(e)) focus = g; // 포커싱에 성공하면 포커싱 객체로 설정
+				focus = g; // 포커싱에 성공하면 포커싱 객체로 설정
 				break;
 			}
 
@@ -177,6 +186,25 @@ bool Application::pollEvent(sf::Event e)
 			focus->pollEvent(e);
 		}
 		break;
+
+	case sf::Event::MouseMoved:
+		while (iter.NotNull()) //마우스가 올려진 경우는 포커싱이 아니어도 처리해야 함
+		{
+			g = iter.Current();
+
+			if (g->hasPoint(sf::Vector2f(e.mouseMove.x, e.mouseMove.y)))
+			{
+				custom.type = CustomWinEvent::MouseOver;
+				custom.mouseOver = CustomWinEvent::MouseOverEvent();
+				custom.mouseOver.x = e.mouseMove.x;
+				custom.mouseOver.y = e.mouseMove.y;
+				g->pollEvent(custom); // 포커싱으로 설정하지는 않는다.
+				break;
+			}
+
+			iter.Prev();
+		}
+		//포커스 객체에 대해서 마우스 움직임 이벤트를 수행해야 하므로 break하지 않는다.
 
 	default:
 		if (focus) focus->pollEvent(e);

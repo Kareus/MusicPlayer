@@ -85,6 +85,8 @@ bool TextBox::pollEvent(sf::Event e)
 		case sf::Event::MouseButtonPressed:
 			if (e.mouseButton.button == sf::Mouse::Left)
 			{
+				timer.restart();
+
 				for (int i = 1; i < str.size(); i++) //커서 위치 찾기
 				{
 					if (text.findCharacterPos(i).x > e.mouseButton.x)
@@ -122,30 +124,6 @@ bool TextBox::pollEvent(sf::Event e)
 			return true;
 		}
 	}
-
-	//포커싱이 없을 때
-	if (e.type == sf::Event::MouseButtonPressed)
-	{
-		if (e.mouseButton.button == sf::Mouse::Left)
-		{
-			setFocus(true);
-			timer.restart();
-
-			for (int i = 1; i < str.size(); i++)
-			{
-				if (text.findCharacterPos(i).x > e.mouseButton.x)
-				{
-					cursorPos = i - 1;
-					updateText();
-					return true;
-				}
-			}
-			cursorPos = str.size();
-			updateText();
-			return true;
-		}
-	}
-		
 
 	return false;
 }

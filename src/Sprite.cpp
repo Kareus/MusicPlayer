@@ -3,10 +3,16 @@
 Sprite::Sprite(const std::string& texturePath)
 {
 	texture = std::make_shared<sf::Texture>();
-	texture->loadFromFile(texturePath);
+	bool a = texture->loadFromFile(texturePath);
 	sprite = new sf::Sprite(*texture);
 	position.x = 0;
 	position.y = 0;
+	overColor = sf::Color(180, 180, 180);
+	normalColor = sf::Color(255, 255, 255);
+
+	mouseOver = false;
+	button = false;
+	clickFunc = [](Sprite* spr) {};
 }
 
 Sprite::Sprite(const Sprite& data)
@@ -41,6 +47,26 @@ void Sprite::updatePosition()
 
 void Sprite::draw(sf::RenderWindow* window)
 {
+	if (mouseOver)
+	{
+		if (!button)
+		{
+			mouseOver = false;
+			sprite->setColor(normalColor);
+		}
+		else
+		{
+			POINT point;
+			GetCursorPos(&point);
+
+			if (!hasPoint(sf::Vector2f(point.x, point.y)))
+			{
+				mouseOver = false;
+				sprite->setColor(normalColor);
+			}
+		}
+	}
+
 	window->draw(*sprite);
 }
 
@@ -78,4 +104,55 @@ bool Sprite::hasPoint(const sf::Vector2f& point)
 {
 	sf::FloatRect rect = sprite->getLocalBounds();
 	return position.x <= point.x && point.x < position.x + rect.width && position.y <= point.y && point.y < position.y + rect.height;
+}
+
+void Sprite::setClickFunction(std::function<void(Sprite*)>& func)
+{
+	this->clickFunc = func;
+}
+
+bool Sprite::pollEvent(sf::Event e)
+{
+	switch (e.type)
+	{
+	case sf::Event::MouseButtonPressed:
+		if (e.mouseButton.button == sf::Mouse::Left)
+		{
+			clickFunc(this);
+			if (mouseOver)
+			{
+				mouseOver = false;
+				sprite->setColor(normalColor);
+			}
+
+			return true;
+		}
+		return false;
+	}
+
+	return false;
+}
+
+bool Sprite::pollEvent(CustomWinEvent e)
+{
+	switch (e.type)
+	{
+	case CustomWinEvent::MouseOver:
+		if (!button) return false;
+		mouseOver = true;
+		sprite->setColor(overColor);
+		return true;
+	}
+
+	return false;
+}
+
+void Sprite::SetButton(bool b)
+{
+	button = b;
+}
+
+bool Sprite::isButton() const
+{
+	return button;
 }
