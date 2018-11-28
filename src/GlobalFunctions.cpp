@@ -44,6 +44,11 @@ void Update(HWND hwnd, PlayerState state)
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	sf::Event e;
+	CustomWinEvent e2;
+
+	int len;
+	HIMC imc = NULL; // IME 핸들
+	wchar_t imeCode[16];
 
 	switch (iMessage) {
 	case WM_CREATE:
@@ -59,7 +64,50 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		app->pollEvent(e);
 		break;
 
+	case WM_SYSCHAR:
+		break;
+
+	case WM_IME_STARTCOMPOSITION:
+		return 0;
+
+	case WM_IME_COMPOSITION:
+		imc = ImmGetContext(hWnd); //ime 핸들을 가져온다.
+
+		if (lParam & GCS_COMPSTR)
+		{
+			if ((len = ImmGetCompositionString(imc, GCS_COMPSTR, NULL, 0)) > 0)
+			{
+				//조립중
+				ImmGetCompositionString(imc, GCS_COMPSTR, imeCode, len);
+				imeCode[len-1] = 0;
+				
+				e2.type = CustomWinEvent::IMEComposing;
+				e2.ime.code = *imeCode;
+				e2.ime.nullCode = false;
+				app->pollEvent(e2);
+			}
+			else
+			{
+				e2.type = CustomWinEvent::IMEEnd;
+				e2.ime.nullCode = true;
+				app->pollEvent(e2);
+			}
+		}
+		else if (lParam & GCS_RESULTSTR)
+		{
+			if ((len = ImmGetCompositionString(imc, GCS_RESULTSTR, NULL, 0)) > 0)
+			{
+				e2.type = CustomWinEvent::IMEEnd;
+				e2.ime.nullCode = false;
+				app->pollEvent(e2);
+			}
+		}
+
+		ImmReleaseContext(hWnd, imc); //핸들 해제
+		break;
+
 	case WM_CHAR:
+		if (GetAsyncKeyState(VK_SHIFT) || GetAsyncKeyState(VK_MENU) || GetAsyncKeyState(VK_CONTROL)) break;
 		e.type = sf::Event::TextEntered;
 		e.text.unicode = (wchar_t)wParam;
 		app->pollEvent(e);

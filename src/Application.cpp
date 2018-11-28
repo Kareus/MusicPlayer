@@ -62,21 +62,6 @@ int Application::AddGraphic(Graphic* graphic)
 
 void Application::Run(HINSTANCE instance)
 {
-	//test functions
-	TextBox* box = new TextBox(0, 0, 300, 36, true);
-	sf::Font font;
-	font.loadFromFile("C:/Windows/Fonts/Arial.ttf");
-	box->setFont(font);
-	box->setText(L"Textbox test.");
-	AddGraphic(box);
-
-	TextLabel* label = new TextLabel(L"TextLabel Test\nMulti Line");
-	label->setFont(font);
-	label->setCharacterSize(16);
-	label->SetPosition(0, 200);
-	AddGraphic(label);
-	//test functions end.
-
 	WNDCLASS WindowClass;
 	WindowClass.style = 0;
 	WindowClass.lpfnWndProc = &WndProc; //global function에 정의된 프로토콜 이벤트를 사용
@@ -110,6 +95,19 @@ void Application::Run(HINSTANCE instance)
 	renderer.detach(); //현재 쓰레드로부터 독립시킨다. (별개로 돌아가야 하기 때문)
 	//join 또는 detach를 호출했으므로 이 쓰레드는 함수가 종료되면 안전하게 해제된다.
 
+	//test functions
+	TextBox* box = new TextBox(0, 0, 300, 36, true);
+	box->loadFontFrom("C:/Windows/Fonts/malgun.ttf");
+	box->setText(L"TextBox test.");
+	AddGraphic(box);
+
+	TextLabel* label = new TextLabel(L"TextLabel Test\nMulti Line");
+	label->setFont(box->getFont());
+	label->setCharacterSize(16);
+	label->SetPosition(0, 200);
+	AddGraphic(label);
+	//test functions end.
+
 	while (Message.message != WM_QUIT) //종료 메시지가 아닌 경우 무한 루프를 돈다.
 	{
 		if (PeekMessage(&Message, NULL, 0, 0, PM_REMOVE))
@@ -126,6 +124,23 @@ void Application::Run(HINSTANCE instance)
 	DestroyWindow(Window); //종료되면 윈도우를 해제한다.
 
 	UnregisterClass(L"MusicPlayer", instance); //클래스 등록을 해제하고 종료.
+}
+
+bool Application::pollEvent(CustomWinEvent e)
+{
+	DoublyIterator<Graphic*> iter(drawings);
+	iter.ResetToLastPointer(); //id가 z-order 역할을 하므로 역순 검색
+	Graphic* g;
+
+	switch (e.type)
+	{
+	case CustomWinEvent::IMEComposing:
+	case CustomWinEvent::IMEEnd:
+		if (focus) focus->pollEvent(e);
+		break;
+	}
+
+	return true;
 }
 
 bool Application::pollEvent(sf::Event e)

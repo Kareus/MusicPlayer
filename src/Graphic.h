@@ -4,6 +4,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <SFML/OpenGL.hpp>
+#include "CustomWinEvent.h"
 
 class Graphic
 {
@@ -16,6 +17,7 @@ public:
 	virtual ~Graphic() {}; //virtual로 선언하여 dynamic binding된 객체도 올바른 소멸자를 호출할 수 있다.
 	virtual void draw(sf::RenderWindow* window) = 0;
 	virtual bool pollEvent(sf::Event e) = 0;
+	virtual bool pollEvent(CustomWinEvent e) = 0;
 	virtual bool hasPoint(const sf::Vector2f& point) = 0;
 	void setID(int id) { this->id = id; }
 	int getID() const { return id; }

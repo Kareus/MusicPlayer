@@ -24,6 +24,7 @@ public:
 	void setFont(sf::Font& font);
 	std::wstring getText();
 	bool pollEvent(sf::Event e) override;
+	bool pollEvent(CustomWinEvent e) override { return false; }
 	bool hasPoint(const sf::Vector2f& point) override;
 
 	void setTextColor(sf::Color color);

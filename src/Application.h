@@ -11,6 +11,7 @@
 #include "MediaPlayer.h"
 #include "Graphic.h"
 #include <thread>
+#include "CustomWinEvent.h"
 
 #define FILENAMESIZE 1024
 
@@ -539,6 +540,8 @@ public:
 	int PlayMusic();
 
 	bool pollEvent(sf::Event e);
+
+	bool pollEvent(CustomWinEvent e);
 
 	int AddGraphic(Graphic* graphic);
 };

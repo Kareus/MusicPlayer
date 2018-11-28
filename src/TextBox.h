@@ -10,9 +10,14 @@ class TextBox : public Graphic
 {
 private:
 	sf::RectangleShape shape;
+	sf::RectangleShape cursor;
+	sf::Clock timer;
 	sf::Text text;
 	sf::Font font;
 	std::wstring str;
+	static const unsigned int BLINK = 1000;
+	sf::Color cursorColor;
+	bool blink;
 	int cursorPos;
 	unsigned int maxLen;
 	float x;
@@ -20,6 +25,7 @@ private:
 	float width;
 	float height;
 	bool multiLine;
+	bool input;
 
 	bool textEvent(sf::Uint32 code);
 	void updateText();
@@ -32,8 +38,11 @@ public:
 	void setFont(sf::Font& font);
 	std::wstring getText();
 	bool pollEvent(sf::Event e) override;
+	bool pollEvent(CustomWinEvent e) override;
 	bool hasPoint(const sf::Vector2f& point) override;
+	sf::Font& getFont();
 
+	bool loadFontFrom(const std::string& filepath);
 	void setBackgroundColor(sf::Color color);
 	void setBorderColor(sf::Color color);
 	void setBorderSize(float size);

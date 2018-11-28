@@ -1,4 +1,5 @@
 #include "TextBox.h"
+#include "GlobalFunctions.h"
 
 TextBox::TextBox(float x, float y, float width, float height, bool multi_line)
 {
@@ -23,6 +24,13 @@ TextBox::TextBox(float x, float y, float width, float height, bool multi_line)
 	focus = false;
 	cursorPos = 0;
 	maxLen = -1;
+
+	cursorColor = sf::Color::Black;
+	cursor = sf::RectangleShape(sf::Vector2f(2, text.getCharacterSize()));
+	cursor.setPosition(x, y + 2);
+	cursor.setFillColor(cursorColor);
+	blink = true;
+	input = false;
 }
 
 void TextBox::draw(sf::RenderWindow* window)
@@ -32,12 +40,25 @@ void TextBox::draw(sf::RenderWindow* window)
 	glScissor(x, window->getSize().y-height, width, height); //openGL과 SFML의 좌표계가 상하 반전되어 있으므로 반전시킨다.
 	window->draw(text);
 	glDisable(GL_SCISSOR_TEST); //클리핑 종료
+
+	if (focus)
+	{
+		float time = timer.getElapsedTime().asMilliseconds();
+		
+		if (time >= BLINK)
+		{
+			timer.restart();
+			blink = !blink;
+		}
+
+		if (blink) window->draw(cursor);
+	}
 }
 
 void TextBox::setText(const std::wstring& str)
 {
 	this->str = str;
-	cursorPos = str.size() - 1;
+	cursorPos = str.size();
 	updateText();
 }
 
@@ -56,16 +77,72 @@ bool TextBox::pollEvent(sf::Event e)
 {
 	if (focus)
 	{
-		if (e.type == sf::Event::TextEntered)
+		switch (e.type)
+		{
+		case sf::Event::TextEntered:
 			return textEvent(e.text.unicode);
+
+		case sf::Event::KeyPressed:
+			if (e.key.code == VK_LEFT)
+			{
+				if (cursorPos > 0) cursorPos--;
+			}
+			else if (e.key.code == VK_RIGHT)
+			{
+
+				if (cursorPos < str.size()) cursorPos++;
+			}
+			else return false;
+
+			updateText();
+			return true;
+		}
 	}
 
 	if (e.type == sf::Event::MouseButtonPressed)
 		if (e.mouseButton.button == sf::Mouse::Left)
 		{
 			setFocus(true);
+			timer.restart();
 			return true;
 		}
+
+	return false;
+}
+
+bool TextBox::pollEvent(CustomWinEvent e)
+{
+	if (focus)
+	{
+		switch (e.type)
+		{
+		case CustomWinEvent::IMEComposing:
+			font.getGlyph(e.ime.code, text.getCharacterSize(), false);
+			if (maxLen < 0 || str.size() < maxLen)
+			{
+				if (!input)
+				{
+					if (cursorPos < str.size()) str = str.substr(0, cursorPos) + e.ime.code + str.substr(cursorPos);
+					else str += e.ime.code;
+					input = true;
+				}
+				else
+					if (cursorPos + 1 < str.size()) str = str.substr(0, cursorPos) + e.ime.code + str.substr(cursorPos+1);
+					else str = str.substr(0, cursorPos) + e.ime.code;
+				updateText();
+				return true;
+			}
+			return false;
+
+		case CustomWinEvent::IMEEnd:
+			input = false;
+			cursorPos++;
+			if (cursorPos < str.size()) str = str.substr(0, cursorPos) + e.ime.code + str.substr(cursorPos);
+			else str = str.substr(0, cursorPos-1);
+			updateText();
+			return true;
+		}
+	}
 
 	return false;
 }
@@ -75,37 +152,54 @@ bool TextBox::textEvent(sf::Uint32 code)
 	if (code == 8)
 	{
 		if (cursorPos <= 0) return false;
+		if (cursorPos < str.size()) str = str.substr(0, cursorPos - 1) + str.substr(cursorPos);
+		else str.pop_back();
 
-		str = str.substr(0, cursorPos - 1); //삭제
 		cursorPos--;
 	}
 	else
 	{
 		if (code == 10 || code == 13)
 		{
-			if (!multiLine) return true;
+			if (!multiLine) return false;
 			else
 			{
-				if (str.size() < maxLen) str += L'\n';
+				if (maxLen < 0 || str.size() < maxLen)
+				{
+					str = str.substr(0, cursorPos) + L'\n' + str.substr(cursorPos);
+					cursorPos++;
+				}
 				height += text.getCharacterSize();
 				shape.setSize(sf::Vector2f(width, height));
 			}
 		}
-		else if (str.size() < maxLen) str += (wchar_t)code; //다른 경우	
-		cursorPos++;
+		else if (maxLen < 0 || str.size() < maxLen)
+		{
+			if (cursorPos < str.size()) str = str.substr(0, cursorPos) + (wchar_t)code + str.substr(cursorPos); //다른 경우	
+			else str += (wchar_t)code;
+			font.getGlyph(code, text.getCharacterSize(), false);
+			cursorPos++;
+		}
 	}
-
 	updateText();
 
-	return false;
+	return true;
 }
 
 void TextBox::updateText()
 {
 	text.setString(str);
-	float over = text.findCharacterPos(cursorPos).x - text.findCharacterPos(0).x - width; //커서에 해당하는 글자 위치 - 박스 너비
+	if (cursorPos < 0) cursorPos = 0;
+	if (cursorPos > str.size()) cursorPos = str.size();
+
+	float end = text.findCharacterPos(cursorPos).x;
+	if (input) end = text.findCharacterPos(cursorPos + 1).x;
+
+	float over = end - text.findCharacterPos(0).x - width; //커서에 해당하는 글자 위치 - 박스 너비
 	if (over >= 0) text.setPosition(x - over, y); //0보다 크면 텍스트 길이가 박스보다 긴 것이므로 위치 조정
 	else text.setPosition(x, y); //아닌 경우 원래 위치로 리셋.
+
+	cursor.setPosition(end, y + 2);
 }
 
 bool TextBox::hasPoint(const sf::Vector2f& point)
@@ -204,4 +298,14 @@ void TextBox::setCharacterSize(unsigned int size)
 unsigned int TextBox::getCharacterSize()
 {
 	return text.getCharacterSize();
+}
+
+bool TextBox::loadFontFrom(const std::string& filepath)
+{
+	return font.loadFromFile(filepath);
+}
+
+sf::Font& TextBox::getFont()
+{
+	return font;
 }

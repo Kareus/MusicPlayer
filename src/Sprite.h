@@ -42,6 +42,7 @@ public:
 	sf::Vector2f GetSize() override;
 
 	bool pollEvent(sf::Event e) override { return false; }
+	bool pollEvent(CustomWinEvent e) override { return false; }
 
 	bool hasPoint(const sf::Vector2f& point) override;
 };
