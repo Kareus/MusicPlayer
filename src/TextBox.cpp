@@ -18,6 +18,8 @@ TextBox::TextBox(float x, float y, float width, float height, bool multi_line)
 	font = sf::Font();
 
 	str = L"";
+	origin = L"";
+	selection = L"";
 	text = sf::Text(str, font);
 	text.setFillColor(sf::Color::Black);
 
@@ -57,8 +59,9 @@ void TextBox::draw(sf::RenderWindow* window)
 
 void TextBox::setText(const std::wstring& str)
 {
-	this->str = str;
-	cursorPos = str.size();
+	if (maxLen >= 0) this->str = str.substr(0, maxLen);
+	else this->str = str;
+	cursorPos = (this->str).size();
 	updateText();
 }
 
@@ -79,69 +82,129 @@ bool TextBox::pollEvent(sf::Event e)
 	{
 		switch (e.type)
 		{
+		case sf::Event::MouseButtonPressed:
+			if (e.mouseButton.button == sf::Mouse::Left)
+			{
+				for (int i = 1; i < str.size(); i++) //커서 위치 찾기
+				{
+					if (text.findCharacterPos(i).x > e.mouseButton.x)
+					{
+						cursorPos = i - 1;
+						updateText();
+						return true;
+					}
+				}
+				cursorPos = str.size();
+				updateText();
+				return true;
+			}
+			return false;
+
 		case sf::Event::TextEntered:
 			return textEvent(e.text.unicode);
 
 		case sf::Event::KeyPressed:
-			if (e.key.code == VK_LEFT)
+			switch (e.key.code)
 			{
+			case VK_LEFT: //왼쪽 화살표
 				if (cursorPos > 0) cursorPos--;
-			}
-			else if (e.key.code == VK_RIGHT)
-			{
+				break;
 
+			case VK_RIGHT: //오른쪽 화살표
 				if (cursorPos < str.size()) cursorPos++;
+				break;
+
+			default:
+				return false;
 			}
-			else return false;
 
 			updateText();
 			return true;
 		}
 	}
 
+	//포커싱이 없을 때
 	if (e.type == sf::Event::MouseButtonPressed)
+	{
 		if (e.mouseButton.button == sf::Mouse::Left)
 		{
 			setFocus(true);
 			timer.restart();
+
+			for (int i = 1; i < str.size(); i++)
+			{
+				if (text.findCharacterPos(i).x > e.mouseButton.x)
+				{
+					cursorPos = i - 1;
+					updateText();
+					return true;
+				}
+			}
+			cursorPos = str.size();
+			updateText();
 			return true;
 		}
+	}
+		
 
 	return false;
 }
 
 bool TextBox::pollEvent(CustomWinEvent e)
 {
-	if (focus)
+	if (str.size() >= maxLen)
 	{
-		switch (e.type)
-		{
-		case CustomWinEvent::IMEComposing:
-			font.getGlyph(e.ime.code, text.getCharacterSize(), false);
-			if (maxLen < 0 || str.size() < maxLen)
-			{
-				if (!input)
-				{
-					if (cursorPos < str.size()) str = str.substr(0, cursorPos) + e.ime.code + str.substr(cursorPos);
-					else str += e.ime.code;
-					input = true;
-				}
-				else
-					if (cursorPos + 1 < str.size()) str = str.substr(0, cursorPos) + e.ime.code + str.substr(cursorPos+1);
-					else str = str.substr(0, cursorPos) + e.ime.code;
-				updateText();
-				return true;
-			}
-			return false;
+		input = false;
+		str = str.substr(0, maxLen);
+		updateText();
 
-		case CustomWinEvent::IMEEnd:
-			input = false;
-			cursorPos++;
-			if (cursorPos < str.size()) str = str.substr(0, cursorPos) + e.ime.code + str.substr(cursorPos);
-			else str = str.substr(0, cursorPos-1);
-			updateText();
-			return true;
+		INPUT ip;
+		ip.type = INPUT_KEYBOARD;
+		ip.ki.time = 0;
+		ip.ki.dwExtraInfo = 0;
+		ip.ki.wVk = VK_RIGHT;
+		ip.ki.dwFlags = 0;
+		SendInput(1, &ip, sizeof(INPUT)); //IME 종료를 위해 가상으로 오른쪽 화살표 키를 누르도록 신호를 전송한다
+		return false;
+	}
+
+	switch (e.type)
+	{
+	case CustomWinEvent::IMEComposing: //ime 문자를 조합하는 중
+		font.getGlyph(e.ime.code, text.getCharacterSize(), false); //해당 글리프를 폰트에서 로드한다.
+		if (!input)
+		{
+			origin = str; //원본 문자열 저장
+			if (cursorPos < origin.size()) str = origin.substr(0, cursorPos) + e.ime.code + origin.substr(cursorPos);
+			else str = origin + e.ime.code; //해당 ime 코드를 문자열에 삽입
+			input = true; //입력 변수를 true로 설정
 		}
+		else
+		{
+			if (cursorPos < origin.size()) str = origin.substr(0, cursorPos) + e.ime.code + origin.substr(cursorPos);
+			else str = origin + e.ime.code;
+		}
+		updateText();
+		return true;
+
+	case CustomWinEvent::IMEEnd: //ime 문자 한 글자를 완성함
+		input = false; //입력 변수를 false로 설정
+		if (cursorPos < origin.size()) str = origin.substr(0, cursorPos) + e.ime.code + origin.substr(cursorPos);
+		else str = origin + e.ime.code; //최종 조합 문자를 문자열에 삽입
+		cursorPos++; //커서 포지션 조정
+		origin = str;
+		updateText();
+		return true;
+
+	case CustomWinEvent::IMEResult:
+		if (!input) return false; //ime 입력 중이 아닌 경우 false 반환
+
+		//특수한 상황에서 정상적으로 조합을 완성하지 못하고 입력이 종료된 경우를 처리한다.
+		if (GetAsyncKeyState(VK_BACK)) //backspace 키
+			str = origin.substr(0, cursorPos) + origin.substr(cursorPos);
+		
+		updateText();
+		return true;
 	}
 
 	return false;
@@ -149,17 +212,18 @@ bool TextBox::pollEvent(CustomWinEvent e)
 
 bool TextBox::textEvent(sf::Uint32 code)
 {
-	if (code == 8)
+	if (code == 8) //backspace 키
 	{
 		if (cursorPos <= 0) return false;
 		if (cursorPos < str.size()) str = str.substr(0, cursorPos - 1) + str.substr(cursorPos);
 		else str.pop_back();
 
+		origin = str;
 		cursorPos--;
 	}
 	else
 	{
-		if (code == 10 || code == 13)
+		if (code == 10 || code == 13) //enter 키
 		{
 			if (!multiLine) return false;
 			else
@@ -173,12 +237,15 @@ bool TextBox::textEvent(sf::Uint32 code)
 				shape.setSize(sf::Vector2f(width, height));
 			}
 		}
-		else if (maxLen < 0 || str.size() < maxLen)
+		else if (code < 127) //ascii (알파벳, 숫자 등) 키
 		{
-			if (cursorPos < str.size()) str = str.substr(0, cursorPos) + (wchar_t)code + str.substr(cursorPos); //다른 경우	
-			else str += (wchar_t)code;
-			font.getGlyph(code, text.getCharacterSize(), false);
-			cursorPos++;
+			if (maxLen < 0 || str.size() < maxLen)
+			{
+				if (cursorPos < str.size()) str = str.substr(0, cursorPos) + (wchar_t)code + str.substr(cursorPos); //다른 경우	
+				else str += (wchar_t)code;
+				font.getGlyph(code, text.getCharacterSize(), false);
+				cursorPos++;
+			}
 		}
 	}
 	updateText();

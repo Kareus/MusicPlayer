@@ -134,8 +134,7 @@ bool Application::pollEvent(CustomWinEvent e)
 
 	switch (e.type)
 	{
-	case CustomWinEvent::IMEComposing:
-	case CustomWinEvent::IMEEnd:
+	default:
 		if (focus) focus->pollEvent(e);
 		break;
 	}
@@ -172,11 +171,14 @@ bool Application::pollEvent(sf::Event e)
 			iter.Prev();
 		}
 
-		if (focus) focus->setFocus(true); //포커싱 객체의 포커스 설정
+		if (focus)
+		{
+			focus->setFocus(true); //포커싱 객체의 포커스 설정
+			focus->pollEvent(e);
+		}
 		break;
 
-	case sf::Event::TextEntered:
-	case sf::Event::KeyPressed:
+	default:
 		if (focus) focus->pollEvent(e);
 		break;
 	}

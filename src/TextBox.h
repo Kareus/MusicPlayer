@@ -6,26 +6,33 @@
 #include <string>
 #include <Windows.h>
 
+/**
+*	사용자로부터 텍스트를 입력받을 수 있는 텍스트 상자 클래스.
+*	@date	2018.11.28
+*	@author	김성주
+*/
 class TextBox : public Graphic
 {
 private:
-	sf::RectangleShape shape;
-	sf::RectangleShape cursor;
-	sf::Clock timer;
-	sf::Text text;
-	sf::Font font;
-	std::wstring str;
-	static const unsigned int BLINK = 1000;
-	sf::Color cursorColor;
-	bool blink;
-	int cursorPos;
-	unsigned int maxLen;
-	float x;
-	float y;
-	float width;
-	float height;
-	bool multiLine;
-	bool input;
+	sf::RectangleShape shape; ///<배경 사각형
+	sf::RectangleShape cursor; ///<텍스트 커서
+	sf::Clock timer; ///<커서 깜빡임을 위한 타이머
+	sf::Text text; ///<텍스트
+	sf::Font font; ///<폰트
+	std::wstring str; ///<텍스트용 문자열
+	std::wstring origin; ///<IME 입력에 쓸 원본 문자열
+	std::wstring selection; ///<선택 문자열
+	static const unsigned int BLINK = 1000; ///<깜빡임용 시간 상수
+	sf::Color cursorColor; ///<커서 색깔
+	bool blink; ///<깜빡임 여부
+	int cursorPos; ///<현재 커서 위치
+	unsigned int maxLen; ///<최대 길이 (무제한은 -1)
+	float x; ///<x 좌표
+	float y; ///<y 좌표
+	float width; ///<너비
+	float height; ///<높이
+	bool multiLine; ///<여러 줄 가능 여부
+	bool input; ///<IME 입력 여부
 
 	bool textEvent(sf::Uint32 code);
 	void updateText();

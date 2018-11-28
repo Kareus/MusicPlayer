@@ -8,12 +8,12 @@ public:
 	struct IMEEvent
 	{
 		wchar_t code;
-		bool nullCode;
 	};
 
 	enum CustomEventType
 	{
 		IMEComposing,
+		IMEResult,
 		IMEEnd
 	};
 

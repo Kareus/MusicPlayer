@@ -48,7 +48,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 	int len;
 	HIMC imc = NULL; // IME 핸들
-	wchar_t imeCode[16];
+	wchar_t imeCode[16] = { 0 };
 
 	switch (iMessage) {
 	case WM_CREATE:
@@ -83,13 +83,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 				
 				e2.type = CustomWinEvent::IMEComposing;
 				e2.ime.code = *imeCode;
-				e2.ime.nullCode = false;
-				app->pollEvent(e2);
-			}
-			else
-			{
-				e2.type = CustomWinEvent::IMEEnd;
-				e2.ime.nullCode = true;
 				app->pollEvent(e2);
 			}
 		}
@@ -97,13 +90,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		{
 			if ((len = ImmGetCompositionString(imc, GCS_RESULTSTR, NULL, 0)) > 0)
 			{
+				ImmGetCompositionString(imc, GCS_RESULTSTR, imeCode, len);
+				imeCode[len - 1] = 0;
+
 				e2.type = CustomWinEvent::IMEEnd;
-				e2.ime.nullCode = false;
+				e2.ime.code = *imeCode;
 				app->pollEvent(e2);
 			}
 		}
 
 		ImmReleaseContext(hWnd, imc); //핸들 해제
+		break;
+
+	case WM_IME_ENDCOMPOSITION:
+		e2.type = CustomWinEvent::IMEResult;
+		app->pollEvent(e2);
 		break;
 
 	case WM_CHAR:
@@ -125,6 +126,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 	case WM_KEYUP:
 		break;
+
+	case WM_MOUSEMOVE:
+		e.type = sf::Event::MouseMoved;
+		e.mouseMove = sf::Event::MouseMoveEvent();
+		e.mouseMove.x = LOWORD(lParam);
+		e.mouseMove.y = HIWORD(lParam);
+		app->pollEvent(e);
+		break;
+
+	case WM_LBUTTONUP:
+		e.type = sf::Event::MouseButtonReleased;
+		e.mouseButton = sf::Event::MouseButtonEvent();
+		e.mouseButton.button = sf::Mouse::Right;
+		e.mouseButton.x = LOWORD(lParam);
+		e.mouseButton.y = HIWORD(lParam);
+		app->pollEvent(e);
+		break;
+
 
 	case WM_CLOSE:
 		DestroyWindow(hWnd);
