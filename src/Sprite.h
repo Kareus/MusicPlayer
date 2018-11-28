@@ -52,7 +52,7 @@ public:
 
 	void setClickFunction(std::function<void(Sprite*)>& func);
 
-	bool pollEvent(sf::Event e);
+	bool pollEvent(sf::Event e) override;
 	bool pollEvent(CustomWinEvent e) override;
 
 	bool hasPoint(const sf::Vector2f& point) override;

@@ -164,6 +164,7 @@
     <ClCompile Include="FolderType.cpp" />
     <ClCompile Include="GenreType.cpp" />
     <ClCompile Include="GlobalFunctions.cpp" />
+    <ClCompile Include="Group.cpp" />
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="ID3Reader.cpp" />
     <ClCompile Include="main.cpp" />
@@ -194,6 +195,7 @@
     <ClInclude Include="GenreType.h" />
     <ClInclude Include="GlobalFunctions.h" />
     <ClInclude Include="Graphic.h" />
+    <ClInclude Include="Group.h" />
     <ClInclude Include="TextLabel.h" />
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="ID3Reader.h" />

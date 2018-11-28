@@ -6,6 +6,7 @@
 #include "TextBox.h"
 #include "TextLabel.h"
 #include "Sprite.h"
+#include "Group.h"
 
 extern MediaPlayer* player;
 
@@ -96,24 +97,29 @@ void Application::Run(HINSTANCE instance)
 	renderer.detach(); //현재 쓰레드로부터 독립시킨다. (별개로 돌아가야 하기 때문)
 	//join 또는 detach를 호출했으므로 이 쓰레드는 함수가 종료되면 안전하게 해제된다.
 
+
 	//test functions
+	Group* group = new Group();
+
 	TextBox* box = new TextBox(0, 0, 300, 36, true);
 	box->loadFontFrom("C:/Windows/Fonts/malgun.ttf");
 	box->setText(L"TextBox test.");
-	AddGraphic(box);
+	group->AddGraphic(box);
 
 	TextLabel* label = new TextLabel(L"TextLabel Test\nMulti Line");
 	label->setFont(box->getFont());
 	label->setCharacterSize(16);
 	label->SetPosition(0, 200);
-	AddGraphic(label);
+	group->AddGraphic(label);
 
 	Sprite* sprite = new Sprite("C:/test.png");
 	sprite->SetPosition(300, 300);
 	sprite->SetButton(true);
 	std::function<void(Sprite*)> func = [](Sprite*) {OutputDebugStringA("hello\n"); };
 	sprite->setClickFunction(func);
-	AddGraphic(sprite);
+	group->AddGraphic(sprite);
+
+	AddGraphic(group);
 	//test functions end.
 
 	while (Message.message != WM_QUIT) //종료 메시지가 아닌 경우 무한 루프를 돈다.
@@ -137,7 +143,7 @@ void Application::Run(HINSTANCE instance)
 bool Application::pollEvent(CustomWinEvent e)
 {
 	DoublyIterator<Graphic*> iter(drawings);
-	iter.ResetToLastPointer(); //id가 z-order 역할을 하므로 역순 검색
+	iter.ResetToLastPointer();
 	Graphic* g;
 
 	switch (e.type)
