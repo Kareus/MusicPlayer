@@ -120,7 +120,7 @@ public:
 	*	@return	노드를 삭제하면 1, 실패하면 0을 반환한다.
 	*/
 	int Delete(DoublyIterator<T>& iter);
-	
+
 	/**
 	*	@brief	item의 key와 같은 데이터를 찾고, parameter의 데이터로 교체한다.
 	*	@pre	item의 key가 유효해야 한다.
@@ -175,7 +175,7 @@ DoublyLinkedList<T>::DoublyLinkedList(const DoublyLinkedList<T>& list)
 	m_pFirst = NULL;
 	m_pLast = NULL; //복사해오기 전 초기화
 	compareFunc = list.compareFunc;
-	
+
 	if (!list.IsEmpty()) return; //비어있다면 종료
 
 	DoublyIterator<T> iter(list);
@@ -249,6 +249,8 @@ int DoublyLinkedList<T>::Add(const T& item)
 
 	DoublyNodeType<T>* node = new DoublyNodeType<T>; //추가할 노드 생성
 	DoublyIterator<T> iter(*this);
+	DoublyIterator<T> iter2(*this);
+	iter2.ResetToLastPointer();
 
 	node->data = item;
 	node->prev = NULL;
@@ -263,8 +265,9 @@ int DoublyLinkedList<T>::Add(const T& item)
 	{ //아닌 경우
 
 		DoublyNodeType<T>* current;	// iterator에서 접근할 노드
-		while (iter.NotNull())
+		do
 		{
+			//앞 탐색
 			current = iter.m_pCurPointer;
 
 			int compare = compareFunc(node->data, current->data);
@@ -279,24 +282,37 @@ int DoublyLinkedList<T>::Add(const T& item)
 				current->prev = node; //current의 이전 노드를 node로 설정
 				break;
 			}
-			else if (compare > 0)
-			{	//추가하려는 노드가 현재보다 크다면 (node > current)
-
-				if (current->next == NULL) //current의 다음이 NULL이 없다면 (데이터가 더 없다면) 맨 뒤.
-				{
-					current->next = node;
-					node->prev = current;
-					m_pLast = node; //마지막 노드를 node로 설정
-					break;
-				}
-				else iter.Next();
-			}
+			else if (compare > 0) iter.Next();
+			//추가하려는 노드가 현재보다 크다면 (node > current) 다음으로 넘긴다. (iter과 iter2가 중간에서 만남이 보장되므로 null 체크는 하지 않음.)
 			else //같은 데이터를 발견하면
 			{
 				delete node; //메모리를 해제하고 0 반환
 				return 0;
 			}
-		}
+
+			//뒤 탐색
+			current = iter2.m_pCurPointer;
+			compare = compareFunc(node->data, current->data);
+			if (compare > 0)
+			{  //추가하려는 노드가 현재보다 크다면 (node > current)
+				node->prev = current; //이전 노드를 current로 설정
+
+				if (current == m_pLast) m_pLast = node; //맨 마지막인 경우 last로 설정
+				else current->next->prev = node; //아닌 경우 current의 다음 노드가 이전을 node로 가리키도록 설정
+
+				node->next = current->next; //다음 노드를 current의 다음 노드로 설정
+				current->next = node; //current의 다음 노드를 node로 설정
+				break;
+			}
+			else if (compare < 0) iter2.Prev();
+			//추가하려는 노드가 현재보다 작다면 (node < current) 이전으로 넘긴다. (iter과 iter2가 중간에서 만남이 보장되므로 null 체크는 하지 않음.)
+			else //같은 데이터를 발견하면
+			{
+				delete node; //메모리를 해제하고 0 반환
+				return 0;
+			}
+
+		} while (!(iter.m_pCurPointer->data > iter2.m_pCurPointer->data));
 	}
 
 	m_nLength++;
@@ -306,21 +322,29 @@ int DoublyLinkedList<T>::Add(const T& item)
 template <typename T>
 int DoublyLinkedList<T>::Get(T& item)
 {
-	DoublyIterator<T> iter(*this);
+	if (IsEmpty()) return 0;
 
-	while (iter.NotNull()) //현재 포인터가 NULL이 아니면
+	DoublyIterator<T> iter(*this);
+	DoublyIterator<T> iter2(*this);
+
+	iter2.ResetToLastPointer();
+
+	do
 	{
 		int compare = compareFunc(iter.m_pCurPointer->data, item);
-		if (compare == 0) //찾으면
-		{
-			item = iter.m_pCurPointer->data; //할당 후 반환
-			return 1;
-		}
-		else if (compare > 0) //item보다 현재 아이템이 크면 (curpointer > item)
-			return 0; //없다는 뜻이므로 0 반환
+		int compare2 = compareFunc(iter2.m_pCurPointer->data, item);
 
-		iter.Next(); //못 찾았다면 다음 포인터로 이동
-	}
+		if (compare == 0) item = iter.m_pCurPointer->data;
+		else if (compare2 == 0) item = iter2.m_pCurPointer->data;
+		else //찾지 못하면
+		{
+			if (compare < 0) iter.Next();
+			if (compare2 > 0) iter2.Prev();
+			continue;
+		}
+
+		return 1;
+	} while (!(iter.m_pCurPointer->data > iter2.m_pCurPointer->data));
 
 	return 0; //없으면 0 반환
 }
@@ -328,27 +352,37 @@ int DoublyLinkedList<T>::Get(T& item)
 template <typename T>
 int DoublyLinkedList<T>::Delete(const T& item)
 {
-	DoublyIterator<T> iter(*this);
+	if (IsEmpty()) return 0;
 
-	while (iter.NotNull()) //현재 포인터가 NULL이 아니면
+	DoublyIterator<T> iter(*this);
+	DoublyIterator<T> iter2(*this);
+	DoublyNodeType<T>* node = nullptr;
+
+	iter2.ResetToLastPointer();
+
+	do
 	{
 		int compare = compareFunc(iter.m_pCurPointer->data, item);
-		if (compare == 0) //찾으면
+		int compare2 = compareFunc(iter2.m_pCurPointer->data, item);
+
+		if (compare == 0) node = iter.m_pCurPointer;
+		else if (compare2 == 0) node = iter2.m_pCurPointer;
+		else //찾지 못하면
 		{
-			DoublyNodeType<T>* node = iter.m_pCurPointer;
-			if (node->prev != nullptr) node->prev->next = node->next; //이전 노드의 다음을 다음 노드로 설정
-			else m_pFirst = node->next; //이전 노드가 nullptr이면 처음 노드
-			if (node->next != nullptr) node->next->prev = node->prev; //다음 노드의 이전을 이전 노드로 설정
-			else m_pLast = node->prev; //다음 노드가 nullptr이면 마지막 노드
-
-			delete node; //메모리 해제
-			return 1;
+			if (compare < 0) iter.Next();
+			if (compare2 > 0) iter2.Prev();
+			continue;
 		}
-		else if (compare > 0) //item보다 현재 아이템이 크면 (curpointer > item)
-			return 0; //없다는 뜻이므로 0 반환
 
-		iter.Next(); //못 찾았다면 다음 포인터로 이동
-	}
+		if (node->prev != nullptr) node->prev->next = node->next; //이전 노드의 다음을 다음 노드로 설정
+		else m_pFirst = node->next; //이전 노드가 nullptr이면 처음 노드
+		if (node->next != nullptr) node->next->prev = node->prev; //다음 노드의 이전을 이전 노드로 설정
+		else m_pLast = node->prev; //다음 노드가 nullptr이면 마지막 노드
+
+		delete node; //메모리 해제
+		return 1;
+
+	} while (!(iter.m_pCurPointer->data > iter2.m_pCurPointer->data));
 
 	return 0; //못 찾았다면 0 반환
 }
@@ -356,24 +390,31 @@ int DoublyLinkedList<T>::Delete(const T& item)
 template <typename T>
 int DoublyLinkedList<T>::Replace(const T& item)
 {
+	if (IsEmpty()) return 0;
 
 	DoublyIterator<T> iter(*this);
+	DoublyIterator<T> iter2(*this);
 
-	while (iter.NotNull()) //현재 포인터가 NULL이 아니면
+	iter2.ResetToLastPointer();
+
+	do
 	{
 		int compare = compareFunc(iter.m_pCurPointer->data, item);
-		if (compare == 0) //찾으면
+		int compare2 = compareFunc(iter2.m_pCurPointer->data, item);
+
+		if (compare == 0) iter.m_pCurPointer->data = item;
+		else if (compare2 == 0) iter2.m_pCurPointer->data = item;
+		else //찾지 못하면
 		{
-			iter.m_pCurPointer->data = item; //item을 할당하여 교체
-			return 1;
+			if (compare < 0) iter.Next();
+			if (compare2 > 0) iter2.Prev();
+			continue;
 		}
-		else if (compare > 0) //item보다 현재 아이템이 크면 (curpointer > item)
-			return 0; //없다는 뜻이므로 0 반환
 
-		iter.Next(); //못 찾았다면 다음 포인터로 이동
-	}
+		return 1;
+	} while (!(iter.m_pCurPointer->data > iter2.m_pCurPointer->data));
 
-	return 0; //못 찾았다면 0 반환
+	return 0; //없으면 0 반환
 }
 
 template <typename T>
