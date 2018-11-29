@@ -43,8 +43,11 @@ void Update(HWND hwnd, PlayerState state)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
+	if (!app->IsRunning()) return DefWindowProc(hWnd, iMessage, wParam, lParam);
 	sf::Event e;
 	CustomWinEvent e2;
+	static bool mouseIn = false;
+	TRACKMOUSEEVENT tme;
 
 	int len;
 	HIMC imc = NULL; // IME 핸들
@@ -108,7 +111,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_CHAR:
-		if (GetAsyncKeyState(VK_SHIFT) || GetAsyncKeyState(VK_MENU) || GetAsyncKeyState(VK_CONTROL)) break;
+		if (GetAsyncKeyState(VK_MENU) || GetAsyncKeyState(VK_CONTROL)) break;
 		e.type = sf::Event::TextEntered;
 		e.text.unicode = (wchar_t)wParam;
 		app->pollEvent(e);
@@ -128,10 +131,33 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_MOUSEMOVE:
+		if (!mouseIn)
+		{
+			tme.cbSize = sizeof(TRACKMOUSEEVENT);
+			tme.dwFlags = TME_HOVER; 
+			tme.hwndTrack = hWnd;
+			tme.dwHoverTime = 10;
+			TrackMouseEvent(&tme); //mouseHover에 대한 이벤트 추적
+		}
 		e.type = sf::Event::MouseMoved;
 		e.mouseMove = sf::Event::MouseMoveEvent();
 		e.mouseMove.x = LOWORD(lParam);
 		e.mouseMove.y = HIWORD(lParam);
+		app->pollEvent(e);
+		break;
+
+	case WM_MOUSEHOVER:
+		mouseIn = true;
+		tme.cbSize = sizeof(TRACKMOUSEEVENT);
+		tme.dwFlags = TME_LEAVE;
+		tme.hwndTrack = hWnd;
+		tme.dwHoverTime = 500;
+		TrackMouseEvent(&tme); //mouseLeave에 대한 이벤트 추적
+		break;
+
+	case WM_MOUSELEAVE:
+		mouseIn = false;
+		e.type = sf::Event::MouseLeft;
 		app->pollEvent(e);
 		break;
 
@@ -144,7 +170,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		app->pollEvent(e);
 		break;
 
-
 	case WM_CLOSE:
 		DestroyWindow(hWnd);
 		break;
@@ -156,7 +181,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		OnPlayerEvent(hWnd, wParam);
 		break;
 	}
-	return(DefWindowProc(hWnd, iMessage, wParam, lParam));
+
+	return DefWindowProc(hWnd, iMessage, wParam, lParam);
 }
 
 void OnPlayerEvent(HWND hwnd, WPARAM pUnkPtr)

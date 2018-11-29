@@ -29,8 +29,8 @@ public:
 	virtual sf::Vector2f GetPosition() = 0;
 	virtual sf::Vector2f GetSize() = 0;
 
-	bool operator<(const Graphic& g) { return id < g.id; }
-	bool operator>(const Graphic& g) { return id > g.id; }
-	bool operator==(const Graphic& g) { return id == g.id; }
+	bool operator<(const Graphic& g) const { return id < g.id; }
+	bool operator>(const Graphic& g) const { return id > g.id; }
+	bool operator==(const Graphic& g) const { return id == g.id; }
 };
 #endif

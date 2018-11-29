@@ -86,7 +86,7 @@ public:
 	void ResetToLastPointer();
 
 private:
-	const DoublyLinkedList<T> &m_List;
+	const DoublyLinkedList<T>& m_List;
 	DoublyNodeType<T>* m_pCurPointer;
 };
 

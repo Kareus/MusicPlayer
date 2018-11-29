@@ -12,7 +12,7 @@ Sprite::Sprite(const std::string& texturePath)
 
 	mouseOver = false;
 	button = false;
-	clickFunc = [](Sprite* spr) {};
+	clickFunc = [](Sprite* spr) {return; };
 }
 
 Sprite::Sprite(const Sprite& data)
@@ -47,24 +47,10 @@ void Sprite::updatePosition()
 
 void Sprite::draw(sf::RenderWindow* window)
 {
-	if (mouseOver)
+	if (mouseOver && !button)
 	{
-		if (!button)
-		{
-			mouseOver = false;
-			sprite->setColor(normalColor);
-		}
-		else
-		{
-			POINT point;
-			GetCursorPos(&point);
-
-			if (!hasPoint(sf::Vector2f(point.x, point.y)))
-			{
-				mouseOver = false;
-				sprite->setColor(normalColor);
-			}
-		}
+		mouseOver = false;
+		sprite->setColor(normalColor);
 	}
 
 	window->draw(*sprite);
@@ -119,12 +105,27 @@ bool Sprite::pollEvent(sf::Event e)
 		if (e.mouseButton.button == sf::Mouse::Left)
 		{
 			clickFunc(this);
-			if (mouseOver)
-			{
-				mouseOver = false;
-				sprite->setColor(normalColor);
-			}
+			sprite->setColor(normalColor);
 
+			return true;
+		}
+		return false;
+
+	case sf::Event::MouseMoved:
+		if (!button) return false;
+		if (mouseOver && !hasPoint(sf::Vector2f(e.mouseMove.x, e.mouseMove.y)))
+		{
+			mouseOver = false;
+			sprite->setColor(normalColor);
+			return true;
+		}
+		return false;
+
+	case sf::Event::MouseLeft:
+		if (button && mouseOver)
+		{
+			mouseOver = false;
+			sprite->setColor(normalColor);
 			return true;
 		}
 		return false;
@@ -138,7 +139,7 @@ bool Sprite::pollEvent(CustomWinEvent e)
 	switch (e.type)
 	{
 	case CustomWinEvent::MouseOver:
-		if (!button) return false;
+		if (!button || mouseOver) return false;
 		mouseOver = true;
 		sprite->setColor(overColor);
 		return true;
@@ -155,4 +156,19 @@ void Sprite::SetButton(bool b)
 bool Sprite::isButton() const
 {
 	return button;
+}
+
+Sprite* Sprite::clone()
+{
+	Sprite* newSprite = new Sprite();
+	newSprite->texture = texture;
+	newSprite->sprite = new sf::Sprite(*newSprite->texture);
+	newSprite->position = position;
+	newSprite->button = button;
+	newSprite->clickFunc = clickFunc;
+	newSprite->mouseOver = false;
+	newSprite->overColor = overColor;
+	newSprite->normalColor = normalColor;
+
+	return newSprite;
 }

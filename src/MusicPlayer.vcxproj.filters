@@ -167,5 +167,8 @@
     <ClInclude Include="Group.h">
       <Filter>헤더 파일\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="GraphicElements.h">
+      <Filter>헤더 파일\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

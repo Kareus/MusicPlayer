@@ -3,11 +3,6 @@
 #include "GlobalFunctions.h"
 #include "DirectoryReader.h"
 
-#include "TextBox.h"
-#include "TextLabel.h"
-#include "Sprite.h"
-#include "Group.h"
-
 extern MediaPlayer* player;
 
 Application::Application()
@@ -19,8 +14,13 @@ Application::Application()
 	nameList.SetCompareFunction(compareMusicName);
 	recentPlayedList.SetCompareFunction(compareToLast);
 	mostPlayedList.SetCompareFunction(comparePlayedTime);
+	drawings.SetCompareFunction(compareGraphics);
 	backColor = sf::Color::White;
 	drawings.MakeEmpty();
+	currentGroup = nullptr;
+	running = false;
+
+	backgroundSprite = new Sprite("background.png");
 }
 
 Application::~Application()
@@ -35,6 +35,8 @@ Application::~Application()
 	} //그래픽 할당 해제
 
 	drawings.MakeEmpty();
+
+	delete backgroundSprite;
 }
 
 void Application::Render()
@@ -50,7 +52,6 @@ void Application::Render()
 			iter.Current()->draw(&window); //각 그래픽을 렌더링한다
 			iter.Next();
 		}
-
 		window.display();
 	}
 }
@@ -97,7 +98,6 @@ void Application::Run(HINSTANCE instance)
 	renderer.detach(); //현재 쓰레드로부터 독립시킨다. (별개로 돌아가야 하기 때문)
 	//join 또는 detach를 호출했으므로 이 쓰레드는 함수가 종료되면 안전하게 해제된다.
 
-
 	//test functions
 	Group* group = new Group();
 
@@ -111,16 +111,31 @@ void Application::Run(HINSTANCE instance)
 	label->setCharacterSize(16);
 	label->SetPosition(0, 200);
 	group->AddGraphic(label);
-
+	/*
 	Sprite* sprite = new Sprite("C:/test.png");
 	sprite->SetPosition(300, 300);
 	sprite->SetButton(true);
 	std::function<void(Sprite*)> func = [](Sprite*) {OutputDebugStringA("hello\n"); };
 	sprite->setClickFunction(func);
 	group->AddGraphic(sprite);
+	*/
 
 	AddGraphic(group);
+
+	MusicType* m = new MusicType();
+	m->SetName("song");
+	m->SetArtist("artist");
+	m->SetAlbum("album");
+
+	currentGroup = new Group();
+	AddDisplayGraphic(m);
+	AddGraphic(currentGroup);
+
+	delete m;
 	//test functions end.
+
+	Sleep(500); //윈도우 생성과 렌더링 사이에 이벤트가 발생하는 경우가 있어서 해결하기 위해 0.5초 대기
+	running = true;
 
 	while (Message.message != WM_QUIT) //종료 메시지가 아닌 경우 무한 루프를 돈다.
 	{
@@ -132,12 +147,18 @@ void Application::Run(HINSTANCE instance)
 		}
 	}
 
-
 	window.close(); //SFML 렌더 종료
+
+	running = false;
 
 	DestroyWindow(Window); //종료되면 윈도우를 해제한다.
 
 	UnregisterClass(L"MusicPlayer", instance); //클래스 등록을 해제하고 종료.
+}
+
+bool Application::IsRunning()
+{
+	return running;
 }
 
 bool Application::pollEvent(CustomWinEvent e)
@@ -207,10 +228,19 @@ bool Application::pollEvent(sf::Event e)
 				g->pollEvent(custom); // 포커싱으로 설정하지는 않는다.
 				break;
 			}
+			else g->pollEvent(e); //마우스 움직임에 대한 이벤트 수행
 
 			iter.Prev();
 		}
-		//포커스 객체에 대해서 마우스 움직임 이벤트를 수행해야 하므로 break하지 않는다.
+		break;
+
+	case sf::Event::MouseLeft:
+		while (iter.NotNull()) //마우스가 윈도우 밖으로 나갔을 때 이벤트 처리
+		{
+			iter.Current()->pollEvent(e);
+			iter.Prev();
+		}
+		break;
 
 	default:
 		if (focus) focus->pollEvent(e);
@@ -220,35 +250,43 @@ bool Application::pollEvent(sf::Event e)
 	return true;
 }
 
-int Application::GetCommand()
+Group* Application::AddDisplayGraphic(MusicType* data)
 {
-	int command;
-	cout << endl << endl;
-	cout << "\t---ID -- Command ----- " << endl;
-	cout << "\t   1 : Open music menu" << endl;
-	cout << "\t   2 : Open album menu" << endl;
-	cout << "\t   3 : Open artist menu" << endl;
-	cout << "\t   4 : Read data from file" << endl;
-	cout << "\t   5 : Write data to file" << endl;
-	cout << "\t   0 : Quit" << endl;
+	Group* group = new Group();
+	Sprite* play_nodeSprite = nullptr;
+	Sprite* edit_nodeSprite = nullptr;
 
-	cout << endl << "\t Choose a Command--> ";
+	Sprite* background = backgroundSprite->clone();
+	background->SetButton(true);
+	std::wstring str = String::StrToWstr(data->GetName() + '\n' + data->GetArtist() + " - " + data->GetAlbum());
+	TextLabel* info = new TextLabel(str);
+	//Sprite* playButton = play_nodeSprite->clone();
+	//Sprite* editButton = edit_nodeSprite->clone();
 
-	cin >> command;
+	group->AddGraphic(background);
+	group->AddGraphic(info);
+	//group->AddGraphic(playButton);
+	//group->AddGraphic(editButton);
 
-	while (cin.fail())
+	currentGroup->AddGraphic(group);
+
+	return group;
+}
+
+void Application::DisplayAllMusic()
+{
+	
+	if (currentGroup == nullptr)
 	{
-		cout << "\t You should input integer value" << endl;
-		cin.clear();
-		Stream::IgnoreJunk(cin);
-		cout << endl << "\t Choose a Command--> ";
-		cin >> command;
+		currentGroup = new Group();
+		AddGraphic(currentGroup);
 	}
 
-	cin.ignore();
-	cout << endl;
+	currentGroup->MakeEmpty();
 
-	return command;
+	//avltree do function does here
+
+
 }
 
 int Application::AddMusic()
@@ -385,31 +423,6 @@ int Application::AddMusic()
 	}
 
 	return 1;
-}
-
-void Application::DisplayAllMusic()
-{
-	MusicType* data;
-
-	cout << "\n\tCurrent music list" << endl;
-
-	// list의 모든 데이터를 화면에 출력
-	
-	DoublyIterator<MusicType> iter(musicList);
-
-	int curIndex = 1;
-	while (iter.NotNull())
-	{
-		data = iter.CurrentPtr();
-		cout << "\tMusic Num: " << curIndex << endl;
-		cout << "\t---------------" << endl;
-		data->DisplayAllOnScreen();
-		cout << endl;
-		curIndex++;
-		iter.Next();
-	}
-
-	if (musicList.GetLength() == 0) cout << "\tThere is no music added" << endl;
 }
 
 int Application::OpenInFile(char *fileName)
@@ -638,140 +651,6 @@ int Application::ReplaceMusic()
 	return 0;
 }
 
-int Application::SearchMusicByName()
-{
-	string name;
-	cout << "\t Name: ";
-	getline(cin, name);
-
-	int success = 0;
-	
-	DoublyIterator<SimpleMusicType> iter(nameList);
-
-	cout << "\t---------------" << endl;
-	
-	SimpleMusicType* data;
-	while (iter.NotNull())
-	{
-		data = iter.CurrentPtr();
-
-		if ((int)data->GetName().find(name) >= 0)
-		{
-			success++;
-			cout << "\tMusic num : " << success << endl;
-			data->DisplayIDOnScreen();
-			data->DisplayNameOnScreen();
-			cout << endl;
-		}
-		iter.Next();
-	}
-
-	if (success > 0) return 1;
-	else cout << "\tMusic doesn't exist" << endl;
-
-	return 0;
-}
-
-int Application::SearchMusicByArtist()
-{
-	string artist;
-	cout << "\t Artist: ";
-	getline(cin, artist);
-
-	int success = 0;
-
-	DoublyIterator<MusicType> iter(musicList);
-	cout << "\t---------------" << endl;
-
-	MusicType* data;
-	while (iter.NotNull())
-	{
-		data = iter.CurrentPtr();
-
-		if ((int)data->GetArtist().find(artist) >= 0)
-		{
-			success++;
-			cout << "\tMusic Num: " << success << endl;
-			cout << "\t---------------" << endl;
-			data->DisplayIDOnScreen();
-			data->DisplayNameOnScreen();
-			cout << endl;
-		}
-		iter.Next();
-	}
-
-	if (success > 0) return 1;
-	else cout << "\tMusic doesn't exist" << endl;
-
-	return 0;
-}
-
-int Application::SearchMusicByAlbum()
-{
-	string album;
-	cout << "\t Album: ";
-	getline(cin, album);
-
-	int success = 0;
-
-	DoublyIterator<MusicType> iter(musicList);
-	cout << "\t---------------" << endl;
-
-	MusicType* data;
-	while (iter.NotNull())
-	{
-		data = iter.CurrentPtr();
-		if ((int)data->GetAlbum().find(album) >= 0)
-		{
-			success++;
-			cout << "\tMusic Num: " << success << endl;
-			cout << "\t---------------" << endl;
-			data->DisplayIDOnScreen();
-			data->DisplayNameOnScreen();
-			cout << endl;
-		}
-		iter.Next();
-	}
-
-	if (success > 0) return 1;
-	else cout << "\tMusic doesn't exist" << endl;
-
-	return 0;
-}
-
-int Application::SearchMusicByGenre()
-{
-	string genre;
-	cout << "\t Genre: ";
-	getline(cin, genre);
-
-	int success = 0;
-
-	DoublyIterator<MusicType> iter(musicList);
-	cout << "\t---------------" << endl;
-
-	MusicType* data;
-	while (iter.NotNull())
-	{
-		data = iter.CurrentPtr();
-		if ((int)data->GetGenre().find(genre) >= 0)
-		{
-			success++;
-			cout << "\tMusic Num: " << success << endl;
-			cout << "\t---------------" << endl;
-			data->DisplayIDOnScreen();
-			data->DisplayNameOnScreen();
-			cout << endl;
-		}
-		iter.Next();
-	}
-
-	if (success > 0) return 1;
-	else cout << "\tMusic doesn't exist" << endl;
-
-	return 0;
-}
-
 void Application::MakeEmpty()
 {
 	musicList.MakeEmpty();
@@ -782,232 +661,6 @@ void Application::MakeEmpty()
 	newAddMusicList.MakeEmpty();
 	recentPlayedList.MakeEmpty();
 	mostPlayedList.MakeEmpty();
-}
-
-void Application::DisplayNewMusic()
-{
-	newAddMusicList.ResetQueue();
-	SimpleMusicType music;
-
-	cout << "\t최근 추가된 음악들" << endl;
-	cout << "\t---------------" << endl;
-
-	if (newAddMusicList.IsEmpty())
-	{
-		cout << "\tThere is no music recently added!" << endl;
-		return;
-	}
-
-	for (int i = 0; i < 30; i++)
-	{
-		if (newAddMusicList.GetNextItem(music) < 0) break; //아이템이 더 없으면 종료
-
-		music.DisplayIDOnScreen();
-		music.DisplayNameOnScreen();
-		cout << endl;
-	}
-}
-
-void Application::DisplayMusicByGenre()
-{
-	cout << "\t장르별 음악들" << endl;
-
-	if (genreList.GetLength() == 0)
-	{
-		cout << "There is no genres added!" << endl;
-		return;
-	}
-
-	DoublyIterator<GenreType> iter(genreList);
-	GenreType* genre;
-	SimpleMusicType* music;
-
-	while (iter.NotNull())
-	{
-		genre = iter.CurrentPtr();
-
-		cout << "Genre : " << genre->GetGenre() << endl;
-		cout << "\t---------------" << endl;
-
-		DoublyIterator<SimpleMusicType> iter_s = genre->GetIterator();
-
-		int count = 1;
-		while (iter_s.NotNull())
-		{
-			cout << "\tMusic Num: " << count << endl;
-			cout << "\t---------------" << endl;
-			music = iter_s.CurrentPtr();
-			music->DisplayIDOnScreen();
-			music->DisplayNameOnScreen();
-			cout << endl;
-			count++;
-			iter_s.Next();
-		}
-
-		cout << endl;
-		iter.Next();
-	}
-}
-
-void Application::RetreiveByNameNGenre()
-{
-	string name, genre;
-	cout << "\t Name: ";
-	getline(cin, name);
-	cout << "\t Genre: ";
-	getline(cin, genre);
-
-	DoublyIterator<MusicType> iter(musicList);
-	MusicType* music;
-
-	int success = 0;
-
-	cout << "\t---------------" << endl;
-	while (iter.NotNull())
-	{
-		music = iter.CurrentPtr();
-		if (music->GetName() != name) continue; //이름이 다르면 스킵
-		if (music->GetGenre() != genre) continue; //장르가 다르면 스킵
-		
-		music->DisplayAllOnScreen(); //발견했으므로 출력
-		cout << endl;
-		success++;
-	}
-
-	if (success == 0) cout << "\tMusic doesn't exist" << endl;
-}
-
-int Application::ShowMusicMenu()
-{
-	MusicType music;
-	SimpleMusicType simple;
-
-	while (true)
-	{
-		cout << "\t-----Music Menu-----" << endl;
-		int command = GetMusicCommand();
-		switch (command)
-		{
-		case 1:
-			AddMusic();
-			break;
-
-		case 2:
-			DeleteMusic();
-			break;
-
-		case 3:
-			ReplaceMusic();
-			break;
-
-		case 4:
-			PlayMusic();
-			break;
-
-		case 5:
-			music.SetIDFromKB();
-			musicList.Get(music);
-			music.DisplayLyricsOnScreen();
-			cout << endl;
-			break;
-
-		case 6:
-			music.SetIDFromKB();
-			musicList.Get(music);
-			music.DisplayNoteOnScreen();
-			cout << endl;
-			break;
-
-		case 7:
-			SearchMusicByID();
-			break;
-
-		case 8:
-			DisplayAllMusic();
-			break;
-
-		case 9:
-			SearchMusicByName();
-			break;
-
-		case 10:
-			SearchMusicByArtist();
-			break;
-
-		case 11:
-			SearchMusicByAlbum();
-			break;
-
-		case 12:
-			SearchMusicByGenre();
-			break;
-
-		case 13:
-			SearchMusicByComposer();
-			break;
-
-		case 14:
-			DisplayNewMusic();
-			break;
-
-		case 15:
-			DisplayRecentPlayed();
-			break;
-
-		case 16:
-			DisplayMostPlayed();
-			break;
-
-		case 0:
-			return 0;
-
-		default:
-			cout << "\tIllegal selection...\n";
-			cin.ignore();
-			break;
-		}
-	}
-}
-
-int Application::GetMusicCommand()
-{
-	int command;
-	cout << endl << endl;
-	cout << "\t---ID -- Command ----- " << endl;
-	cout << "\t   1 : Add music" << endl;
-	cout << "\t   2 : Delete music" << endl;
-	cout << "\t   3 : Replace music" << endl;
-	cout << "\t   4 : Play music" << endl;
-	cout << "\t   5 : Show lyrics" << endl;
-	cout << "\t   6 : Show notes" << endl;
-	cout << "\t   7 : Display music" << endl;
-	cout << "\t   8 : Display all musics" << endl;
-	cout << "\t   9 : Search music by name" << endl;
-	cout << "\t   10 : Search music by artist" << endl;
-	cout << "\t   11 : Search music by album" << endl;
-	cout << "\t   12 : Search music by genre" << endl;
-	cout << "\t   13 : Search music by composer" << endl;
-	cout << "\t   14 : Display recently added musics" << endl;
-	cout << "\t   15 : Display recently played musics" << endl;
-	cout << "\t   16 : Display most played musics" << endl;
-	cout << "\t   0 : Return to the main menu" << endl;
-
-	cout << endl << "\t Choose a Command--> ";
-	cin >> command;
-
-	while (cin.fail())
-	{
-		cout << "\t You should input integer value" << endl;
-		cin.clear();
-		Stream::IgnoreJunk(cin);
-		cout << endl << "\t Choose a Command--> ";
-		cin >> command;
-	}
-
-	cin.ignore();
-	cout << endl;
-
-	return command;
 }
 
 void Application::AddToRecentPlayed(const MusicType& music)
@@ -1041,65 +694,6 @@ void Application::AddToMostPlayed(const MusicType& music)
 		DoublyIterator<SimpleMusicType> iter(mostPlayedList);
 		iter.ResetToLastPointer();
 		mostPlayedList.Delete(iter);
-	}
-}
-
-void Application::DisplayRecentPlayed()
-{
-	cout << "\t최근 재생한 30곡" << endl;
-
-	SimpleMusicType* music;
-	DoublyIterator<SimpleMusicType> iter(recentPlayedList);
-
-	if (recentPlayedList.GetLength() == 0)
-	{
-		cout << "\tThere is no music recently played!" << endl;
-		return;
-	}
-
-	cout << "\t---------------" << endl;
-
-	int count = 1;
-	while (iter.NotNull())
-	{
-		music = iter.CurrentPtr();
-
-		cout << "\tMusic Num: " << count << endl;
-		cout << "\t---------------" << endl;
-		music->DisplayIDOnScreen();
-		music->DisplayNameOnScreen();
-		count++;
-		cout << endl;
-		iter.Next();
-	}
-}
-
-void Application::DisplayMostPlayed()
-{
-	cout << "\t가장 많이 재생한 30곡" << endl;
-	SimpleMusicType* music;
-	DoublyIterator<SimpleMusicType> iter(mostPlayedList);
-
-	if (mostPlayedList.GetLength() == 0)
-	{
-		cout << "\tThere is no music most played!" << endl;
-		return;
-	}
-
-	cout << "\t---------------" << endl;
-	
-	int count = 1;
-	while (iter.NotNull())
-	{
-		music = iter.CurrentPtr();
-		cout << "\tMusic Num: " << count << endl;
-		cout << "\t---------------" << endl;
-		music->DisplayIDOnScreen();
-		music->DisplayNameOnScreen();
-		music->DisplayPlayedTimeOnScreen();
-		iter.Next();
-		count++;
-		cout << endl;
 	}
 }
 
@@ -1186,26 +780,6 @@ int Application::DeleteMusic(const MusicType& music)
 	return 1;
 }
 
-int Application::GetArtistByName(const string& name, Artist& data)
-{
-	Artist* artist;
-
-	DoublyIterator<Artist> iter(artistList);
-
-	while (iter.NotNull())
-	{
-		artist = iter.CurrentPtr();
-
-		if (artist->GetName() == name)
-		{
-			data = *artist;
-			return 1;
-		}
-		iter.Next();
-	}
-	return 0;
-}
-
 void Application::ClearEmptyAlbums()
 {
 	Album* album;
@@ -1232,640 +806,6 @@ void Application::ClearEmptyAlbums()
 	}
 
 	cout << "\tRemoved all empty album data" << endl;
-}
-
-int Application::SearchMusicByID()
-{
-	MusicType music;
-	music.SetIDFromKB();
-
-	if (musicList.Get(music) == 0)
-	{
-		cout << "\tThe music doesn't exist" << endl;
-		return 0;
-	}
-
-	music.DisplayAllOnScreen();
-	cout << endl;
-	return 1;
-}
-
-int Application::SearchMusicByComposer()
-{
-	cout << "\tComposer : ";
-	string composer;
-	getline(cin, composer);
-
-	int success = 0;
-	cout << "\t---------------" << endl;
-
-	DoublyIterator<MusicType> iter(musicList);
-	MusicType* music;
-	
-	while (iter.NotNull())
-	{
-		music = iter.CurrentPtr();
-
-		if ((int)(music->GetComposer().find(composer)) >= 0)
-		{
-			success++;
-			cout << "\tMusic Num: " << success << endl;
-			cout << "\t---------------" << endl;
-			music->DisplayIDOnScreen();
-			music->DisplayNameOnScreen();
-			cout << endl;
-		}
-
-		iter.Next();
-	}
-
-	if (success > 0) return 1;
-
-	cout << "\tThere is no music that the composer made" << endl;
-	return 0;
-}
-
-int Application::SearchAlbumByID()
-{
-	Album album;
-	album.SetIDFromKB();
-
-	cout << "\t---------------" << endl;
-	if (albumList.Get(album) == 0)
-	{
-		cout << "\tThe album doesn't exist" << endl;
-		return 0;
-	}
-
-	album.DisplayAllOnScreen();
-	cout << endl;
-	return 1;
-}
-
-int Application::SearchAlbumByName()
-{
-	string albumName;
-
-	cout << "\tAlbum Name: ";
-	getline(cin, albumName);
-
-	DoublyIterator<Album> iter(albumList);
-	Album* temp;
-
-	int success = 0;
-
-	cout << "\t---------------" << endl;
-	
-	while (iter.NotNull())
-	{
-		temp = iter.CurrentPtr();
-
-		if ((int)(temp->GetAlbumName().find(albumName)) >= 0)
-		{
-			success++;
-			cout << "\tAlbum Num: " << success << endl;
-			cout << "\t---------------" << endl;
-			temp->DisplayAllOnScreen();
-			cout << endl;
-		}
-
-		iter.Next();
-	}
-
-	if (success > 0) return 1;
-	cout << "\tNo album that has such name exists" << endl;
-	return 0;
-}
-
-int Application::SearchAlbumByArtist()
-{
-	string artist;
-	cout << "\tAlbum Artist: ";
-	
-	getline(cin, artist);
-
-	DoublyIterator<Album> iter(albumList);
-	Album* temp;
-	
-	cout << "\t---------------" << endl;
-	int success = 0;
-	while (iter.NotNull())
-	{
-		temp = iter.CurrentPtr();
-
-		if ((int)(temp->GetArtist().find(artist)) >= 0)
-		{
-			success++;
-			cout << "\tAlbum Num: " << success << endl;
-			cout << "\t---------------" << endl;
-			temp->DisplayAllOnScreen();
-			cout << endl;
-		}
-
-		iter.Next();
-	}
-
-	if (success > 0) return 1;
-	cout << "\tNo album from the artist exists" << endl;
-	return 0;
-}
-
-void Application::DisplayAlbumByName()
-{
-	if (albumList.GetLength() == 0)
-	{
-		cout << "\tThere is no album added" << endl;
-		return;
-	}
-
-	//primary key가 이름 순이므로 그냥 출력
-	Album* album;
-	DoublyIterator<Album> iter(albumList);
-
-	int count = 1;
-	cout << "\t---------------" << endl;
-	while (iter.NotNull())
-	{
-		album = iter.CurrentPtr();
-		cout << "\tAlbum Num: " << count << endl;
-		cout << "\t---------------" << endl;
-
-		album->DisplayIDOnScreen();
-		album->DisplayAlbumNameOnScreen();
-		album->DisplayArtistOnScreen();
-		cout << endl;
-
-		iter.Next();
-		count++;
-	}
-}
-
-void Application::DisplayAlbumByArtist()
-{
-	if (albumList.GetLength() == 0)
-	{
-		cout << "\tThere is no album added" << endl;
-		return;
-	}
-
-	DoublyLinkedList<Album> list;
-	list.SetCompareFunction([](const Album& a1, const Album& a2) {
-		int compare = strcmp(a1.GetArtist().c_str(), a2.GetArtist().c_str());
-		if (compare == 0) return (a1 < a2) - (a1 > a2);
-		return compare;
-	}); //아티스트 순으로 정렬하도록 설정
-
-	//개선할 여지가 있음
-
-	Album album;
-
-	DoublyIterator<Album> iter(albumList);
-
-	while (iter.NotNull())
-	{
-		album = iter.Current();
-		list.Add(album);
-		iter.Next();
-	}
-
-
-	cout << "\t---------------" << endl;
-	
-	DoublyIterator<Album> iter2(list);
-	int count = 1;
-
-	while (iter2.NotNull())
-	{
-		album = iter2.Current();
-		cout << "\tAlbum Num: " << count << endl;
-		cout << "\t---------------" << endl;
-		album.DisplayIDOnScreen();
-		album.DisplayAlbumNameOnScreen();
-		album.DisplayArtistOnScreen();
-		cout << endl;
-
-		iter2.Next();
-		count++;
-	}
-
-}
-
-void Application::DisplayAlbumByDate()
-{
-	if (albumList.GetLength() == 0)
-	{
-		cout << "\tThere is no album added" << endl;
-		return;
-	}
-
-	DoublyLinkedList<Album> list;
-	list.SetCompareFunction([](const Album& a1, const Album& a2) {
-		int compare = (a1.GetDate() > a2.GetDate()) - (a1.GetDate() < a2.GetDate());
-		if (compare == 0) return (a1 < a2) - (a1 > a2);
-		return compare;
-	}); //날짜 순으로 정렬하도록 설정
-
-	//개선할 여지가 있음
-	Album album;
-
-	DoublyIterator<Album> iter(albumList);
-
-	while (iter.NotNull())
-	{
-		album = iter.Current();
-		list.Add(album);
-		iter.Next();
-	}
-
-
-	cout << "\t---------------" << endl;
-
-	DoublyIterator<Album> iter2(list);
-	int count = 1;
-
-	while (iter2.NotNull())
-	{
-		album = iter2.Current();
-		cout << "\tAlbum Num: " << count << endl;
-		cout << "\t---------------" << endl;
-		album.DisplayIDOnScreen();
-		album.DisplayAlbumNameOnScreen();
-		album.DisplayArtistOnScreen();
-		album.DisplayDateOnScreen();
-		cout << endl;
-
-		iter2.Next();
-		count++;
-	}
-}
-
-int Application::SearchAlbumByMusic()
-{
-	string musicName;
-	cout << "\tMusic Name : ";
-	
-	getline(cin, musicName);
-
-	DoublyIterator<Album> iter(albumList);
-	Album* album;
-
-	int success = 0;
-
-	cout << "\t---------------" << endl;
-	while (iter.NotNull())
-	{
-		album = iter.CurrentPtr();
-
-		DoublyIterator<SimpleMusicType> iter_s = album->GetIterator();
-
-		SimpleMusicType* music;
-
-		while (iter_s.NotNull())
-		{
-			music = iter_s.CurrentPtr();
-			if ((int)(music->GetName().find(musicName)) >= 0)
-			{
-				success++;
-				cout << "\tAlbum Num: " << success << endl;
-				cout << "\t---------------" << endl;
-				album->DisplayAllOnScreen();
-				cout << endl;
-				break;
-			}
-			iter_s.Next();
-		}
-
-		iter.Next();
-	}
-
-	if (success > 0) return 1;
-	cout << "\tNo album found" << endl;
-	return 0;
-}
-
-int Application::SearchArtistByID()
-{
-	string artistID;
-	cout << "\tArtist ID: ";
-	
-	getline(cin, artistID);
-
-	cout << "\t---------------" << endl;
-	Artist artist;
-	artist.SetID(artistID);
-
-	if (artistList.Get(artist) == 0)
-	{
-		cout << "\tThe artist doesn't exist" << endl;
-		return 0;
-	}
-
-	artist.DisplayAllOnScreen();
-	cout << endl;
-	return 1;
-}
-
-int Application::SearchArtistByName()
-{
-	string artistName;
-	cout << "\tArtist Name: ";
-	
-	getline(cin, artistName);
-
-	cout << "\t---------------" << endl;
-
-	int success = 0;
-
-	DoublyIterator<Artist> iter(artistList);
-	Artist* temp;
-	
-	while (iter.NotNull())
-	{
-		temp = iter.CurrentPtr();
-
-		if ((int)(temp->GetName().find(artistName)) >= 0)
-		{
-			success++;
-			cout << "\tArtist Num: " << success << endl;
-			cout << "\t---------------" << endl;
-			temp->DisplayAllOnScreen();
-			cout << endl;
-		}
-
-		iter.Next();
-	}
-
-	if (success >= 0) return 1;
-	cout << "\tNo artist found" << endl;
-	return 0;
-}
-
-int Application::SearchArtistByAlbum()
-{
-	string albumName;
-	cout << "\tAlbum Name: ";
-	
-	getline(cin, albumName);
-
-	cout << "\t---------------" << endl;
-
-	int success = 0;
-	DoublyIterator<Artist> iter(artistList);
-	Artist* temp;
-
-	while (iter.NotNull())
-	{
-		temp = iter.CurrentPtr();
-		DoublyIterator<Album> iter_a = temp->GetIterator();
-
-		Album* album;
-
-		while (iter_a.NotNull())
-		{
-			album = iter_a.CurrentPtr();
-
-			if ((int)(album->GetAlbumName().find(albumName)) >= 0)
-			{
-				success++;
-				cout << "\tArtist Num: " << success << endl;
-				cout << "\t---------------" << endl;
-				temp->DisplayAllOnScreen();
-				cout << endl;
-				break;
-			}
-
-			iter_a.Next();
-		}
-
-		iter.Next();
-	}
-
-	if (success >= 0) return 1;
-	cout << "\tNo artist found" << endl;
-	return 0;
-}
-
-void Application::DisplayArtistByName()
-{
-	if (artistList.GetLength() == 0)
-	{
-		cout << "\tThere is no artist added" << endl;
-		return;
-	}
-
-	DoublyIterator<Artist> iter(artistList);
-	Artist* artist;
-
-	cout << "\t---------------" << endl;
-	int count = 1;
-
-	while (iter.NotNull())
-	{
-		artist = iter.CurrentPtr();
-		cout << "\tArtist Num: " << count << endl;
-		cout << "\t---------------" << endl;
-
-		artist->DisplayIDOnScreen();
-		artist->DisplayNameOnScreen();
-		artist->DisplayBirthDateOnScreen();
-		cout << endl;
-		count++;
-		iter.Next();
-	}
-}
-
-int Application::GetAlbumCommand()
-{
-	int command;
-	cout << endl << endl;
-	cout << "\t---ID -- Command ----- " << endl;
-	cout << "\t   1 : Add album" << endl;
-	cout << "\t   2 : Delete album" << endl;
-	cout << "\t   3 : Replace album" << endl;
-	cout << "\t   4 : Add music to album" << endl;
-	cout << "\t   5 : Delete music from album" << endl;
-	cout << "\t   6 : Display album" << endl;
-	cout << "\t   7 : Search album by name" << endl;
-	cout << "\t   8 : Search album by artist" << endl;
-	cout << "\t   9 : Search album by music name" << endl;
-	cout << "\t   10 : Display all albums" << endl;
-	cout << "\t   11 : Display all albums by artist" << endl;
-	cout << "\t   12 : Display all albums by date" << endl;
-	cout << "\t   13 : Clear empty albums" << endl;
-	cout << "\t   0 : Return to the main menu" << endl;
-
-	cout << endl << "\t Choose a Command--> ";
-	cin >> command;
-
-	while (cin.fail())
-	{
-		cout << "\t You should input integer value" << endl;
-		cin.clear();
-		Stream::IgnoreJunk(cin);
-		cout << endl << "\t Choose a Command--> ";
-		cin >> command;
-	}
-
-	cin.ignore();
-	cout << endl;
-
-	return command;
-}
-
-int Application::ShowAlbumMenu()
-{
-	while (true)
-	{
-		cout << "\t-----Album Menu-----" << endl;
-		int command = GetAlbumCommand();
-		switch (command)
-		{
-		case 1:
-			AddAlbum();
-			break;
-
-		case 2:
-			DeleteAlbum();
-			break;
-
-		case 3:
-			ReplaceAlbum();
-			break;
-
-		case 4:
-			AddMusicToAlbum();
-			break;
-
-		case 5:
-			DeleteMusicFromAlbum();
-			break;
-
-		case 6:
-			SearchAlbumByID();
-			break;
-
-		case 7:
-			SearchAlbumByName();
-			break;
-
-		case 8:
-			SearchAlbumByArtist();
-			break;
-
-		case 9:
-			SearchAlbumByMusic();
-			break;
-
-		case 10:
-			DisplayAlbumByName();
-			break;
-
-		case 11:
-			DisplayAlbumByArtist();
-			break;
-
-		case 12:
-			DisplayAlbumByDate();
-			break;
-
-		case 13:
-			ClearEmptyAlbums();
-			break;
-
-		case 0:
-			return 0;
-
-		default:
-			cout << "\tIllegal selection...\n";
-			cin.ignore();
-			break;
-		}
-	}
-}
-
-int Application::GetArtistCommand()
-{
-	int command;
-	cout << endl << endl;
-
-	cout << "\t---ID -- Command ----- " << endl;
-	cout << "\t   1 : Add artist" << endl;
-	cout << "\t   2 : Delete artist" << endl;
-	cout << "\t   3 : Replace artist" << endl;
-	cout << "\t   4 : Add album to artist" << endl;
-	cout << "\t   5 : Delete album from artist" << endl;
-	cout << "\t   6 : Display artist" << endl;
-	cout << "\t   7 : Search artist by name" << endl;
-	cout << "\t   8 : Search artist by album name" << endl;
-	cout << "\t   9 : Display all artists" << endl;
-	cout << "\t   10 : Clear empty artists" << endl;
-	cout << "\t   0 : Return to the main menu" << endl;
-
-	cout << endl << "\t Choose a Command--> ";
-	cin >> command;
-	cin.ignore();
-	cout << endl;
-
-	return command;
-}
-
-int Application::ShowArtistMenu()
-{
-	while (true)
-	{
-		cout << "\t-----Artist Menu-----" << endl;
-		int command = GetArtistCommand();
-		switch (command)
-		{
-		case 1:
-			AddArtist();
-			break;
-
-		case 2:
-			DeleteArtist();
-			break;
-
-		case 3:
-			ReplaceArtist();
-			break;
-
-		case 4:
-			AddAlbumToArtist();
-			break;
-
-		case 5:
-			DeleteAlbumFromArtist();
-			break;
-
-		case 6:
-			SearchArtistByID();
-			break;
-
-		case 7:
-			SearchArtistByName();
-			break;
-
-		case 8:
-			SearchArtistByAlbum();
-			break;
-
-		case 9:
-			DisplayArtistByName();
-			break;
-
-		case 10:
-			ClearEmptyArtists();
-			break;
-
-		case 0:
-			return 0;
-
-		default:
-			cout << "\tIllegal selection...\n";
-			cin.ignore();
-			break;
-		}
-	}
 }
 
 int Application::AddAlbum()

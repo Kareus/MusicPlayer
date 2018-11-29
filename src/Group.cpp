@@ -145,6 +145,34 @@ bool Group::pollEvent(sf::Event e)
 		}
 		break;
 
+	case sf::Event::MouseMoved:
+		while (iter.NotNull())
+		{
+			g = iter.Current();
+
+			if (g->hasPoint(sf::Vector2f(e.mouseMove.x, e.mouseMove.y)))
+			{
+				custom.type = CustomWinEvent::MouseOver;
+				custom.mouseOver = CustomWinEvent::MouseOverEvent();
+				custom.mouseOver.x = e.mouseMove.x;
+				custom.mouseOver.y = e.mouseMove.y;
+				g->pollEvent(custom);
+				break;
+			}
+			else g->pollEvent(e);
+
+			iter.Prev();
+		}
+		break;
+
+	case sf::Event::MouseLeft:
+		while (iter.NotNull())
+		{
+			iter.Current()->pollEvent(e);
+			iter.Prev();
+		}
+		break;
+
 	default:
 		if (focus) focus->pollEvent(e);
 		break;

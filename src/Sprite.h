@@ -27,6 +27,8 @@ private:
 
 	void updatePosition();
 
+	Sprite() {}; ///<기본 생성자는 외부에사 사용할 수 없도록 제한
+
 public:
 	Sprite(const std::string& texturePath);
 
@@ -56,5 +58,7 @@ public:
 	bool pollEvent(CustomWinEvent e) override;
 
 	bool hasPoint(const sf::Vector2f& point) override;
+
+	Sprite* clone();
 };
 #endif

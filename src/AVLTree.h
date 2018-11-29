@@ -61,6 +61,10 @@ private:
 
 	void findNode(AVLTreeNode<T>*& node, std::function<bool(const T&)>& search, std::function<void(const T&)>& todo);
 
+	void doNode(AVLTreeNode<T>*& node, std::function<void(const T&)>& todo);
+
+	std::function<int(const T&, const T&)> compareFunc; ///< 데이터 비교 함수
+
 public:
 
 	AVLTree();
@@ -87,13 +91,26 @@ public:
 
 	AVLTree<T>& operator=(const AVLTree<T>& tree);
 
-	void Find(std::function<bool(const T&)>& search, std::function<void(const T&)>& todo);
+	void Find(const std::function<bool(const T&)>& search, const std::function<void(const T&)>& todo);
+
+	void Do(const std::function<void(const T&)>& todo);
+
+	/**
+	*	@brief	데이터 비교 함수를 설정한다.
+	*	@pre	비교 함수는 t1, t2를 비교할 때 t1 > t2이면 양수, t1 = t2이면 0, t1 < t2이면 음수를 반환해야 한다.
+	*	@post	데이터 비교 함수가 parameter의 함수로 설정된다.
+	*	@param	func	설정할 데이터 비교 함수
+	*/
+	void SetCompareFunction(const std::function<int(const T&, const T&)>& func);
 };
 
 template <typename T>
 AVLTree<T>::AVLTree()
 {
 	root = nullptr;
+	compareFunc = [](const T& t1, const T& t2) {
+		return (t1 > t2) - (t1 < t2);
+	};
 }
 
 template <typename T>
@@ -176,9 +193,21 @@ AVLTree<T>& AVLTree<T>::operator=(const AVLTree<T>& tree)
 }
 
 template <typename T>
-void AVLTree<T>::Find(std::function<bool(const T&)>& search, std::function<void(const T&)>& todo)
+void AVLTree<T>::Find(const std::function<bool(const T&)>& search, const std::function<void(const T&)>& todo)
 {
 	findNode(root, search, todo);
+}
+
+template <typename T>
+void AVLTree<T>::Do(const std::function<void(const T&)>& todo)
+{
+	doNode(root, todo);
+}
+
+template <typename T>
+void AVLTree<T>::SetCompareFunction(const std::function<int(const T&, const T&)>& func)
+{
+	compareFunc = func;
 }
 
 /* -------- recursive functions -------- */
@@ -224,7 +253,9 @@ int AVLTree<T>::AddNode(AVLTreeNode<T>*& node, const T& data)
 		node->height = 0;
 		return 1;
 	}
-	else if (node->data > data) //data가 작은 경우
+	
+	int compare = compareFunc(node->data, data);
+	if (compare > 0) //data가 작은 경우
 	{
 		int success = AddNode(node->left, data); //왼쪽 subtree 업데이트
 
@@ -237,7 +268,7 @@ int AVLTree<T>::AddNode(AVLTreeNode<T>*& node, const T& data)
 		CalculateHeight(node);
 		return success;
 	}
-	else if (node->data < data)
+	else if (compare < 0) //data가 큰 경우
 	{
 		int success = AddNode(node->right, data); //오른쪽 subtree 업데이트
 
@@ -261,9 +292,11 @@ int AVLTree<T>::DeleteNode(AVLTreeNode<T>*& node, const T& data)
 	if (node == nullptr) return 0;
 	int success = 0;
 
-	if (node->data > data) //data가 작은 경우
+	int compare = compareFunc(node->data, data);
+
+	if (compare > 0) //data가 작은 경우
 		success = DeleteNode(node->left, data);
-	else if (node->data < data) //data가 큰 경우
+	else if (compare < 0) //data가 큰 경우
 		success = DeleteNode(node->right, data);
 	else //찾은 경우
 	{
@@ -324,9 +357,10 @@ int AVLTree<T>::ReplaceNode(AVLTreeNode<T>*& node, const T& data)
 {
 	if (node == nullptr) return 0;
 
-	if (node->data > data) //데이터가 작은 경우
+	int compare = compareFunc(node->data, data);
+	if (compare > 0) //데이터가 작은 경우
 		return ReplaceNode(node->left, data);
-	else if (node->data < data) //데이터가 큰 경우
+	else if (compare < 0) //데이터가 큰 경우
 		return ReplaceNode(node->right, data);
 
 	//same data found
@@ -339,9 +373,10 @@ int AVLTree<T>::GetNode(AVLTreeNode<T>*& node, T& data)
 {
 	if (node == nullptr) return 0;
 
-	if (node->data > data) //데이터가 작은 경우
+	int compare = compareFunc(node->data, data);
+	if (compare > 0) //데이터가 작은 경우
 		return GetNode(node->left, data);
-	else if (node->data < data) //데이터가 큰 경우
+	else if (compare < 0) //데이터가 큰 경우
 		return GetNode(node->right, data);
 
 	//same data found
@@ -418,5 +453,14 @@ void AVLTree<T>::findNode(AVLTreeNode<T>*& node, std::function<bool(const T&)>& 
 	findNode(node->left, search, todo); //왼쪽 노드에 대한 search and do something 실행
 	if (search(node->data)) todo(node->data); //search function에 parameter로 현재 노드의 아이템을 넣고 실행. 결과가 true면 todo 함수를 실행.
 	findNode(node->right, search, todo); //오른쪽 노드에 대한 search and do something 실행
+}
+
+template <typename T>
+void AVLTree<T>::doNode(AVLTreeNode<T>*& node, std::function<void(const T&)>& todo)
+{
+	if (node == nullptr) return;
+	doNode(node->left, todo);
+	todo(node->data);
+	doNode(node->right, todo);
 }
 #endif
