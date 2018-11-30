@@ -15,6 +15,8 @@
 
 #define FILENAMESIZE 1024
 
+extern MediaPlayer* player;
+
 /**
 *	자료구조를 이용한 음악 플레이어 클래스
 *	@author	김성주
@@ -23,7 +25,15 @@
 
 class Application {
 private:
-	Sprite* backgroundSprite;
+	HWND Handle; ///<실제 윈도우 핸들
+	bool canDrag;
+
+	Sprite* playerSprite;
+	Sprite* minimizeSprite;
+	Sprite* closeSprite;
+	Sprite* playSprite;
+	Sprite* prevSprite;
+	Sprite* nextSprite;
 
 	int m_Command; ///< 사용자로부터 입력받은 현재 커맨드
 	std::ifstream m_inputFile; ///< 파일 입력을 받기 위한 스트림
@@ -75,6 +85,24 @@ private:
 		return (*g1 > *g2) - (*g1 < *g2); //포인터는 주소값을 비교하므로, 가리키는 객체의 비교 관계를 반환한다.
 	};
 
+	function<void(Sprite*)> func_dragStart = [this](Sprite*) { SendMessage(Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0); };
+	function<void(Sprite*)> func_minimize = [this](Sprite*) { ShowWindow(Handle, SW_MINIMIZE); };
+	function<void(Sprite*)> func_close = [this](Sprite*) { Close(); };
+	function<void(Sprite*)> func_playMusic = [this](Sprite* sprite) {
+		if (player->GetState() == PlayerState::Started)
+		{
+			sprite->SetTexturePos(0, 0);
+			//pause
+		}
+		else
+		{
+			sprite->SetTexturePos(41, 0);
+			PlayMusic();
+		}
+		sprite->ResetMouseOver(); //마우스 오버 상태를 리셋
+		sprite->TriggerMouseOver(); //마우스 오버 다시 트리거
+	};
+
 	//멀티 쓰레드에서 윈도우를 렌더링할 때 쓸 함수
 	void Render();
 
@@ -98,6 +126,8 @@ public:
 	void Run(HINSTANCE instance);
 
 	bool IsRunning();
+
+	bool CanDrag();
 
 	/**
 	*	@brief	리스트에 새로운 아이템을 추가한다.
@@ -325,6 +355,8 @@ public:
 	Group* AddDisplayGraphic(MusicType* data);
 
 	Group* AddEditGraphic(MusicType* data);
+
+	void Close();
 };
 #pragma once
 #endif

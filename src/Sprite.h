@@ -19,9 +19,11 @@ private:
 	sf::Sprite* sprite; ///<실제로 그래픽을 출력하는 스프라이트 포인터 변수.
 	std::shared_ptr<sf::Texture> texture; ///<텍스처를 보관하는 포인터 변수. 같은 텍스처를 여러 객체가 공유할 수 있으므로 shared pointer로 선언함.
 	sf::Vector2f position; ///<스프라이트의 위치 변수.
-	std::function<void(Sprite*)> clickFunc; ///<클릭할 때 실행할 함수
+	std::function<void(Sprite*)> mouseDownFunc; ///<마우스를 눌렀을 때 실행할 함수
+	std::function<void(Sprite*)> mouseUpFunc; ///<마우스를 뗐을 때 실행할 함수
 	sf::Color overColor;
 	sf::Color normalColor;
+	sf::IntRect textureRect;
 	bool mouseOver;
 	bool button;
 
@@ -44,6 +46,10 @@ public:
 
 	void SetPositionY(float y) override;
 
+	void SetTextureRect(float width, float height);
+
+	void SetTexturePos(float x, float y);
+
 	sf::Vector2f GetPosition() override;
 
 	sf::Vector2f GetSize() override;
@@ -52,12 +58,18 @@ public:
 
 	bool isButton() const;
 
-	void setClickFunction(std::function<void(Sprite*)>& func);
+	void SetMouseDownFunction(const std::function<void(Sprite*)>& func);
+
+	void SetMouseUpFunction(const std::function<void(Sprite*)>& func);
 
 	bool pollEvent(sf::Event e) override;
 	bool pollEvent(CustomWinEvent e) override;
 
 	bool hasPoint(const sf::Vector2f& point) override;
+
+	void ResetMouseOver();
+
+	void TriggerMouseOver();
 
 	Sprite* clone();
 };

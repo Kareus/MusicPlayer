@@ -36,6 +36,21 @@ namespace Internet
 	}
 }
 
+namespace System
+{
+	int AlertError(const std::wstring& mes, const std::wstring& caption, UINT BUTTONS)
+	{
+		return MessageBox(NULL, mes.c_str(), caption.c_str(), BUTTONS);
+	}
+
+	void CloseWithError()
+	{
+		//error crash report
+		app->Close();
+		return;
+	}
+}
+
 void Update(HWND hwnd, PlayerState state)
 {
 
@@ -49,6 +64,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	static bool mouseIn = false;
 	TRACKMOUSEEVENT tme;
 
+	static int xClick; //클릭한 x좌표
+	static int yClick; //클릭한 y좌표
+
 	int len;
 	HIMC imc = NULL; // IME 핸들
 	wchar_t imeCode[16] = { 0 };
@@ -59,11 +77,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_LBUTTONDOWN:
+		xClick = LOWORD(lParam);
+		yClick = HIWORD(lParam);
+
 		e.type = sf::Event::MouseButtonPressed;
 		e.mouseButton = sf::Event::MouseButtonEvent();
 		e.mouseButton.button = sf::Mouse::Button::Left;
-		e.mouseButton.x = LOWORD(lParam);
-		e.mouseButton.y = HIWORD(lParam);
+		e.mouseButton.x = xClick;
+		e.mouseButton.y = yClick;
 		app->pollEvent(e);
 		break;
 
@@ -164,7 +185,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	case WM_LBUTTONUP:
 		e.type = sf::Event::MouseButtonReleased;
 		e.mouseButton = sf::Event::MouseButtonEvent();
-		e.mouseButton.button = sf::Mouse::Right;
+		e.mouseButton.button = sf::Mouse::Left;
 		e.mouseButton.x = LOWORD(lParam);
 		e.mouseButton.y = HIWORD(lParam);
 		app->pollEvent(e);

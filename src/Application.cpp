@@ -2,6 +2,9 @@
 #include "PlayListWriter.h"
 #include "GlobalFunctions.h"
 #include "DirectoryReader.h"
+#include <Dwmapi.h>
+
+#pragma comment (lib, "Dwmapi.lib")
 
 extern MediaPlayer* player;
 
@@ -15,12 +18,17 @@ Application::Application()
 	recentPlayedList.SetCompareFunction(compareToLast);
 	mostPlayedList.SetCompareFunction(comparePlayedTime);
 	drawings.SetCompareFunction(compareGraphics);
-	backColor = sf::Color::White;
+	backColor = sf::Color::Transparent;
 	drawings.MakeEmpty();
 	currentGroup = nullptr;
 	running = false;
 
-	backgroundSprite = new Sprite("background.png");
+	playerSprite = new Sprite("../../../graphic/player.png");
+	minimizeSprite = new Sprite("../../../graphic/minimize.png");
+	closeSprite = new Sprite("../../../graphic/exit.png");
+	playSprite = new Sprite("../../../graphic/playpause.png");
+	prevSprite = new Sprite("../../../graphic/prev.png");
+	nextSprite = new Sprite("../../../graphic/next.png");
 }
 
 Application::~Application()
@@ -35,8 +43,6 @@ Application::~Application()
 	} //그래픽 할당 해제
 
 	drawings.MakeEmpty();
-
-	delete backgroundSprite;
 }
 
 void Application::Render()
@@ -56,6 +62,11 @@ void Application::Render()
 	}
 }
 
+void Application::Close()
+{
+	SendMessage(Handle, WM_CLOSE, NULL, NULL);
+}
+
 int Application::AddGraphic(Graphic* graphic)
 {
 	graphic->setID(drawings.GetLength());
@@ -73,18 +84,21 @@ void Application::Run(HINSTANCE instance)
 	WindowClass.hInstance = instance;
 	WindowClass.hIcon = NULL;
 	WindowClass.hCursor = 0;
-	WindowClass.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BACKGROUND);
+	WindowClass.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);
 	WindowClass.lpszMenuName = NULL;
 	WindowClass.lpszClassName = L"MusicPlayer";
 	RegisterClass(&WindowClass); //윈도우 생성을 위한 class 등록
-	HWND Window = CreateWindow(L"MusicPlayer", L"Music Player Application", WS_SYSMENU | WS_VISIBLE, 0, 0, 800, 600, NULL, NULL, instance, NULL); //윈도우 생성
 
-	DWORD Style = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS & ~WS_SIZEBOX;
-	HWND  View1 = CreateWindow(L"STATIC", NULL, Style, 0, 0, 800, 600, Window, NULL, instance, NULL); //윈도우에 대한 SFML View 생성.
+	MARGINS margins;
+	margins.cxLeftWidth = -1; //aero를 사용해 윈도우 백그라운드를 투명하게 하기 위한 변수
 
-	window.create(View1); //생성한 View를 윈도우에 할당
+	Handle = CreateWindow(L"MusicPlayer", L"Music Player Application", WS_POPUP | WS_VISIBLE, 0, 0, 300, 500, NULL, NULL, instance, NULL); //윈도우 생성
 
-	MediaPlayer::create(Window, Window, &player); //플레이어 생성
+	DwmExtendFrameIntoClientArea(Handle, &margins); //배경을 투명하게 한다.
+
+	window.create(Handle); //생성한 윈도우를 SFML 렌더 윈도우에 할당
+
+	MediaPlayer::create(Handle, Handle, &player); //플레이어 생성
 
 	MSG Message;
 	Message.message = ~WM_QUIT; //시스템으로부터 받아올 윈도우의 메세지
@@ -98,7 +112,7 @@ void Application::Run(HINSTANCE instance)
 	renderer.detach(); //현재 쓰레드로부터 독립시킨다. (별개로 돌아가야 하기 때문)
 	//join 또는 detach를 호출했으므로 이 쓰레드는 함수가 종료되면 안전하게 해제된다.
 
-	//test functions
+	/* //test functions
 	Group* group = new Group();
 
 	TextBox* box = new TextBox(0, 0, 300, 36, true);
@@ -111,22 +125,49 @@ void Application::Run(HINSTANCE instance)
 	label->setCharacterSize(16);
 	label->SetPosition(0, 200);
 	group->AddGraphic(label);
-	/*
+
 	Sprite* sprite = new Sprite("C:/test.png");
 	sprite->SetPosition(300, 300);
 	sprite->SetButton(true);
 	std::function<void(Sprite*)> func = [](Sprite*) {OutputDebugStringA("hello\n"); };
 	sprite->setClickFunction(func);
 	group->AddGraphic(sprite);
-	*/
 
 	AddGraphic(group);
 
-	//test functions end.
+	//test functions end. */
+
+	playerSprite->SetMouseDownFunction(func_dragStart);
+	AddGraphic(playerSprite);
+
+	minimizeSprite->SetPosition(237, 10);
+	minimizeSprite->SetButton(true);
+	minimizeSprite->SetMouseUpFunction(func_minimize);
+	AddGraphic(minimizeSprite);
+
+	closeSprite->SetPosition(266, 10);
+	closeSprite->SetButton(true);
+	closeSprite->SetMouseUpFunction(func_close);
+	AddGraphic(closeSprite);
+
+	playSprite->SetPosition(131, 87);
+	playSprite->SetButton(true);
+	playSprite->SetTextureRect(41, 46);
+	playSprite->SetMouseUpFunction(func_playMusic);
+	AddGraphic(playSprite);
+
+	prevSprite->SetPosition(48, 95);
+	prevSprite->SetButton(true);
+	AddGraphic(prevSprite);
+
+	nextSprite->SetPosition(219, 95);
+	nextSprite->SetButton(true);
+	AddGraphic(nextSprite);
 
 	Sleep(500); //윈도우 생성과 렌더링 사이에 이벤트가 발생하는 경우가 있어서 해결하기 위해 0.5초 대기
 	running = true;
 
+	SetCursor(LoadCursor(NULL, IDC_ARROW));
 	while (Message.message != WM_QUIT) //종료 메시지가 아닌 경우 무한 루프를 돈다.
 	{
 		if (PeekMessage(&Message, NULL, 0, 0, PM_REMOVE))
@@ -141,7 +182,7 @@ void Application::Run(HINSTANCE instance)
 
 	running = false;
 
-	DestroyWindow(Window); //종료되면 윈도우를 해제한다.
+	DestroyWindow(Handle); //종료되면 윈도우를 해제한다.
 
 	UnregisterClass(L"MusicPlayer", instance); //클래스 등록을 해제하고 종료.
 }
@@ -1164,19 +1205,5 @@ int Application::AddMusic(const MusicType& data)
 
 int Application::PlayMusic()
 {
-	MusicType music;
-	music.SetIDFromKB();
-	if (musicList.Get(music) == 0)
-	{
-		cout << "\tThere is no music that has such ID" << endl;
-		return 0;
-	}
-
-	music.SetPlayedTime(music.GetPlayedTime() + 1);
-	musicList.Replace(music);
-	AddToRecentPlayed(music);
-	AddToMostPlayed(music);
-
-	cout << "\tPlaying the music..." << endl;
 	return 1;
 }

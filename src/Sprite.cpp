@@ -1,18 +1,32 @@
 #include "Sprite.h"
+#include "GlobalFunctions.h"
 
 Sprite::Sprite(const std::string& texturePath)
 {
 	texture = std::make_shared<sf::Texture>();
-	bool a = texture->loadFromFile(texturePath);
+	if (!texture->loadFromFile(texturePath))
+	{
+		std::string mes = "파일 " + texturePath + "을(를) 찾을 수 없습니다.";
+		std::wstring w_mes = String::StrToWstr(mes);
+
+		int message = System::AlertError(w_mes, L"File Not Found", MB_ICONERROR | MB_RETRYCANCEL);
+
+		if (message == IDRETRY) Sprite(texturePath);
+		else System::CloseWithError();
+
+		return;
+	}
 	sprite = new sf::Sprite(*texture);
 	position.x = 0;
 	position.y = 0;
 	overColor = sf::Color(180, 180, 180);
 	normalColor = sf::Color(255, 255, 255);
+	textureRect = sprite->getTextureRect();
 
 	mouseOver = false;
 	button = false;
-	clickFunc = [](Sprite* spr) {return; };
+	mouseDownFunc = [](Sprite* spr) {return; };
+	mouseUpFunc = [](Sprite* spr) {return; };
 }
 
 Sprite::Sprite(const Sprite& data)
@@ -92,9 +106,14 @@ bool Sprite::hasPoint(const sf::Vector2f& point)
 	return position.x <= point.x && point.x < position.x + rect.width && position.y <= point.y && point.y < position.y + rect.height;
 }
 
-void Sprite::setClickFunction(std::function<void(Sprite*)>& func)
+void Sprite::SetMouseDownFunction(const std::function<void(Sprite*)>& func)
 {
-	this->clickFunc = func;
+	this->mouseDownFunc = func;
+}
+
+void Sprite::SetMouseUpFunction(const std::function<void(Sprite*)>& func)
+{
+	this->mouseUpFunc = func;
 }
 
 bool Sprite::pollEvent(sf::Event e)
@@ -104,9 +123,16 @@ bool Sprite::pollEvent(sf::Event e)
 	case sf::Event::MouseButtonPressed:
 		if (e.mouseButton.button == sf::Mouse::Left)
 		{
-			clickFunc(this);
-			sprite->setColor(normalColor);
+			if (mouseOver) sprite->setColor(normalColor);
+			mouseDownFunc(this);
+		}
+		else return false;
+		return true;
 
+	case sf::Event::MouseButtonReleased:
+		if (e.mouseButton.button == sf::Mouse::Left && hasPoint(sf::Vector2f(e.mouseButton.x, e.mouseButton.y)))
+		{
+			mouseUpFunc(this);
 			return true;
 		}
 		return false;
@@ -163,12 +189,41 @@ Sprite* Sprite::clone()
 	Sprite* newSprite = new Sprite();
 	newSprite->texture = texture;
 	newSprite->sprite = new sf::Sprite(*newSprite->texture);
+	newSprite->textureRect = textureRect;
+	newSprite->sprite->setTextureRect(textureRect);
 	newSprite->position = position;
 	newSprite->button = button;
-	newSprite->clickFunc = clickFunc;
+	newSprite->mouseDownFunc = mouseDownFunc;
+	newSprite->mouseUpFunc = mouseUpFunc;
 	newSprite->mouseOver = false;
 	newSprite->overColor = overColor;
 	newSprite->normalColor = normalColor;
 
 	return newSprite;
+}
+
+void Sprite::SetTextureRect(float width, float height)
+{
+	textureRect.width = width;
+	textureRect.height = height;
+	sprite->setTextureRect(textureRect);
+}
+
+void Sprite::SetTexturePos(float x, float y)
+{
+	textureRect.left = x;
+	textureRect.top = y;
+	sprite->setTextureRect(textureRect);
+}
+
+void Sprite::ResetMouseOver()
+{
+	mouseOver = false;
+	sprite->setColor(normalColor);
+}
+
+void Sprite::TriggerMouseOver()
+{
+	mouseOver = true;
+	sprite->setColor(overColor);
 }

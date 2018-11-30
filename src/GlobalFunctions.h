@@ -34,6 +34,15 @@ namespace Internet
 	void OpenURL(const std::wstring& path);
 }
 
+namespace System
+{
+	//에러 메시지를 띄우는 함수. 사용자가 어떤 버튼을 눌렀는지를 반환한다.
+	int AlertError(const std::wstring& mes, const std::wstring& caption, UINT BUTTONS);
+
+	//에러 리포트를 작성하고 프로그램을 종료하는 함수.
+	void CloseWithError();
+}
+
 //플레이어에 의해 윈도우를 업데이트하는 함수
 void Update(HWND hwnd, PlayerState state);
 
