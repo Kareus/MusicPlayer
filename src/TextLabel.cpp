@@ -100,3 +100,13 @@ unsigned int TextLabel::getCharacterSize()
 {
 	return text.getCharacterSize();
 }
+
+bool TextLabel::loadFontFrom(const std::string& filepath)
+{
+	return font.loadFromFile(filepath);
+}
+
+sf::Font& TextLabel::getFont()
+{
+	return font;
+}

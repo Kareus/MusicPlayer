@@ -27,6 +27,7 @@ Group::~Group()
 
 int Group::AddGraphic(Graphic* g)
 {
+	g->setID(drawings.GetLength());
 	return drawings.Add(g);
 }
 
@@ -186,23 +187,27 @@ bool Group::pollEvent(CustomWinEvent e)
 	DoublyIterator<Graphic*> iter(drawings);
 	iter.ResetToLastPointer();
 	Graphic* g;
+	sf::Event sfEvent;
 
 	switch (e.type)
 	{
 	case CustomWinEvent::MouseOver:
+		
+		sfEvent.type = sf::Event::MouseMoved;
+		sfEvent.mouseMove = sf::Event::MouseMoveEvent();
+		sfEvent.mouseMove.x = e.mouseOver.x;
+		sfEvent.mouseMove.y = e.mouseOver.y;
 
 		while (iter.NotNull())
 		{
 			g = iter.Current();
 
-			if (g->hasPoint(sf::Vector2f(e.mouseOver.x, e.mouseOver.y)))
-			{
-				g->pollEvent(e);
-				break;
-			}
+			if (g->hasPoint(sf::Vector2f(e.mouseOver.x, e.mouseOver.y))) g->pollEvent(e);
+			else g->pollEvent(sfEvent);
 
 			iter.Prev();
 		}
+		break;
 
 	default:
 		if (focus) focus->pollEvent(e);

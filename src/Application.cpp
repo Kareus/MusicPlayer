@@ -122,16 +122,6 @@ void Application::Run(HINSTANCE instance)
 
 	AddGraphic(group);
 
-	MusicType* m = new MusicType();
-	m->SetName("song");
-	m->SetArtist("artist");
-	m->SetAlbum("album");
-
-	currentGroup = new Group();
-	AddDisplayGraphic(m);
-	AddGraphic(currentGroup);
-
-	delete m;
 	//test functions end.
 
 	Sleep(500); //윈도우 생성과 렌더링 사이에 이벤트가 발생하는 경우가 있어서 해결하기 위해 0.5초 대기
@@ -253,23 +243,45 @@ bool Application::pollEvent(sf::Event e)
 Group* Application::AddDisplayGraphic(MusicType* data)
 {
 	Group* group = new Group();
-	Sprite* play_nodeSprite = nullptr;
-	Sprite* edit_nodeSprite = nullptr;
-
+	/*
 	Sprite* background = backgroundSprite->clone();
 	background->SetButton(true);
 	std::wstring str = String::StrToWstr(data->GetName() + '\n' + data->GetArtist() + " - " + data->GetAlbum());
 	TextLabel* info = new TextLabel(str);
-	//Sprite* playButton = play_nodeSprite->clone();
-	//Sprite* editButton = edit_nodeSprite->clone();
+	info->loadFontFrom("C:/Windows/Fonts/malgun.ttf");
+	info->SetPosition(200, 150);
+	Sprite* playButton = play_nodeSprite->clone();
+	Sprite* editButton = edit_nodeSprite->clone();
+	Sprite* removeButton = remove_nodeSprite->clone();
 
 	group->AddGraphic(background);
 	group->AddGraphic(info);
-	//group->AddGraphic(playButton);
-	//group->AddGraphic(editButton);
-
+	group->AddGraphic(playButton);
+	group->AddGraphic(editButton);
+	*/
 	currentGroup->AddGraphic(group);
 
+	return group;
+}
+
+Group* Application::AddEditGraphic(MusicType* data)
+{
+	Group* group = new Group();
+	/*
+	Sprite* background = backgroundSprite->clone();
+	background->SetButton(true);
+	std::wstring str = String::StrToWstr(data->GetName() + '\n' + data->GetArtist() + " - " + data->GetAlbum());
+	TextLabel* info = new TextLabel(str);
+	info->loadFontFrom("C:/Windows/Fonts/malgun.ttf");
+	info->SetPosition(200, 150);
+	Sprite* addButton = add_nodeSprite->clone();
+	Sprite* editButton = edit_nodeSprite->clone();
+
+	group->AddGraphic(background);
+	group->AddGraphic(info);
+	group->AddGraphic(playButton);
+	group->AddGraphic(editButton);
+	*/
 	return group;
 }
 

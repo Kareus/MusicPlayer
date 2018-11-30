@@ -323,6 +323,8 @@ public:
 	int AddGraphic(Graphic* graphic);
 
 	Group* AddDisplayGraphic(MusicType* data);
+
+	Group* AddEditGraphic(MusicType* data);
 };
 #pragma once
 #endif
