@@ -54,13 +54,15 @@ void Application::Render()
 	{
 		window.clear(backColor);
 
-		DoublyIterator<Graphic*> iter(drawings);
+		if (!running) continue;
 
+		DoublyIterator<Graphic*> iter(drawings);
 		while (iter.NotNull())
 		{
 			iter.Current()->draw(&window); //각 그래픽을 렌더링한다
 			iter.Next();
 		}
+
 		window.display();
 	}
 }
@@ -95,19 +97,17 @@ void Application::Run(HINSTANCE instance)
 	MARGINS margins;
 	margins.cxLeftWidth = -1; //aero를 사용해 윈도우 백그라운드를 투명하게 하기 위한 변수
 
-	Handle = CreateWindow(L"MusicPlayer", L"Music Player Application", WS_POPUP | WS_VISIBLE, 0, 0, 300, 500, NULL, NULL, instance, NULL); //윈도우 생성
-
+	Handle = CreateWindow(L"MusicPlayer", L"Music Player Application", WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN, 0, 0, 300, 500, NULL, NULL, instance, NULL); //메인 윈도우 생성
 	DwmExtendFrameIntoClientArea(Handle, &margins); //배경을 투명하게 한다.
 
 	window.create(Handle); //생성한 윈도우를 SFML 렌더 윈도우에 할당
+	window.setActive(false); //렌더링 분리를 위해 비활성화.
 
 	MediaPlayer::create(Handle, Handle, &player); //플레이어 생성
 
 	MSG Message;
 	Message.message = ~WM_QUIT; //시스템으로부터 받아올 윈도우의 메세지
-
-	window.setActive(false); //렌더링 분리를 위해 비활성화.
-
+	
 	std::thread renderer([this]() {
 		this->Render();
 
@@ -176,19 +176,19 @@ void Application::Run(HINSTANCE instance)
 	nextSprite->SetButton(true);
 	AddGraphic(nextSprite);
 
-	TextBox* defaultSearch = new TextBox(10, 169, 200, 54);
-	defaultSearch->setFont(defaultFont);
-	defaultSearch->setBackgroundColor(sf::Color(0x17, 0x21, 0x29));
-	defaultSearch->setBorderSize(0);
-	defaultSearch->setCharacterSize(16);
-	defaultSearch->setTextColor(sf::Color::White);
-	AddGraphic(defaultSearch);
-
 	searchSprite->SetPosition(219, 167);
 	searchSprite->SetButton(true);
 	AddGraphic(searchSprite);
 
-	Sleep(500); //윈도우 생성과 렌더링 사이에 이벤트가 발생하는 경우가 있어서 해결하기 위해 0.5초 대기
+	TextBox* defaultSearch = new TextBox(10, 169, 200, 54, Handle, instance);
+	//defaultSearch->setFont(defaultFont);
+	//defaultSearch->setBackgroundColor(sf::Color(0x17, 0x21, 0x29));
+	//defaultSearch->setBorderSize(0);
+	//defaultSearch->setCharacterSize(16);
+	//defaultSearch->setTextColor(sf::Color::White);
+	AddGraphic(defaultSearch);
+
+	Sleep(100); //윈도우 생성과 렌더링 사이에 이벤트가 발생하는 경우가 있어서 해결하기 위해 0.1초 대기
 	running = true;
 
 	SetCursor(LoadCursor(NULL, IDC_ARROW));

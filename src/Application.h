@@ -129,8 +129,6 @@ public:
 
 	bool IsRunning();
 
-	bool CanDrag();
-
 	/**
 	*	@brief	리스트에 새로운 아이템을 추가한다.
 	*	@pre	리스트가 초기화되어 있어야 한다.

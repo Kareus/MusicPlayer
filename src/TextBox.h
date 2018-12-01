@@ -14,32 +14,17 @@
 class TextBox : public Graphic
 {
 private:
-	sf::RectangleShape shape; ///<배경 사각형
-	sf::RectangleShape cursor; ///<텍스트 커서
-	sf::Clock timer; ///<커서 깜빡임을 위한 타이머
-	sf::Text text; ///<텍스트
-	sf::Font font; ///<폰트
-	std::wstring str; ///<텍스트용 문자열
-	std::wstring origin; ///<IME 입력에 쓸 원본 문자열
-	std::wstring selection; ///<선택 문자열
-	static const unsigned int BLINK = 1000; ///<깜빡임용 시간 상수
-	sf::Color cursorColor; ///<커서 색깔
-	bool blink; ///<깜빡임 여부
-	int cursorPos; ///<현재 커서 위치
-	unsigned int maxLen; ///<최대 길이 (무제한은 -1)
-	float x; ///<x 좌표
-	float y; ///<y 좌표
-	float width; ///<너비
-	float height; ///<높이
+	sf::RenderWindow textBox; ///<Win32 텍스트 박스
 	bool multiLine; ///<여러 줄 가능 여부
-	bool input; ///<IME 입력 여부
-	bool mouseOver; ///<마우스 오버 여부
+	unsigned int maxLen; ///<최대 글자 수
+	sf::Vector2f position;
+	sf::Vector2f size;
 
 	bool textEvent(sf::Uint32 code);
 	void updateText();
 
 public:
-	TextBox(float x, float y, float width, float height, bool multi_line = false);
+	TextBox(float x, float y, float width, float height, HWND parent, HINSTANCE instance = NULL, bool multi_line = false);
 	virtual ~TextBox() {};
 	void draw(sf::RenderWindow* window) override;
 	void setText(const std::wstring& str);
@@ -48,7 +33,6 @@ public:
 	bool pollEvent(sf::Event e) override;
 	bool pollEvent(CustomWinEvent e) override;
 	bool hasPoint(const sf::Vector2f& point) override;
-	sf::Font& getFont();
 
 	bool loadFontFrom(const std::string& filepath);
 	void setBackgroundColor(sf::Color color);

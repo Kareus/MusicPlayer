@@ -59,6 +59,7 @@ void Update(HWND hwnd, PlayerState state)
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	if (!app->IsRunning()) return DefWindowProc(hWnd, iMessage, wParam, lParam);
+
 	sf::Event e;
 	CustomWinEvent e2;
 	static bool mouseIn = false;
@@ -150,7 +151,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 	case WM_KEYUP:
 		break;
-
+		
 	case WM_MOUSEMOVE:
 		if (!mouseIn)
 		{
