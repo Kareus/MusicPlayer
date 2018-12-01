@@ -26,7 +26,6 @@ extern MediaPlayer* player;
 class Application {
 private:
 	HWND Handle; ///<실제 윈도우 핸들
-	bool canDrag;
 
 	sf::Font defaultFont;
 
@@ -36,6 +35,7 @@ private:
 	Sprite* playSprite;
 	Sprite* prevSprite;
 	Sprite* nextSprite;
+	Sprite* searchSprite;
 
 	int m_Command; ///< 사용자로부터 입력받은 현재 커맨드
 	std::ifstream m_inputFile; ///< 파일 입력을 받기 위한 스트림

@@ -31,6 +31,7 @@ Application::Application()
 	playSprite = new Sprite("../../../graphic/playpause.png");
 	prevSprite = new Sprite("../../../graphic/prev.png");
 	nextSprite = new Sprite("../../../graphic/next.png");
+	searchSprite = new Sprite("../../../graphic/search.png");
 }
 
 Application::~Application()
@@ -174,6 +175,18 @@ void Application::Run(HINSTANCE instance)
 	nextSprite->SetPosition(219, 95);
 	nextSprite->SetButton(true);
 	AddGraphic(nextSprite);
+
+	TextBox* defaultSearch = new TextBox(10, 169, 200, 36);
+	defaultSearch->setFont(defaultFont);
+	defaultSearch->setBackgroundColor(sf::Color(0x17, 0x21, 0x29));
+	//defaultSearch->setBorderSize(1);
+	defaultSearch->setCharacterSize(20);
+	defaultSearch->setTextColor(sf::Color::White);
+	AddGraphic(defaultSearch);
+
+	searchSprite->SetPosition(219, 167);
+	searchSprite->SetButton(true);
+	AddGraphic(searchSprite);
 
 	Sleep(500); //윈도우 생성과 렌더링 사이에 이벤트가 발생하는 경우가 있어서 해결하기 위해 0.5초 대기
 	running = true;

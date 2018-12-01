@@ -82,6 +82,10 @@ bool TextBox::pollEvent(sf::Event e)
 	{
 		switch (e.type)
 		{
+		case sf::Event::MouseMoved:
+			if (!hasPoint(sf::Vector2f(e.mouseMove.x, e.mouseMove.y))) SetCursor(LoadCursor(NULL, IDC_ARROW));
+			break;
+
 		case sf::Event::MouseButtonPressed:
 			if (e.mouseButton.button == sf::Mouse::Left)
 			{
@@ -148,6 +152,10 @@ bool TextBox::pollEvent(CustomWinEvent e)
 
 	switch (e.type)
 	{
+	case CustomWinEvent::MouseOver:
+		SetCursor(LoadCursor(NULL, IDC_IBEAM));
+		break;
+
 	case CustomWinEvent::IMEComposing: //ime 문자를 조합하는 중
 		font.getGlyph(e.ime.code, text.getCharacterSize(), false); //해당 글리프를 폰트에서 로드한다.
 		if (!input)
