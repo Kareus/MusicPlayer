@@ -176,11 +176,11 @@ void Application::Run(HINSTANCE instance)
 	nextSprite->SetButton(true);
 	AddGraphic(nextSprite);
 
-	TextBox* defaultSearch = new TextBox(10, 169, 200, 36);
+	TextBox* defaultSearch = new TextBox(10, 169, 200, 54);
 	defaultSearch->setFont(defaultFont);
 	defaultSearch->setBackgroundColor(sf::Color(0x17, 0x21, 0x29));
-	//defaultSearch->setBorderSize(1);
-	defaultSearch->setCharacterSize(20);
+	defaultSearch->setBorderSize(0);
+	defaultSearch->setCharacterSize(16);
 	defaultSearch->setTextColor(sf::Color::White);
 	AddGraphic(defaultSearch);
 

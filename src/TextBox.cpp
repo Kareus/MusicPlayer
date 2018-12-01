@@ -264,7 +264,7 @@ void TextBox::updateText()
 	if (over >= 0) text.setPosition(x - over, y); //0보다 크면 텍스트 길이가 박스보다 긴 것이므로 위치 조정
 	else text.setPosition(x, y); //아닌 경우 원래 위치로 리셋.
 
-	cursor.setPosition(end, y + 2);
+	cursor.setPosition(x + end, y + 2);
 }
 
 bool TextBox::hasPoint(const sf::Vector2f& point)
@@ -304,6 +304,7 @@ sf::Vector2f TextBox::GetSize()
 void TextBox::setBackgroundColor(sf::Color color)
 {
 	shape.setFillColor(color);
+	cursor.setFillColor(sf::Color(255-color.r, 255-color.g, 255 - color.b));
 }
 
 void TextBox::setBorderColor(sf::Color color)
