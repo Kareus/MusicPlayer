@@ -33,6 +33,7 @@ private:
 	float height; ///<높이
 	bool multiLine; ///<여러 줄 가능 여부
 	bool input; ///<IME 입력 여부
+	bool mouseOver; ///<마우스 오버 여부
 
 	bool textEvent(sf::Uint32 code);
 	void updateText();

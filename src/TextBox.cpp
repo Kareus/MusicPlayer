@@ -33,6 +33,7 @@ TextBox::TextBox(float x, float y, float width, float height, bool multi_line)
 	cursor.setFillColor(cursorColor);
 	blink = true;
 	input = false;
+	mouseOver = false;
 }
 
 void TextBox::draw(sf::RenderWindow* window)
@@ -82,11 +83,7 @@ bool TextBox::pollEvent(sf::Event e)
 	{
 		switch (e.type)
 		{
-		case sf::Event::MouseMoved:
-			if (!hasPoint(sf::Vector2f(e.mouseMove.x, e.mouseMove.y))) SetCursor(LoadCursor(NULL, IDC_ARROW));
-			break;
-
-		case sf::Event::MouseButtonPressed:
+			case sf::Event::MouseButtonPressed:
 			if (e.mouseButton.button == sf::Mouse::Left)
 			{
 				timer.restart();
@@ -128,6 +125,20 @@ bool TextBox::pollEvent(sf::Event e)
 			return true;
 		}
 	}
+	else
+	{
+		if (e.type == sf::Event::MouseMoved)
+		{
+			if (mouseOver && !hasPoint(sf::Vector2f(e.mouseMove.x, e.mouseMove.y)))
+			{
+				mouseOver = false;
+				SetCursor(LoadCursor(NULL, IDC_ARROW));
+				return true;
+			}
+			return false;
+		}
+			
+	}
 
 	return false;
 }
@@ -154,7 +165,8 @@ bool TextBox::pollEvent(CustomWinEvent e)
 	{
 	case CustomWinEvent::MouseOver:
 		SetCursor(LoadCursor(NULL, IDC_IBEAM));
-		break;
+		mouseOver = true;
+		return true;
 
 	case CustomWinEvent::IMEComposing: //ime 문자를 조합하는 중
 		font.getGlyph(e.ime.code, text.getCharacterSize(), false); //해당 글리프를 폰트에서 로드한다.
