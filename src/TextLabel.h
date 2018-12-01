@@ -6,6 +6,11 @@
 #include <string>
 #include <Windows.h>
 
+enum TextAlign
+{
+	LEFT, MIDDLE, RIGHT
+};
+
 class TextLabel : public Graphic
 {
 private:
@@ -13,6 +18,8 @@ private:
 	sf::Font font;
 	std::wstring str;
 	sf::Vector2f position;
+	sf::Vector2f rect;
+	TextAlign align;
 
 	void updateText();
 
@@ -22,6 +29,8 @@ public:
 	void draw(sf::RenderWindow* window) override;
 	void setText(const std::wstring& str);
 	void setFont(sf::Font& font);
+	void setAlign(TextAlign align);
+	TextAlign getAlign();
 	std::wstring getText();
 	bool pollEvent(sf::Event e) override;
 	bool pollEvent(CustomWinEvent e) override { return false; }
@@ -34,6 +43,9 @@ public:
 
 	sf::Color getTextColor();
 	unsigned int getCharacterSize();
+
+	void setDisplayRect(float width, float height);
+	sf::Vector2f getDisplayRect();
 
 	void SetPosition(float x, float y) override;
 

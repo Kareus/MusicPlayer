@@ -9,19 +9,29 @@ TextLabel::TextLabel(const std::wstring& str)
 	text.setFillColor(sf::Color::Black);
 	position.x = 0;
 	position.y = 0;
+	rect.x = -1;
+	rect.y = 0;
+	align = LEFT;
 
 	focus = false;
 }
 
 void TextLabel::draw(sf::RenderWindow* window)
 {
-	window->draw(text);
+	if (rect.x < 0) window->draw(text);
+	else {
+		glEnable(GL_SCISSOR_TEST);
+		glScissor(position.x, window->getSize().y - position.y - rect.y, rect.x, rect.y);
+		window->draw(text);
+		glDisable(GL_SCISSOR_TEST);
+	}
 }
 
 void TextLabel::setText(const std::wstring& str)
 {
 	this->str = str;
 	text.setString(str);
+	updateText();
 }
 
 std::wstring TextLabel::getText()
@@ -42,7 +52,24 @@ bool TextLabel::pollEvent(sf::Event e)
 
 void TextLabel::updateText()
 {
-	text.setPosition(position);
+	if (rect.x < 0 || align == LEFT)
+	{
+		text.setPosition(position);
+		return;
+	}
+
+	sf::FloatRect bound = text.getLocalBounds();
+	switch (align)
+	{
+
+	case MIDDLE:
+		text.setPosition(position.x + (rect.x - bound.width) / 2, position.y);
+		break;
+
+	case RIGHT:
+		text.setPosition(position.x + rect.x - bound.width, position.y);
+		break;
+	}
 }
 
 bool TextLabel::hasPoint(const sf::Vector2f& point)
@@ -109,4 +136,27 @@ bool TextLabel::loadFontFrom(const std::string& filepath)
 sf::Font& TextLabel::getFont()
 {
 	return font;
+}
+
+void TextLabel::setDisplayRect(float width, float height)
+{
+	rect.x = width;
+	rect.y = height;
+
+	updateText();
+}
+
+sf::Vector2f TextLabel::getDisplayRect()
+{
+	return rect;
+}
+
+void TextLabel::setAlign(TextAlign align)
+{
+	this->align = align;
+}
+
+TextAlign TextLabel::getAlign()
+{
+	return align;
 }

@@ -23,6 +23,8 @@ Application::Application()
 	currentGroup = nullptr;
 	running = false;
 
+	defaultFont.loadFromFile("C:/Windows/Fonts/malgun.ttf");
+
 	playerSprite = new Sprite("../../../graphic/player.png");
 	minimizeSprite = new Sprite("../../../graphic/minimize.png");
 	closeSprite = new Sprite("../../../graphic/exit.png");
@@ -112,7 +114,7 @@ void Application::Run(HINSTANCE instance)
 	renderer.detach(); //현재 쓰레드로부터 독립시킨다. (별개로 돌아가야 하기 때문)
 	//join 또는 detach를 호출했으므로 이 쓰레드는 함수가 종료되면 안전하게 해제된다.
 
-	/* //test functions
+	/*//test functions
 	Group* group = new Group();
 
 	TextBox* box = new TextBox(0, 0, 300, 36, true);
@@ -149,6 +151,15 @@ void Application::Run(HINSTANCE instance)
 	closeSprite->SetButton(true);
 	closeSprite->SetMouseUpFunction(func_close);
 	AddGraphic(closeSprite);
+
+	TextLabel* playName = new TextLabel(L"Artist - Song");
+	playName->setAlign(TextAlign::MIDDLE);
+	playName->setDisplayRect(250, 40);
+	playName->setFont(defaultFont);
+	playName->setCharacterSize(24);
+	playName->setTextColor(sf::Color::White);
+	playName->SetPosition(25, 45);
+	AddGraphic(playName);
 
 	playSprite->SetPosition(131, 87);
 	playSprite->SetButton(true);

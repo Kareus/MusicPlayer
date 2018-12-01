@@ -39,7 +39,7 @@ void TextBox::draw(sf::RenderWindow* window)
 {
 	window->draw(shape);
 	glEnable(GL_SCISSOR_TEST); //클리핑
-	glScissor(x, window->getSize().y-height, width, height); //openGL과 SFML의 좌표계가 상하 반전되어 있으므로 반전시킨다.
+	glScissor(x, window->getSize().y - height - y, width, height); //openGL과 SFML의 좌표계가 상하 반전되어 있으므로 반전시킨다.
 	window->draw(text);
 	glDisable(GL_SCISSOR_TEST); //클리핑 종료
 

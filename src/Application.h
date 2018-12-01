@@ -28,6 +28,8 @@ private:
 	HWND Handle; ///<실제 윈도우 핸들
 	bool canDrag;
 
+	sf::Font defaultFont;
+
 	Sprite* playerSprite;
 	Sprite* minimizeSprite;
 	Sprite* closeSprite;
