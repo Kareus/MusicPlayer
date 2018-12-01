@@ -34,6 +34,13 @@ ID3Reader::~ID3Reader()
 	frames.MakeEmpty();
 }
 
+int ID3Reader::getFrameCase(const std::string& id)
+{
+	if (!strcmp(id.c_str(),"USLT")) return 1; //unsynchronized lyrics 처리
+	if (!strcmp(id.c_str(), "SYLT")) return 2; //synchronized lyrics 처리
+	return 0;
+}
+
 bool ID3Reader::read(const wstring& filepath)
 {
 	majorVersion = 0;
@@ -152,22 +159,59 @@ bool ID3Reader::read(const wstring& filepath)
 			//char*에서 string으로 할당 연산자로 옮길 시 뒤에 추가로 index가 늘어나 문자열 인식에서 오류가 발생함.
 			for (int i = 0; i < 4; i++) id += ID[i]; //ID의 4글자를 string에 옮긴다.
 
-			if (encoder == 0)
+			int Case = getFrameCase(id);
+			int ignore = 4;
+			char* descriptor;
+
+			if (Case >= 1)
 			{
-				//ISO-8859-1
-				for (int i = 1; i < realSize; i++) frame += data[i]; //0번째 문자 (인코딩 타입)을 제외하고 나머지를 frame에 옮긴다.
+				//unsynchronized lyrics. 국가 코드가 3byte, descriptor가 \0\0가 나올 때까지 임의의 크기를 차지한다.
+				if (Case == 2) //synchronized lyrics. unsynchronized보다 time stamp와 content 헤더가 2바이트 더 있다.
+					ignore += 2;
+				descriptor = data + ignore;
+				while (memcmp(descriptor, "\0\0", 2))
+				{
+					descriptor++;
+					ignore++; //content descriptor가 끝날때까지 메모리 주소를 건너뛴다.
+				}
+				ignore += 2; //descriptor 건너뜀
+
+				if (encoder == 0)
+				{
+					for (int i = ignore; i < realSize; i++) frame += data[i];
+				}
+				else if (encoder == 1)
+				{
+					if (data[ignore] == -1 && data[ignore + 1] == -2) //little endian
+						for (int i = ignore + 2; i < realSize; i += 2) frame += *(uint16_t*)(data + i); //인코딩 타입, BOM을 제외하고 3번째 문자부터 옮긴다.
+					else if (data[ignore] == -2 && data[ignore + 1] == -1) // big endian
+						for (int i = realSize - 2; i > ignore + 2; i -= 2) frame += *(uint16_t *)(data + i); //big endian일 경우 반대로 읽어야 하므로 마지막부터 3번째 문자까지 옮긴다.
+				}
+				else if (encoder == 3)
+				{
+					for (int i = ignore; i < realSize; i++) frame += *(uint8_t*)(data + i); //UTF8의 경우 BOM이 없거나 상관 없으므로 1번째 문자부터 옮긴다.
+				}
 			}
-			else if (encoder == 1 || encoder == 2)
+			else
 			{
-				if (data[1] == -1 && data[2] == -2) //little endian
-					for (int i = 3; i < realSize; i += 2) frame += *(uint16_t*)(data + i); //인코딩 타입, BOM을 제외하고 3번째 문자부터 옮긴다.
-				else if (data[1] == -2 && data[2] == -1) // big endian
-					for (int i = realSize - 2; i > 2; i -= 2) frame += *(uint16_t *)(data + i); //big endian일 경우 반대로 읽어야 하므로 마지막부터 3번째 문자까지 옮긴다.
+				if (encoder == 0)
+				{
+					//ISO-8859-1
+					for (int i = 1; i < realSize; i++) frame += data[i]; //0번째 문자 (인코딩 타입)을 제외하고 나머지를 frame에 옮긴다.
+				}
+				else if (encoder == 1 || encoder == 2)
+				{
+					if (data[1] == -1 && data[2] == -2) //little endian
+						for (int i = 3; i < realSize; i += 2) frame += *(uint16_t*)(data + i); //인코딩 타입, BOM을 제외하고 3번째 문자부터 옮긴다.
+					else if (data[1] == -2 && data[2] == -1) // big endian
+						for (int i = realSize - 2; i > 2; i -= 2) frame += *(uint16_t *)(data + i); //big endian일 경우 반대로 읽어야 하므로 마지막부터 3번째 문자까지 옮긴다.
+				}
+				else if (encoder == 3)
+				{
+					for (int i = 1; i < realSize; i += 2) frame += *(uint8_t*)(data + i); //UTF8의 경우 BOM이 없거나 상관 없으므로 1번째 문자부터 옮긴다.
+				}
 			}
-			else if (encoder == 3)
-			{
-				for (int i = 1; i < realSize; i += 2) frame += *(uint8_t*)(data + i); //UTF8의 경우 BOM이 없거나 상관 없으므로 1번째 문자부터 옮긴다.
-			}
+			
 
 			ID3Frame id3frame(id, frame);
 			frames.Add(id3frame); //frame 추가

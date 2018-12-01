@@ -71,6 +71,7 @@ private:
 	AVLTree<ID3Frame> frames;
 
 	int decodeSync(char* byte);
+	int getFrameCase(const std::string& id);
 
 public:
 	ID3Reader();
