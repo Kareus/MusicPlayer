@@ -35,7 +35,7 @@ HRESULT CreateMediaSinkActivate(IMFStreamDescriptor *pSourceSD, HWND hVideoWindo
 HRESULT AddSourceNode(IMFTopology *pTopology, IMFMediaSource *pSource, IMFPresentationDescriptor *pPD, IMFStreamDescriptor *pSD, IMFTopologyNode **ppNode);
 HRESULT AddOutputNode(IMFTopology *pTopology, IMFActivate *pActivate, DWORD dwId, IMFTopologyNode **ppNode);
 
-const UINT WM_APP_PLAYER_EVENT = WM_APP + 1; //application과 player가 소통하기 위해 추가한 이벤트
+#define WM_APP_PLAYER_EVENT  WM_APP + 1 //application과 player가 소통하기 위해 추가한 이벤트
 
 // T 포인터를 안전하게 해제하는 함수
 template <class T>

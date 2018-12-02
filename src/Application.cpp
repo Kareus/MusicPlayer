@@ -23,7 +23,7 @@ Application::Application()
 	currentGroup = nullptr;
 	running = false;
 
-	defaultFont.loadFromFile("C:/Windows/Fonts/malgun.ttf");
+	bool y = defaultFont.loadFromFile("C:/Windows/Fonts/malgun.ttf");
 
 	playerSprite = new Sprite("../../../graphic/player.png");
 	minimizeSprite = new Sprite("../../../graphic/minimize.png");
@@ -57,8 +57,13 @@ void Application::Render()
 		if (!running) continue;
 
 		DoublyIterator<Graphic*> iter(drawings);
+
 		while (iter.NotNull())
 		{
+			Sleep(10); //draw가 thread-detached로 작동하므로, 각 draw의 처리를 위해 0.01초 대기
+
+			if (!running) return; //그 사이에 닫힌 경우 종료
+
 			iter.Current()->draw(&window); //각 그래픽을 렌더링한다
 			iter.Next();
 		}
@@ -180,12 +185,14 @@ void Application::Run(HINSTANCE instance)
 	searchSprite->SetButton(true);
 	AddGraphic(searchSprite);
 
-	TextBox* defaultSearch = new TextBox(10, 169, 200, 54, Handle, instance);
-	//defaultSearch->setFont(defaultFont);
-	//defaultSearch->setBackgroundColor(sf::Color(0x17, 0x21, 0x29));
-	//defaultSearch->setBorderSize(0);
-	//defaultSearch->setCharacterSize(16);
-	//defaultSearch->setTextColor(sf::Color::White);
+	TextBox* defaultSearch = new TextBox(10, 169, 200, 24, false);
+	defaultSearch->setCharacterSize(32);
+	defaultSearch->setMaxLength(100);
+	defaultSearch->setFont(defaultFont);
+	defaultSearch->setBackgroundColor(sf::Color(0x17, 0x21, 0x29));
+	defaultSearch->setBorderSize(0);
+	defaultSearch->setCharacterSize(16);
+	defaultSearch->setTextColor(sf::Color::White);
 	AddGraphic(defaultSearch);
 
 	Sleep(100); //윈도우 생성과 렌더링 사이에 이벤트가 발생하는 경우가 있어서 해결하기 위해 0.1초 대기
@@ -202,9 +209,11 @@ void Application::Run(HINSTANCE instance)
 		}
 	}
 
-	window.close(); //SFML 렌더 종료
-
 	running = false;
+
+	Sleep(50); //thread 종료를 위해 기다림
+
+	window.close(); //SFML 렌더 종료
 
 	DestroyWindow(Handle); //종료되면 윈도우를 해제한다.
 

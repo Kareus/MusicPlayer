@@ -59,7 +59,6 @@ void Update(HWND hwnd, PlayerState state)
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	if (!app->IsRunning()) return DefWindowProc(hWnd, iMessage, wParam, lParam);
-
 	sf::Event e;
 	CustomWinEvent e2;
 	static bool mouseIn = false;
@@ -104,8 +103,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			{
 				//조립중
 				ImmGetCompositionString(imc, GCS_COMPSTR, imeCode, len);
-				imeCode[len-1] = 0;
-				
+				imeCode[len - 1] = 0;
+
 				e2.type = CustomWinEvent::IMEComposing;
 				e2.ime.code = *imeCode;
 				app->pollEvent(e2);
@@ -151,12 +150,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 	case WM_KEYUP:
 		break;
-		
+
 	case WM_MOUSEMOVE:
 		if (!mouseIn)
 		{
 			tme.cbSize = sizeof(TRACKMOUSEEVENT);
-			tme.dwFlags = TME_HOVER; 
+			tme.dwFlags = TME_HOVER;
 			tme.hwndTrack = hWnd;
 			tme.dwHoverTime = 10;
 			TrackMouseEvent(&tme); //mouseHover에 대한 이벤트 추적

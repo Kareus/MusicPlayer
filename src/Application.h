@@ -109,6 +109,8 @@ private:
 	void Render();
 
 public:
+
+	HWND GetHandle() { return Handle; }
 	/**
 	*	기본 생성자
 	*/
