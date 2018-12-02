@@ -41,10 +41,22 @@ int ID3Reader::getFrameCase(const std::string& id)
 	return 0;
 }
 
+bool ID3Reader::canRead(char* id)
+{
+	for (int i = 0; i < 4; i++)
+	{
+		if (id[i] < 20 || id[i] > 90) return false;
+	}
+
+	return true;
+}
+
 bool ID3Reader::read(const wstring& filepath)
 {
 	majorVersion = 0;
 	minorVersion = 0;
+
+	if (filepath.size() < 4) return 0; //올바르지 않은 경로인 경우 0 반환
 
 	if (wcscmp(filepath.substr(filepath.size()-4, 4).c_str(), L".mp3")) return 0; //mp3 파일이 아니면 0 반환
 
@@ -131,7 +143,7 @@ bool ID3Reader::read(const wstring& filepath)
 			char ID[4] = { 0 }; //property를 구분하기 위한 frame ID.
 			m_inFile.read(ID, 4); //frame ID를 읽어온다.
 
-			if (!memcmp(ID, "\0\0\0\0", 4)) //읽어온 ID와 널 문자열을 비교하여 같다면 (즉, ID가 빈 문자열이라면)
+			if (!canRead(ID)) //읽어온 ID가 Reader에서 지원하지 않는다면
 			{
 				break; //종료한다.
 			}

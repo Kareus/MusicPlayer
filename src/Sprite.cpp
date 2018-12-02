@@ -7,9 +7,8 @@ Sprite::Sprite(const std::string& texturePath)
 	if (!texture->loadFromFile(texturePath))
 	{
 		std::string mes = "파일 " + texturePath + "을(를) 찾을 수 없습니다.";
-		std::wstring w_mes = String::StrToWstr(mes);
 
-		int message = System::AlertError(w_mes, L"File Not Found", MB_ICONERROR | MB_RETRYCANCEL);
+		int message = System::AlertError(mes, "File Not Found", MB_ICONERROR | MB_RETRYCANCEL);
 
 		if (message == IDRETRY) Sprite(texturePath);
 		else System::CloseWithError();

@@ -60,7 +60,7 @@ DialogResult FileDialog::setDefaultPath(IFileDialog* dialog)
 }
 
 //비트맵 파일, 사운드 파일을 찾는 두 개의 필터를 만들고 싶다면 jpg,png;mp3,wav 식으로 추가해야 함.
-DialogResult FileDialog::setFilterToDialog(IFileDialog* dialog, const std::wstring& filter)
+DialogResult FileDialog::setFilterToDialog(IFileDialog* dialog, const std::wstring& description, const std::wstring& filter)
 {
 	if (filter.empty()) return DIALOG_CANCEL; //빈 문자열인 경우 cancel 반환. (에러는 아님)
 	//openFileDialog에서는 빈 문자열이 아님을 보장한다.
@@ -97,6 +97,7 @@ DialogResult FileDialog::setFilterToDialog(IFileDialog* dialog, const std::wstri
 
 	std::wstring type = L""; //타입을 파싱하여 저장할 문자열
 	std::wstring spec = L""; //다이얼로그 필터에 추가할 문자열
+	int desc_index = -1; //설명 인덱스. ;의 위치에 해당하므로 -1에서 시작
 	unsigned int maxLen = MAX_FILTER_LEN; //필터에 들어갈 수 있는 최대 길이
 
 	while (1)
@@ -125,11 +126,27 @@ DialogResult FileDialog::setFilterToDialog(IFileDialog* dialog, const std::wstri
 			type += *p_filterList;
 
 		if (*p_filterList == ';' || *p_filterList == '\0') //해당 필터를 다 읽은 경우
-		{          
-			specList[specIndex].pszName = L""; //필터 설명은 OS에서 자동으로 선택하게끔 비워준다.
-			specList[specIndex].pszSpec = spec.c_str();
+		{
+			int old_index = desc_index;
+			desc_index = description.find(L';', desc_index + 1); //구분 문자열 찾기
 
-			spec = L""; //spec 초기화
+			int desc_length = 0;
+			if (desc_index >= 0) desc_length = desc_index - old_index - 1;
+			else desc_length = description.size() - old_index; //부분 문자열 길이 게산
+
+			wchar_t* name = new wchar_t[desc_length + 1];
+			std::wstring sub = description.substr(old_index + 1, desc_length);
+			name[desc_length] = 0;
+			wmemcpy_s(name, desc_length, sub.c_str(), desc_length); //설명을 메모리 복사
+			specList[specIndex].pszName = name; //할당
+
+			wchar_t* pszSpec = new wchar_t[spec.size() + 1];
+			pszSpec[spec.size()] = 0;
+			wmemcpy_s(pszSpec, spec.size(), spec.c_str(), spec.size());
+			specList[specIndex].pszSpec = pszSpec; //spec에도 똑같이 수행
+
+			spec.clear(); //spec 초기화
+			specIndex++;
 			if (specIndex == filterCount) break; //필터를 모두 추가하면 끝낸다.
 		}
 
@@ -137,9 +154,14 @@ DialogResult FileDialog::setFilterToDialog(IFileDialog* dialog, const std::wstri
 	}
 
 	dialog->SetFileTypes(filterCount, specList);
-
-	for (size_t i = 0; i < filterCount; i++) free((void*)specList[i].pszSpec);
+	
+	for (size_t i = 0; i < filterCount; i++)
+	{
+		free((void*)specList[i].pszSpec);
+		free((void*)specList[i].pszName);
+	}
 	free(specList); //메모리 해제
+	
 
 	return DIALOG_SUCCESS;
 }
@@ -233,7 +255,7 @@ DialogResult FileDialog::openDirectoryDialog(std::wstring& resultPath)
 	return DIALOG_SUCCESS;
 }
 
-DialogResult FileDialog::openFileDialog(std::wstring& resultPath, const std::wstring& filter)
+DialogResult FileDialog::openFileDialog(std::wstring& resultPath, const std::wstring& description, const std::wstring& filter)
 {
 	DialogResult dialogResult = DIALOG_ERROR; //goto문을 사용하기 때문에 필요한 지역변수는 여기서 모두 선언한다. (return할 결과)
 	bool setFilter = false; //파일 필터 설정에 관한 변수
@@ -258,8 +280,8 @@ DialogResult FileDialog::openFileDialog(std::wstring& resultPath, const std::wst
 	}
 
 	// 파일 필터 설정
-	if (filter.empty()) setFilter = setFilterToDialog(fileOpenDialog, L"*.*"); //빈 문자열일 경우 와일드 문자열로 자동 설정
-	else setFilter = setFilterToDialog(fileOpenDialog, filter);
+	if (filter.empty()) setFilter = setFilterToDialog(fileOpenDialog, L"모든 파일", L"*.*"); //빈 문자열일 경우 와일드 문자열로 자동 설정
+	else setFilter = setFilterToDialog(fileOpenDialog, description, filter);
 
 	if (setFilter != DIALOG_SUCCESS)
 	{
@@ -316,7 +338,7 @@ end:
 	return dialogResult;
 }
 
-DialogResult FileDialog::saveFileDialog(std::wstring& resultPath, const std::wstring& filter)
+DialogResult FileDialog::saveFileDialog(std::wstring& resultPath, const std::wstring& description, const std::wstring& filter)
 {
 	DialogResult dialogResult = DIALOG_ERROR;
 	bool setFilter = false;
@@ -340,8 +362,8 @@ DialogResult FileDialog::saveFileDialog(std::wstring& resultPath, const std::wst
 	}
 
 	// 파일 필터 설정
-	if (filter.empty()) setFilter = setFilterToDialog(fileSaveDialog, L"*.*"); //빈 문자열일 경우 와일드 문자열로 자동 설정
-	else setFilter = setFilterToDialog(fileSaveDialog, filter);
+	if (filter.empty()) setFilter = setFilterToDialog(fileSaveDialog, L"모든 파일", L"*.*"); //빈 문자열일 경우 와일드 문자열로 자동 설정
+	else setFilter = setFilterToDialog(fileSaveDialog, description, filter);
 
 	if (setFilter != DIALOG_SUCCESS)
 	{

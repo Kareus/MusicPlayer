@@ -36,6 +36,8 @@ private:
 	Sprite* prevSprite;
 	Sprite* nextSprite;
 	Sprite* searchSprite;
+	Sprite* addSprite;
+	Sprite* addDirSprite;
 
 	int m_Command; ///< 사용자로부터 입력받은 현재 커맨드
 	std::ifstream m_inputFile; ///< 파일 입력을 받기 위한 스트림
@@ -103,6 +105,10 @@ private:
 		}
 		sprite->ResetMouseOver(); //마우스 오버 상태를 리셋
 		sprite->TriggerMouseOver(); //마우스 오버 다시 트리거
+	};
+
+	function<void(Sprite*)> func_addMusic = [this](Sprite*) {
+		AddMusic();
 	};
 
 	//멀티 쓰레드에서 윈도우를 렌더링할 때 쓸 함수

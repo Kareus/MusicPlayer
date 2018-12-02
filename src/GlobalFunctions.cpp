@@ -38,9 +38,9 @@ namespace Internet
 
 namespace System
 {
-	int AlertError(const std::wstring& mes, const std::wstring& caption, UINT BUTTONS)
+	int AlertError(const std::string& mes, const std::string& caption, UINT BUTTONS)
 	{
-		return MessageBox(NULL, mes.c_str(), caption.c_str(), BUTTONS);
+		return MessageBoxA(NULL, mes.c_str(), caption.c_str(), BUTTONS);
 	}
 
 	void CloseWithError()

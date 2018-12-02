@@ -41,14 +41,14 @@ private:
 	void free(void* ptr);
 	void* allocate(size_t bytes);
 	bool isFilterSegment(wchar_t ch);
-	DialogResult setFilterToDialog(IFileDialog* dialog, const std::wstring& filter);
+	DialogResult setFilterToDialog(IFileDialog* dialog, const std::wstring& description, const std::wstring& filter);
 	DialogResult setDefaultPath(IFileDialog* dialog);
 
 public:
 	FileDialog(const std::wstring& default_path = L"") : defaultPath(default_path) {};
 
 	DialogResult openDirectoryDialog(std::wstring& resultPath);
-	DialogResult openFileDialog(std::wstring& resultPath, const std::wstring& filter = L"*.*");
-	DialogResult saveFileDialog(std::wstring& resultPath, const std::wstring& filter = L"*.*");
+	DialogResult openFileDialog(std::wstring& resultPath, const std::wstring& description, const std::wstring& filter);
+	DialogResult saveFileDialog(std::wstring& resultPath, const std::wstring& description, const std::wstring& filter);
 };
 #endif

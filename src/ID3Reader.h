@@ -72,6 +72,7 @@ private:
 
 	int decodeSync(char* byte);
 	int getFrameCase(const std::string& id);
+	bool canRead(char* id);
 
 public:
 	ID3Reader();

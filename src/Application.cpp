@@ -2,6 +2,7 @@
 #include "PlayListWriter.h"
 #include "GlobalFunctions.h"
 #include "DirectoryReader.h"
+#include "FileDialog.h"
 #include <Dwmapi.h>
 
 #pragma comment (lib, "Dwmapi.lib")
@@ -23,7 +24,7 @@ Application::Application()
 	currentGroup = nullptr;
 	running = false;
 
-	bool y = defaultFont.loadFromFile("C:/Windows/Fonts/malgun.ttf");
+	defaultFont.loadFromFile("C:/Windows/Fonts/malgun.ttf");
 
 	playerSprite = new Sprite("../../../graphic/player.png");
 	minimizeSprite = new Sprite("../../../graphic/minimize.png");
@@ -32,6 +33,8 @@ Application::Application()
 	prevSprite = new Sprite("../../../graphic/prev.png");
 	nextSprite = new Sprite("../../../graphic/next.png");
 	searchSprite = new Sprite("../../../graphic/search.png");
+	addSprite = new Sprite("../../../graphic/plus.png");
+	addDirSprite = new Sprite("../../../graphic/folder.png");
 }
 
 Application::~Application()
@@ -60,7 +63,7 @@ void Application::Render()
 
 		while (iter.NotNull())
 		{
-			Sleep(10); //draw가 thread-detached로 작동하므로, 각 draw의 처리를 위해 0.01초 대기
+			Sleep(5); //draw가 thread-detached로 작동하므로, 각 draw의 처리를 위해 5 밀리초 대기
 
 			if (!running) return; //그 사이에 닫힌 경우 종료
 
@@ -102,7 +105,7 @@ void Application::Run(HINSTANCE instance)
 	MARGINS margins;
 	margins.cxLeftWidth = -1; //aero를 사용해 윈도우 백그라운드를 투명하게 하기 위한 변수
 
-	Handle = CreateWindow(L"MusicPlayer", L"Music Player Application", WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN, 0, 0, 300, 500, NULL, NULL, instance, NULL); //메인 윈도우 생성
+	Handle = CreateWindow(L"MusicPlayer", L"Music Player Application", WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN, 0, 0, 360, 600, NULL, NULL, instance, NULL); //메인 윈도우 생성
 	DwmExtendFrameIntoClientArea(Handle, &margins); //배경을 투명하게 한다.
 
 	window.create(Handle); //생성한 윈도우를 SFML 렌더 윈도우에 할당
@@ -148,12 +151,12 @@ void Application::Run(HINSTANCE instance)
 	playerSprite->SetMouseDownFunction(func_dragStart);
 	AddGraphic(playerSprite);
 
-	minimizeSprite->SetPosition(237, 10);
+	minimizeSprite->SetPosition(297, 10);
 	minimizeSprite->SetButton(true);
 	minimizeSprite->SetMouseUpFunction(func_minimize);
 	AddGraphic(minimizeSprite);
 
-	closeSprite->SetPosition(266, 10);
+	closeSprite->SetPosition(326, 10);
 	closeSprite->SetButton(true);
 	closeSprite->SetMouseUpFunction(func_close);
 	AddGraphic(closeSprite);
@@ -164,28 +167,24 @@ void Application::Run(HINSTANCE instance)
 	playName->setFont(defaultFont);
 	playName->setCharacterSize(24);
 	playName->setTextColor(sf::Color::White);
-	playName->SetPosition(25, 45);
+	playName->SetPosition(55, 45);
 	AddGraphic(playName);
 
-	playSprite->SetPosition(131, 87);
+	playSprite->SetPosition(161, 87);
 	playSprite->SetButton(true);
 	playSprite->SetTextureRect(41, 46);
 	playSprite->SetMouseUpFunction(func_playMusic);
 	AddGraphic(playSprite);
 
-	prevSprite->SetPosition(48, 95);
+	prevSprite->SetPosition(78, 95);
 	prevSprite->SetButton(true);
 	AddGraphic(prevSprite);
 
-	nextSprite->SetPosition(219, 95);
+	nextSprite->SetPosition(249, 95);
 	nextSprite->SetButton(true);
 	AddGraphic(nextSprite);
 
-	searchSprite->SetPosition(219, 167);
-	searchSprite->SetButton(true);
-	AddGraphic(searchSprite);
-
-	TextBox* defaultSearch = new TextBox(10, 169, 200, 24, false);
+	TextBox* defaultSearch = new TextBox(10, 174, 260, 24, false);
 	defaultSearch->setCharacterSize(32);
 	defaultSearch->setMaxLength(100);
 	defaultSearch->setFont(defaultFont);
@@ -194,6 +193,19 @@ void Application::Run(HINSTANCE instance)
 	defaultSearch->setCharacterSize(16);
 	defaultSearch->setTextColor(sf::Color::White);
 	AddGraphic(defaultSearch);
+
+	searchSprite->SetPosition(271, 172);
+	searchSprite->SetButton(true);
+	AddGraphic(searchSprite);
+
+	addSprite->SetPosition(296, 172);
+	addSprite->SetButton(true);
+	addSprite->SetMouseUpFunction(func_addMusic);
+	AddGraphic(addSprite);
+
+	addDirSprite->SetPosition(321, 172);
+	addDirSprite->SetButton(true);
+	AddGraphic(addDirSprite);
 
 	Sleep(100); //윈도우 생성과 렌더링 사이에 이벤트가 발생하는 경우가 있어서 해결하기 위해 0.1초 대기
 	running = true;
@@ -377,137 +389,22 @@ void Application::DisplayAllMusic()
 
 int Application::AddMusic()
 {
-	// 입력받은 레코드를 리스트에 add
+	FileDialog dialog;
+	std::wstring path;
+	if (dialog.openFileDialog(path, L"Music Files", L"mp3,wav") != DIALOG_SUCCESS) return 0;
 
 	MusicType music;
-
-	music.SetAllFromKB();
-	music.SetID(music.GetName() + '_' + music.GetArtist());
-
-	if (musicList.Add(music) == 0)
+	music.SetPath(path);
+	music.ReadDataFromID3();
+	if (music.GetName().empty())
 	{
-		cout << "\tMusic that has the same ID already exists" << endl;
-		return 0; //이미 존재하는 음악이면 실패 
+		int dir = path.find_last_of(L'\\');
+		std::wstring file = path.substr(dir + 1);
+		file = file.substr(0, file.size() - 4);
 	}
+	else music.SetID(music.GetName());
 
-	cout << endl;
-	cout << "\tMusic Added. ID = " << music.GetID() << endl << endl;
-
-	//장르 확인
-	bool exist = false;
-	DoublyIterator<GenreType> iter(genreList);
-	GenreType* genre;
-
-	SimpleMusicType simpleMusic; //간단한 정보만 저장한 음악 데이터
-	simpleMusic.SetName(music.GetName());
-	simpleMusic.SetID(music.GetID());
-	simpleMusic.SetLength(music.GetLength());
-	simpleMusic.SetPlayedTime(music.GetPlayedTime());
-
-	while (iter.NotNull())
-	{
-		genre = iter.CurrentPtr();
-		
-		if (music.GetGenre() == genre->GetGenre()) //장르가 이미 있다면
-		{
-			exist = true;
-
-			genre->Add(simpleMusic);
-
-			//pointer이므로 replace 등의 추가 작업이 필요하지 않음
-			break;
-		}
-
-		iter.Next();
-	}
-
-	if (!exist) //리스트에 없다면
-	{
-		GenreType newGenre;
-		newGenre.SetGenre(music.GetGenre());
-		newGenre.Add(simpleMusic);
-		genreList.Add(newGenre);
-	}
-
-	if (newAddMusicList.IsFull()) //이미 꽉 차 있다면
-	{
-		SimpleMusicType temp;
-		newAddMusicList.DeQueue(temp);
-	}
-	else addedCount++;
-
-	newAddMusicList.EnQueue(simpleMusic); //최근 음악 추가
-	
-	nameList.Add(simpleMusic); //곡명 순으로 삽입
-
-	AddToMostPlayed(music); //가장 많이 재생한 목록에 추가
-
-	cout << "\tDo you want to add the music to album and artist automatically? (y/n): ";
-
-	char answer;
-
-	cin >> answer;
-
-	bool yes = (answer == 'Y' || answer == 'y');
-	bool no = (answer == 'N' || answer == 'n');
-	while (cin.fail() || !(yes || no))
-	{
-		cout << "\tPut Y(y) for yes, or N(n) for no:";
-		cin.clear();
-		Stream::IgnoreJunk(cin);
-		cin >> answer;
-
-		yes = (answer == 'Y' || answer == 'y');
-		no = (answer == 'N' || answer == 'n');
-	}
-
-	cin.ignore();
-
-	cout << endl;
-
-	if (no) return 1;
-
-	Album album;
-	album.SetID(music.GetAlbum() + '_' + music.GetArtist());
-
-	if (albumList.Get(album))
-	{
-		album.AddMusic(simpleMusic);
-		albumList.Replace(album);
-	}
-	else
-	{
-		album.SetAlbumName(music.GetAlbum());
-		album.SetArtist(music.GetArtist());
-
-		cout << "\tThere is no album with that name and artist. Input the album info" << endl;
-		album.SetRecordFromKB();
-		album.SetDateFromKB();
-
-		album.AddMusic(simpleMusic);
-		albumList.Add(album);
-	}
-
-	Artist artist;
-	
-	cout << endl;
-	cout << "\tInput the birth date of artist to identify" << endl;
-	artist.SetBirthDateFromKB();
-	artist.SetID(music.GetArtist() + '_' + std::to_string(artist.GetBirthDate()));
-
-	cout << endl;
-	if (artistList.Get(artist))
-	{
-		artist.AddAlbum(album);
-		artistList.Replace(artist);
-	}
-	else
-	{
-		artist.SetName(music.GetArtist());
-		artist.AddAlbum(album);
-		artistList.Add(artist);
-	}
-
+	OutputDebugStringA((music.GetLyrics() + '\n').c_str());
 	return 1;
 }
 

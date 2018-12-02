@@ -37,7 +37,7 @@ namespace Internet
 namespace System
 {
 	//에러 메시지를 띄우는 함수. 사용자가 어떤 버튼을 눌렀는지를 반환한다.
-	int AlertError(const std::wstring& mes, const std::wstring& caption, UINT BUTTONS);
+	int AlertError(const std::string& mes, const std::string& caption, UINT BUTTONS);
 
 	//에러 리포트를 작성하고 프로그램을 종료하는 함수.
 	void CloseWithError();
