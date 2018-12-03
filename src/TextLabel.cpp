@@ -45,7 +45,7 @@ void TextLabel::setFont(sf::Font& font)
 	text.setFont(font);
 }
 
-bool TextLabel::pollEvent(sf::Event e)
+bool TextLabel::pollEvent(CustomWinEvent e)
 {
 	return false;
 }

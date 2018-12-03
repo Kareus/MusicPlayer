@@ -26,6 +26,7 @@ extern MediaPlayer* player;
 class Application {
 private:
 	HWND Handle; ///<실제 윈도우 핸들
+	HWND editHandle; ///<정보 수정 핸들
 
 	sf::Font defaultFont;
 
@@ -38,6 +39,10 @@ private:
 	Sprite* searchSprite;
 	Sprite* addSprite;
 	Sprite* addDirSprite;
+
+	Sprite* editorSprite;
+	Sprite* okSprite;
+	Sprite* cancelSprite;
 
 	int m_Command; ///< 사용자로부터 입력받은 현재 커맨드
 	std::ifstream m_inputFile; ///< 파일 입력을 받기 위한 스트림
@@ -56,11 +61,16 @@ private:
 	int addedCount; ///< 최근 추가한 음악 수 (<= 30)
 
 	sf::RenderWindow window; ///<뮤직 플레이어의 윈도우 객체
+	sf::RenderWindow editor;
 	sf::Color backColor; ///<백그라운드 컬러
 	DoublyLinkedList<Graphic*> drawings; ///<렌더링할 그래픽 리스트. 특정 아이템 탐색 보다 전체 탐색이 빈번하므로 linked list 사용.
+	DoublyLinkedList<Graphic*> edit_drawings; ///<에디터의 그래픽 리스트.
+
 	Graphic* focus; ///<포커싱 중인 그래픽
 	Group* currentGroup; ///<현재 출력중인 그룹
 	bool running; ///<애플리케이션 구동 여부
+	bool editing; ///<정보 에디터 구동 여부
+	int toEdit; ///<에디터 윈도우에서 수정 결정 여부. 0 : 선택 안함 1 : OK 2 : CANCEL
 
 	function<int(const SimpleMusicType&, const SimpleMusicType&)> compareMusicName = [] (const SimpleMusicType& m1, const SimpleMusicType& m2) {
 		if (m1.GetName().size() > 0 && m2.GetName().size() > 0) //둘 모두 유효한 이름을 가지고 있을 때
@@ -106,17 +116,30 @@ private:
 		sprite->ResetMouseOver(); //마우스 오버 상태를 리셋
 		sprite->TriggerMouseOver(); //마우스 오버 다시 트리거
 	};
-
 	function<void(Sprite*)> func_addMusic = [this](Sprite*) {
 		AddMusic();
 	};
+	function<void(Sprite*)> func_dragStart_edit = [this](Sprite*) { SendMessage(editHandle, WM_NCLBUTTONDOWN, HTCAPTION, 0); };
+	function<void(Sprite*)> func_ok_edit = [this](Sprite*) { ShowWindow(editHandle, SW_HIDE); editing = false; };
+	function<void(Sprite*)> func_cancel_edit = [this](Sprite*) {
+		ShowWindow(editHandle, SW_HIDE); editing = false; };
 
 	//멀티 쓰레드에서 윈도우를 렌더링할 때 쓸 함수
-	void Render();
+	void RenderMain();
+	void RenderEditor();
+
+	void initMainGraphic();
+	void initEditorGraphic();
+
+	void ReleaseMainGraphic();
+	void ReleaseEditorGraphic();
 
 public:
 
 	HWND GetHandle() { return Handle; }
+	HWND GetEditor() { return editHandle; }
+
+	bool IsEditing();
 	/**
 	*	기본 생성자
 	*/
@@ -354,11 +377,11 @@ public:
 	*/
 	int PlayMusic();
 
-	bool pollEvent(sf::Event e);
-
 	bool pollEvent(CustomWinEvent e);
 
-	int AddGraphic(Graphic* graphic);
+	int AddGraphicToMain(Graphic* graphic);
+
+	int AddGraphicToEditor(Graphic* graphic);
 
 	Group* AddDisplayGraphic(MusicType* data);
 

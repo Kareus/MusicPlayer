@@ -18,11 +18,18 @@ Application::Application()
 	nameList.SetCompareFunction(compareMusicName);
 	recentPlayedList.SetCompareFunction(compareToLast);
 	mostPlayedList.SetCompareFunction(comparePlayedTime);
+
 	drawings.SetCompareFunction(compareGraphics);
+	edit_drawings.SetCompareFunction(compareGraphics);
+
 	backColor = sf::Color::Transparent;
 	drawings.MakeEmpty();
+	edit_drawings.MakeEmpty();
+
 	currentGroup = nullptr;
 	running = false;
+	editing = false;
+	toEdit = 0;
 
 	defaultFont.loadFromFile("C:/Windows/Fonts/malgun.ttf");
 
@@ -35,31 +42,54 @@ Application::Application()
 	searchSprite = new Sprite("../../../graphic/search.png");
 	addSprite = new Sprite("../../../graphic/plus.png");
 	addDirSprite = new Sprite("../../../graphic/folder.png");
+	editorSprite = new Sprite("../../../graphic/editor.png");
+
+	okSprite = new Sprite("../../../graphic/ok.png");
+	cancelSprite = new Sprite("../../../graphic/cancel.png");
 }
 
 Application::~Application()
 {
 	player->Release(); //플레이어 메모리 해제
+	
+	ReleaseMainGraphic();
+	ReleaseEditorGraphic(); //그래픽 할당 해제
+	
+	drawings.MakeEmpty();
+	edit_drawings.MakeEmpty();
+}
+
+void Application::ReleaseMainGraphic()
+{
 	DoublyIterator<Graphic*> iter(drawings);
 
 	while (iter.NotNull())
 	{
 		if (iter.Current() != nullptr) delete iter.Current();
 		iter.Next();
-	} //그래픽 할당 해제
-
-	drawings.MakeEmpty();
+	}
 }
 
-void Application::Render()
+void Application::ReleaseEditorGraphic()
+{
+	DoublyIterator<Graphic*> iter(edit_drawings);
+
+	while (iter.NotNull())
+	{
+		if (iter.Current() != nullptr) delete iter.Current();
+		iter.Next();
+	}
+}
+
+void Application::RenderMain()
 {
 	Sleep(100); //렌더링 시작 전 0.1초 대기
 
 	while (window.isOpen())
 	{
-		window.clear(backColor);
-
 		if (!running) continue;
+
+		window.clear(backColor);
 
 		DoublyIterator<Graphic*> iter(drawings);
 
@@ -78,16 +108,49 @@ void Application::Render()
 	}
 }
 
+void Application::RenderEditor()
+{
+	Sleep(100);
+
+	while (editor.isOpen())
+	{
+		if (!running) continue;
+
+		editor.clear(backColor);
+
+		DoublyIterator<Graphic*> iter(edit_drawings);
+
+		while (iter.NotNull())
+		{
+			Sleep(5);
+
+			if (!running) return;
+
+			iter.Current()->draw(&editor); //각 그래픽을 렌더링한다
+			iter.Next();
+		}
+
+		editor.display();
+	}
+}
+
 void Application::Close()
 {
 	SendMessage(Handle, WM_CLOSE, NULL, NULL);
 }
 
-int Application::AddGraphic(Graphic* graphic)
+int Application::AddGraphicToMain(Graphic* graphic)
 {
 	graphic->setID(drawings.GetLength());
 	if (graphic->getID() < 0) return 0; //오버플로우
 	return drawings.Add(graphic);
+}
+
+int Application::AddGraphicToEditor(Graphic* graphic)
+{
+	graphic->setID(edit_drawings.GetLength());
+	if (graphic->getID() < 0) return 0;
+	return edit_drawings.Add(graphic);
 }
 
 void Application::Run(HINSTANCE instance)
@@ -114,106 +177,39 @@ void Application::Run(HINSTANCE instance)
 	window.create(Handle); //생성한 윈도우를 SFML 렌더 윈도우에 할당
 	window.setActive(false); //렌더링 분리를 위해 비활성화.
 
+	//에디터 윈도우 생성
+	editHandle = CreateWindow(L"MusicPlayer", L"Music Player Editor", WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN, 0, 0, 360, 400, NULL, NULL, instance, NULL);
+	DwmExtendFrameIntoClientArea(editHandle, &margins);
+
+	editor.create(editHandle);
+	editor.setActive(false);
+
+	ShowWindow(editHandle, SW_HIDE);
+
 	MediaPlayer::create(Handle, Handle, &player); //플레이어 생성
 
 	MSG Message;
 	Message.message = ~WM_QUIT; //시스템으로부터 받아올 윈도우의 메세지
 	
 	std::thread renderer([this]() {
-		this->Render();
-
+		this->RenderMain();
 	}); //렌더 함수를 쓰레드를 생성하여 실행. (윈도우 메세지 수신과 별개로 렌더링이 작동한다.)
 	renderer.detach(); //현재 쓰레드로부터 독립시킨다. (별개로 돌아가야 하기 때문)
 	//join 또는 detach를 호출했으므로 이 쓰레드는 함수가 종료되면 안전하게 해제된다.
 
-	/*//test functions
-	Group* group = new Group();
+	std::thread renderer2([this]() {
+		this->RenderEditor();
+	});
+	renderer2.detach();
 
-	TextBox* box = new TextBox(0, 0, 300, 36, true);
-	box->loadFontFrom("C:/Windows/Fonts/malgun.ttf");
-	box->setText(L"TextBox test.");
-	group->AddGraphic(box);
-
-	TextLabel* label = new TextLabel(L"TextLabel Test\nMulti Line");
-	label->setFont(box->getFont());
-	label->setCharacterSize(16);
-	label->SetPosition(0, 200);
-	group->AddGraphic(label);
-
-	Sprite* sprite = new Sprite("C:/test.png");
-	sprite->SetPosition(300, 300);
-	sprite->SetButton(true);
-	std::function<void(Sprite*)> func = [](Sprite*) {OutputDebugStringA("hello\n"); };
-	sprite->setClickFunction(func);
-	group->AddGraphic(sprite);
-
-	AddGraphic(group);
-
-	//test functions end. */
-
-	playerSprite->SetMouseDownFunction(func_dragStart);
-	AddGraphic(playerSprite);
-
-	minimizeSprite->SetPosition(297, 10);
-	minimizeSprite->SetButton(true);
-	minimizeSprite->SetMouseUpFunction(func_minimize);
-	AddGraphic(minimizeSprite);
-
-	closeSprite->SetPosition(326, 10);
-	closeSprite->SetButton(true);
-	closeSprite->SetMouseUpFunction(func_close);
-	AddGraphic(closeSprite);
-
-	TextLabel* playName = new TextLabel(L"Artist - Song");
-	playName->setAlign(TextAlign::MIDDLE);
-	playName->setDisplayRect(250, 40);
-	playName->setFont(defaultFont);
-	playName->setCharacterSize(24);
-	playName->setTextColor(sf::Color::White);
-	playName->SetPosition(55, 45);
-	AddGraphic(playName);
-
-	playSprite->SetPosition(161, 87);
-	playSprite->SetButton(true);
-	playSprite->SetTextureRect(41, 46);
-	playSprite->SetMouseUpFunction(func_playMusic);
-	AddGraphic(playSprite);
-
-	prevSprite->SetPosition(78, 95);
-	prevSprite->SetButton(true);
-	AddGraphic(prevSprite);
-
-	nextSprite->SetPosition(249, 95);
-	nextSprite->SetButton(true);
-	AddGraphic(nextSprite);
-
-	TextBox* defaultSearch = new TextBox(10, 174, 260, 24, false);
-	defaultSearch->setCharacterSize(32);
-	defaultSearch->setMaxLength(100);
-	defaultSearch->setFont(defaultFont);
-	defaultSearch->setBackgroundColor(sf::Color(0x17, 0x21, 0x29));
-	defaultSearch->setBorderSize(0);
-	defaultSearch->setCharacterSize(16);
-	defaultSearch->setTextColor(sf::Color::White);
-	AddGraphic(defaultSearch);
-
-	searchSprite->SetPosition(271, 172);
-	searchSprite->SetButton(true);
-	AddGraphic(searchSprite);
-
-	addSprite->SetPosition(296, 172);
-	addSprite->SetButton(true);
-	addSprite->SetMouseUpFunction(func_addMusic);
-	AddGraphic(addSprite);
-
-	addDirSprite->SetPosition(321, 172);
-	addDirSprite->SetButton(true);
-	AddGraphic(addDirSprite);
+	initMainGraphic();
+	initEditorGraphic();
 
 	Sleep(100); //윈도우 생성과 렌더링 사이에 이벤트가 발생하는 경우가 있어서 해결하기 위해 0.1초 대기
 	running = true;
 
 	SetCursor(LoadCursor(NULL, IDC_ARROW));
+
 	while (Message.message != WM_QUIT) //종료 메시지가 아닌 경우 무한 루프를 돈다.
 	{
 		if (PeekMessage(&Message, NULL, 0, 0, PM_REMOVE))
@@ -228,11 +224,91 @@ void Application::Run(HINSTANCE instance)
 
 	Sleep(50); //thread 종료를 위해 기다림
 
+	editor.close();
 	window.close(); //SFML 렌더 종료
 
+	DestroyWindow(editHandle);
 	DestroyWindow(Handle); //종료되면 윈도우를 해제한다.
 
 	UnregisterClass(L"MusicPlayer", instance); //클래스 등록을 해제하고 종료.
+}
+
+void Application::initMainGraphic()
+{
+	playerSprite->SetMouseDownFunction(func_dragStart);
+	AddGraphicToMain(playerSprite);
+
+	minimizeSprite->SetPosition(297, 10);
+	minimizeSprite->SetButton(true);
+	minimizeSprite->SetMouseUpFunction(func_minimize);
+	AddGraphicToMain(minimizeSprite);
+
+	closeSprite->SetPosition(326, 10);
+	closeSprite->SetButton(true);
+	closeSprite->SetMouseUpFunction(func_close);
+	AddGraphicToMain(closeSprite);
+
+	TextLabel* playName = new TextLabel(L"Artist - Song");
+	playName->setAlign(TextAlign::MIDDLE);
+	playName->setDisplayRect(250, 40);
+	playName->setFont(defaultFont);
+	playName->setCharacterSize(24);
+	playName->setTextColor(sf::Color::White);
+	playName->SetPosition(55, 45);
+	AddGraphicToMain(playName);
+
+	playSprite->SetPosition(161, 87);
+	playSprite->SetButton(true);
+	playSprite->SetTextureRect(41, 46);
+	playSprite->SetMouseUpFunction(func_playMusic);
+	AddGraphicToMain(playSprite);
+
+	prevSprite->SetPosition(78, 95);
+	prevSprite->SetButton(true);
+	AddGraphicToMain(prevSprite);
+
+	nextSprite->SetPosition(249, 95);
+	nextSprite->SetButton(true);
+	AddGraphicToMain(nextSprite);
+
+	TextBox* defaultSearch = new TextBox(10, 174, 260, 24, false);
+	defaultSearch->setCharacterSize(32);
+	defaultSearch->setMaxLength(100);
+	defaultSearch->setFont(defaultFont);
+	defaultSearch->setBackgroundColor(sf::Color(0x17, 0x21, 0x29));
+	defaultSearch->setBorderSize(0);
+	defaultSearch->setCharacterSize(16);
+	defaultSearch->setTextColor(sf::Color::White);
+	AddGraphicToMain(defaultSearch);
+
+	searchSprite->SetPosition(271, 172);
+	searchSprite->SetButton(true);
+	AddGraphicToMain(searchSprite);
+
+	addSprite->SetPosition(296, 172);
+	addSprite->SetButton(true);
+	addSprite->SetMouseUpFunction(func_addMusic);
+	AddGraphicToMain(addSprite);
+
+	addDirSprite->SetPosition(321, 172);
+	addDirSprite->SetButton(true);
+	AddGraphicToMain(addDirSprite);
+}
+
+void Application::initEditorGraphic()
+{
+	editorSprite->SetMouseDownFunction(func_dragStart_edit);
+	AddGraphicToEditor(editorSprite);
+
+	okSprite->SetPosition(183, 368);
+	okSprite->SetMouseUpFunction(func_ok_edit);
+	okSprite->SetButton(true);
+	AddGraphicToEditor(okSprite);
+
+	cancelSprite->SetPosition(238, 368);
+	cancelSprite->SetMouseUpFunction(func_cancel_edit);
+	cancelSprite->SetButton(true);
+	AddGraphicToEditor(cancelSprite);
 }
 
 bool Application::IsRunning()
@@ -240,32 +316,25 @@ bool Application::IsRunning()
 	return running;
 }
 
-bool Application::pollEvent(CustomWinEvent e)
+bool Application::IsEditing()
 {
-	DoublyIterator<Graphic*> iter(drawings);
-	iter.ResetToLastPointer();
-	Graphic* g;
-
-	switch (e.type)
-	{
-	default:
-		if (focus) focus->pollEvent(e);
-		break;
-	}
-
-	return true;
+	return editing;
 }
 
-bool Application::pollEvent(sf::Event e)
+bool Application::pollEvent(CustomWinEvent e)
 {
-	CustomWinEvent custom;
-	DoublyIterator<Graphic*> iter(drawings);
-	iter.ResetToLastPointer(); //id가 z-order 역할을 하므로 역순 검색
+	DoublyLinkedList<Graphic*>* toDraw;
+	if (e.hWnd == Handle) toDraw = &drawings;
+	else toDraw = &edit_drawings; //윈도우에 따라 탐색할 렌더 리스트 선택
+
+	DoublyIterator<Graphic*> iter(*toDraw);
+	iter.ResetToLastPointer();
 	Graphic* g;
+	CustomWinEvent custom;
 
 	switch (e.type)
 	{
-	case sf::Event::MouseButtonPressed:
+	case CustomWinEvent::MouseDown:
 
 		if (focus) //기존의 포커스가 있을 경우
 		{
@@ -277,7 +346,7 @@ bool Application::pollEvent(sf::Event e)
 		{
 			g = iter.Current();
 
-			if (g->hasPoint(sf::Vector2f(e.mouseButton.x, e.mouseButton.y)))
+			if (g->hasPoint(sf::Vector2f(e.mouse.x, e.mouse.y)))
 			{
 				focus = g; // 포커싱에 성공하면 포커싱 객체로 설정
 				break;
@@ -293,17 +362,18 @@ bool Application::pollEvent(sf::Event e)
 		}
 		break;
 
-	case sf::Event::MouseMoved:
+	case CustomWinEvent::MouseMoved:
+
 		while (iter.NotNull()) //마우스가 올려진 경우는 포커싱이 아니어도 처리해야 함
 		{
 			g = iter.Current();
 
-			if (g->hasPoint(sf::Vector2f(e.mouseMove.x, e.mouseMove.y)))
+			if (g->hasPoint(sf::Vector2f(e.mouse.x, e.mouse.y)))
 			{
 				custom.type = CustomWinEvent::MouseOver;
-				custom.mouseOver = CustomWinEvent::MouseOverEvent();
-				custom.mouseOver.x = e.mouseMove.x;
-				custom.mouseOver.y = e.mouseMove.y;
+				custom.mouse = CustomWinEvent::MouseEvent();
+				custom.mouse.x = e.mouse.x;
+				custom.mouse.y = e.mouse.y;
 				g->pollEvent(custom); // 포커싱으로 설정하지는 않는다.
 				break;
 			}
@@ -313,7 +383,7 @@ bool Application::pollEvent(sf::Event e)
 		}
 		break;
 
-	case sf::Event::MouseLeft:
+	case CustomWinEvent::MouseLeft:
 		while (iter.NotNull()) //마우스가 윈도우 밖으로 나갔을 때 이벤트 처리
 		{
 			iter.Current()->pollEvent(e);
@@ -380,14 +450,12 @@ void Application::DisplayAllMusic()
 	if (currentGroup == nullptr)
 	{
 		currentGroup = new Group();
-		AddGraphic(currentGroup);
+		AddGraphicToMain(currentGroup);
 	}
 
 	currentGroup->MakeEmpty();
 
 	//avltree do function does here
-
-
 }
 
 int Application::AddMusic()
@@ -408,33 +476,40 @@ int Application::AddMusic()
 		music.SetName(String::WstrToStr(file)); //파일 이름으로 설정
 	}
 
-	if (music.GetName().empty() || music.GetArtist().empty()) //ID에 필요한 정보가 없는 경우
-	{
-		EditMusic(&music);
-	}
+	music.SetID(music.GetName() + '_' + music.GetArtist());
 	
 	if (!musicList.Add(music))
 	{
-		System::AlertError("해당 경로의 음악이 이미 존재합니다.", "Music Already Exists", MB_OK);
+		System::AlertError("해당 음악이 이미 존재합니다.", "Music Already Exists", MB_OK);
 		return 0;
 	}
 
 	SimpleMusicType simple = music; //형변환 연산자로 SimpleMusicType으로 변환
-	simple.SetID(music.GetName() + '_' + music.GetArtist()); //ID를 이름_아티스트로 변경
 	nameList.Add(simple);
 	return 1;
 }
 
 int Application::EditMusic(MusicType* music)
 {
-	sf::RenderWindow editWindow;
-	editWindow.create(sf::VideoMode(400, 500), L"Music Edit Window", sf::Style::Default & ~sf::Style::Resize);
+	ShowWindow(editHandle, SW_SHOW);
+	toEdit = 0;
+	editing = true;
 
-	while (editWindow.isOpen())
+	RECT rect;
+
+	GetWindowRect(Handle, &rect);
+	int x = rect.left + 30;
+	int y = rect.top + 100; //메인 윈도우 기준 위치
+
+	GetWindowRect(GetDesktopWindow(), &rect);
+
+	if (x + 300 >= rect.right || y + 200 >= rect.bottom)
 	{
-		Sleep(5000);
-		editWindow.close();
-	}
+		x = rect.right / 2 - 150;
+		y = rect.bottom / 2 - 200;
+	} //화면 영역 밖으로 벗어나면 화면 정중앙으로 설정
+
+	SetWindowPos(editHandle, NULL, x, y, 0, 0, SWP_NOSIZE);
 
 	return 1;
 }

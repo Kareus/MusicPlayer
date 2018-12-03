@@ -32,8 +32,7 @@ public:
 	void setAlign(TextAlign align);
 	TextAlign getAlign();
 	std::wstring getText();
-	bool pollEvent(sf::Event e) override;
-	bool pollEvent(CustomWinEvent e) override { return false; }
+	bool pollEvent(CustomWinEvent e) override;
 	bool hasPoint(const sf::Vector2f& point) override;
 	sf::Font& getFont();
 

@@ -44,7 +44,7 @@ public:
 	void setText(const std::wstring& str);
 	void setFont(sf::Font& font);
 	std::wstring getText();
-	bool pollEvent(sf::Event e) override;
+
 	bool pollEvent(CustomWinEvent e) override;
 	bool hasPoint(const sf::Vector2f& point) override;
 	sf::Font& getFont();

@@ -115,12 +115,12 @@ void Sprite::SetMouseUpFunction(const std::function<void(Sprite*)>& func)
 	this->mouseUpFunc = func;
 }
 
-bool Sprite::pollEvent(sf::Event e)
+bool Sprite::pollEvent(CustomWinEvent e)
 {
 	switch (e.type)
 	{
-	case sf::Event::MouseButtonPressed:
-		if (e.mouseButton.button == sf::Mouse::Left)
+	case CustomWinEvent::MouseDown:
+		if (e.mouse.button == sf::Mouse::Left)
 		{
 			if (mouseOver) sprite->setColor(normalColor);
 			mouseDownFunc(this);
@@ -128,17 +128,17 @@ bool Sprite::pollEvent(sf::Event e)
 		else return false;
 		return true;
 
-	case sf::Event::MouseButtonReleased:
-		if (e.mouseButton.button == sf::Mouse::Left && hasPoint(sf::Vector2f(e.mouseButton.x, e.mouseButton.y)))
+	case CustomWinEvent::MouseUp:
+		if (e.mouse.button == CustomWinEvent::MouseButton::Left && hasPoint(sf::Vector2f(e.mouse.x, e.mouse.y)))
 		{
 			mouseUpFunc(this);
 			return true;
 		}
 		return false;
 
-	case sf::Event::MouseMoved:
+	case CustomWinEvent::MouseMoved:
 		if (!button) return false;
-		if (mouseOver && !hasPoint(sf::Vector2f(e.mouseMove.x, e.mouseMove.y)))
+		if (mouseOver && !hasPoint(sf::Vector2f(e.mouse.x, e.mouse.y)))
 		{
 			mouseOver = false;
 			sprite->setColor(normalColor);
@@ -146,7 +146,7 @@ bool Sprite::pollEvent(sf::Event e)
 		}
 		return false;
 
-	case sf::Event::MouseLeft:
+	case CustomWinEvent::MouseLeft:
 		if (button && mouseOver)
 		{
 			mouseOver = false;
@@ -154,15 +154,7 @@ bool Sprite::pollEvent(sf::Event e)
 			return true;
 		}
 		return false;
-	}
 
-	return false;
-}
-
-bool Sprite::pollEvent(CustomWinEvent e)
-{
-	switch (e.type)
-	{
 	case CustomWinEvent::MouseOver:
 		if (!button || mouseOver) return false;
 		mouseOver = true;

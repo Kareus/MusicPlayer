@@ -108,17 +108,16 @@ sf::Vector2f Group::GetSize()
 	return temp;
 }
 
-bool Group::pollEvent(sf::Event e)
+bool Group::pollEvent(CustomWinEvent e)
 {
-	//application의 이벤트 처리와 동일함
-	CustomWinEvent custom;
 	DoublyIterator<Graphic*> iter(drawings);
 	iter.ResetToLastPointer();
 	Graphic* g;
+	CustomWinEvent custom;
 
 	switch (e.type)
 	{
-	case sf::Event::MouseButtonPressed:
+	case CustomWinEvent::MouseDown:
 
 		if (focus)
 		{
@@ -130,7 +129,7 @@ bool Group::pollEvent(sf::Event e)
 		{
 			g = iter.Current();
 
-			if (g->hasPoint(sf::Vector2f(e.mouseButton.x, e.mouseButton.y)))
+			if (g->hasPoint(sf::Vector2f(e.mouse.x, e.mouse.y)))
 			{
 				focus = g;
 				break;
@@ -146,17 +145,17 @@ bool Group::pollEvent(sf::Event e)
 		}
 		break;
 
-	case sf::Event::MouseMoved:
+	case CustomWinEvent::MouseMoved:
 		while (iter.NotNull())
 		{
 			g = iter.Current();
 
-			if (g->hasPoint(sf::Vector2f(e.mouseMove.x, e.mouseMove.y)))
+			if (g->hasPoint(sf::Vector2f(e.mouse.x, e.mouse.y)))
 			{
 				custom.type = CustomWinEvent::MouseOver;
-				custom.mouseOver = CustomWinEvent::MouseOverEvent();
-				custom.mouseOver.x = e.mouseMove.x;
-				custom.mouseOver.y = e.mouseMove.y;
+				custom.mouse = CustomWinEvent::MouseEvent();
+				custom.mouse.x = e.mouse.x;
+				custom.mouse.y = e.mouse.y;
 				g->pollEvent(custom);
 				break;
 			}
@@ -174,36 +173,19 @@ bool Group::pollEvent(sf::Event e)
 		}
 		break;
 
-	default:
-		if (focus) focus->pollEvent(e);
-		break;
-	}
-
-	return true;
-}
-
-bool Group::pollEvent(CustomWinEvent e)
-{
-	DoublyIterator<Graphic*> iter(drawings);
-	iter.ResetToLastPointer();
-	Graphic* g;
-	sf::Event sfEvent;
-
-	switch (e.type)
-	{
 	case CustomWinEvent::MouseOver:
 		
-		sfEvent.type = sf::Event::MouseMoved;
-		sfEvent.mouseMove = sf::Event::MouseMoveEvent();
-		sfEvent.mouseMove.x = e.mouseOver.x;
-		sfEvent.mouseMove.y = e.mouseOver.y;
+		custom.type = CustomWinEvent::MouseMoved;
+		custom.mouse = CustomWinEvent::MouseEvent();
+		custom.mouse.x = e.mouse.x;
+		custom.mouse.y = e.mouse.y;
 
 		while (iter.NotNull())
 		{
 			g = iter.Current();
 
-			if (g->hasPoint(sf::Vector2f(e.mouseOver.x, e.mouseOver.y))) g->pollEvent(e);
-			else g->pollEvent(sfEvent);
+			if (g->hasPoint(sf::Vector2f(e.mouse.x, e.mouse.y))) g->pollEvent(e);
+			else g->pollEvent(custom);
 
 			iter.Prev();
 		}

@@ -77,36 +77,53 @@ void TextBox::setFont(sf::Font& font)
 	text.setFont(font);
 }
 
-bool TextBox::pollEvent(sf::Event e)
+bool TextBox::pollEvent(CustomWinEvent e)
 {
+	if (str.size() >= maxLen)
+	{
+		input = false;
+		str = str.substr(0, maxLen);
+		updateText();
+
+		INPUT ip;
+		ip.type = INPUT_KEYBOARD;
+		ip.ki.time = 0;
+		ip.ki.dwExtraInfo = 0;
+		ip.ki.wVk = VK_RIGHT;
+		ip.ki.dwFlags = 0;
+		SendInput(1, &ip, sizeof(INPUT)); //IME 종료를 위해 가상으로 오른쪽 화살표 키를 누르도록 신호를 전송한다
+		return false;
+	}
+
 	if (focus)
 	{
 		switch (e.type)
 		{
-			case sf::Event::MouseButtonPressed:
-			if (e.mouseButton.button == sf::Mouse::Left)
+		case CustomWinEvent::MouseDown:
+			if (e.mouse.button == CustomWinEvent::MouseButton::Left)
 			{
 				timer.restart();
 
 				for (int i = 1; i < str.size(); i++) //커서 위치 찾기
 				{
-					if (text.findCharacterPos(i).x > e.mouseButton.x)
+					if (text.findCharacterPos(i).x > e.mouse.x)
 					{
 						cursorPos = i - 1;
 						updateText();
 						return true;
 					}
 				}
+
 				cursorPos = str.size();
 				updateText();
 				return true;
 			}
 			return false;
 
-		case sf::Event::TextEntered:
+		case CustomWinEvent::TextEntered:
 			return textEvent(e.text.unicode);
 
-		case sf::Event::KeyPressed:
+		case CustomWinEvent::KeyPressed:
 			switch (e.key.code)
 			{
 			case VK_LEFT: //왼쪽 화살표
@@ -127,86 +144,62 @@ bool TextBox::pollEvent(sf::Event e)
 
 			updateText();
 			return true;
+
+		case CustomWinEvent::IMEComposing: //ime 문자를 조합하는 중
+			font.getGlyph(e.ime.code, text.getCharacterSize(), false); //해당 글리프를 폰트에서 로드한다.
+			if (!input)
+			{
+				origin = str; //원본 문자열 저장
+				if (cursorPos < origin.size()) str = origin.substr(0, cursorPos) + e.ime.code + origin.substr(cursorPos);
+				else str = origin + e.ime.code; //해당 ime 코드를 문자열에 삽입
+				input = true; //입력 변수를 true로 설정
+			}
+			else
+			{
+				if (cursorPos < origin.size()) str = origin.substr(0, cursorPos) + e.ime.code + origin.substr(cursorPos);
+				else str = origin + e.ime.code;
+			}
+			updateText();
+			return true;
+
+		case CustomWinEvent::IMEEnd: //ime 문자 한 글자를 완성함
+			input = false; //입력 변수를 false로 설정
+			if (cursorPos < origin.size()) str = origin.substr(0, cursorPos) + e.ime.code + origin.substr(cursorPos);
+			else str = origin + e.ime.code; //최종 조합 문자를 문자열에 삽입
+			cursorPos++; //커서 포지션 조정
+			origin = str;
+			updateText();
+			return true;
+
+		case CustomWinEvent::IMEResult:
+			if (!input) return false; //ime 입력 중이 아닌 경우 false 반환
+
+			//특수한 상황에서 정상적으로 조합을 완성하지 못하고 입력이 종료된 경우를 처리한다.
+			if (GetAsyncKeyState(VK_BACK)) //backspace 키
+				str = origin.substr(0, cursorPos) + origin.substr(cursorPos);
+
+			updateText();
+			return true;
 		}
 	}
 	else
 	{
-		if (e.type == sf::Event::MouseMoved)
+		switch (e.type)
 		{
-			if (mouseOver && !hasPoint(sf::Vector2f(e.mouseMove.x, e.mouseMove.y)))
+		case CustomWinEvent::MouseMoved:
+			if (mouseOver && !hasPoint(sf::Vector2f(e.mouse.x, e.mouse.y)))
 			{
 				mouseOver = false;
 				SetCursor(LoadCursor(NULL, IDC_ARROW));
 				return true;
 			}
 			return false;
+
+		case CustomWinEvent::MouseOver:
+			SetCursor(LoadCursor(NULL, IDC_IBEAM));
+			mouseOver = true;
+			return true;
 		}
-			
-	}
-
-	return false;
-}
-
-bool TextBox::pollEvent(CustomWinEvent e)
-{
-	if (str.size() >= maxLen)
-	{
-		input = false;
-		str = str.substr(0, maxLen);
-		updateText();
-
-		INPUT ip;
-		ip.type = INPUT_KEYBOARD;
-		ip.ki.time = 0;
-		ip.ki.dwExtraInfo = 0;
-		ip.ki.wVk = VK_RIGHT;
-		ip.ki.dwFlags = 0;
-		SendInput(1, &ip, sizeof(INPUT)); //IME 종료를 위해 가상으로 오른쪽 화살표 키를 누르도록 신호를 전송한다
-		return false;
-	}
-
-	switch (e.type)
-	{
-	case CustomWinEvent::MouseOver:
-		SetCursor(LoadCursor(NULL, IDC_IBEAM));
-		mouseOver = true;
-		return true;
-
-	case CustomWinEvent::IMEComposing: //ime 문자를 조합하는 중
-		font.getGlyph(e.ime.code, text.getCharacterSize(), false); //해당 글리프를 폰트에서 로드한다.
-		if (!input)
-		{
-			origin = str; //원본 문자열 저장
-			if (cursorPos < origin.size()) str = origin.substr(0, cursorPos) + e.ime.code + origin.substr(cursorPos);
-			else str = origin + e.ime.code; //해당 ime 코드를 문자열에 삽입
-			input = true; //입력 변수를 true로 설정
-		}
-		else
-		{
-			if (cursorPos < origin.size()) str = origin.substr(0, cursorPos) + e.ime.code + origin.substr(cursorPos);
-			else str = origin + e.ime.code;
-		}
-		updateText();
-		return true;
-
-	case CustomWinEvent::IMEEnd: //ime 문자 한 글자를 완성함
-		input = false; //입력 변수를 false로 설정
-		if (cursorPos < origin.size()) str = origin.substr(0, cursorPos) + e.ime.code + origin.substr(cursorPos);
-		else str = origin + e.ime.code; //최종 조합 문자를 문자열에 삽입
-		cursorPos++; //커서 포지션 조정
-		origin = str;
-		updateText();
-		return true;
-
-	case CustomWinEvent::IMEResult:
-		if (!input) return false; //ime 입력 중이 아닌 경우 false 반환
-
-		//특수한 상황에서 정상적으로 조합을 완성하지 못하고 입력이 종료된 경우를 처리한다.
-		if (GetAsyncKeyState(VK_BACK)) //backspace 키
-			str = origin.substr(0, cursorPos) + origin.substr(cursorPos);
-		
-		updateText();
-		return true;
 	}
 
 	return false;
@@ -263,7 +256,11 @@ float TextBox::getCursorPosX()
 	
 	if (pos >= str.size()) pos = str.size() - 1;
 
-	return text.findCharacterPos(pos).x - text.findCharacterPos(0).x + font.getGlyph(str.at(pos), text.getCharacterSize(), false).bounds.width;
+	wchar_t ch = str.at(pos);
+	if (ch == L' ') ch = L'a'; //공백의 크기를 인식하지 못하므로 a로 대체
+	float glyph = font.getGlyph(ch, text.getCharacterSize(), false).bounds.width;
+
+	return text.findCharacterPos(pos).x - text.findCharacterPos(0).x + glyph;
 }
 
 void TextBox::updateText()

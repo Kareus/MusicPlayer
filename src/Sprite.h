@@ -62,7 +62,6 @@ public:
 
 	void SetMouseUpFunction(const std::function<void(Sprite*)>& func);
 
-	bool pollEvent(sf::Event e) override;
 	bool pollEvent(CustomWinEvent e) override;
 
 	bool hasPoint(const sf::Vector2f& point) override;
