@@ -53,6 +53,8 @@ Application::~Application()
 
 void Application::Render()
 {
+	Sleep(100); //렌더링 시작 전 0.1초 대기
+
 	while (window.isOpen())
 	{
 		window.clear(backColor);
@@ -64,6 +66,7 @@ void Application::Render()
 		while (iter.NotNull())
 		{
 			Sleep(5); //draw가 thread-detached로 작동하므로, 각 draw의 처리를 위해 5 밀리초 대기
+			//대기가 없을 경우 특히 text box 렌더링에서 오류가 발생함
 
 			if (!running) return; //그 사이에 닫힌 경우 종료
 

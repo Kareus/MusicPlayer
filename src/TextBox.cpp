@@ -117,6 +117,10 @@ bool TextBox::pollEvent(sf::Event e)
 				if (cursorPos < str.size()) cursorPos++;
 				break;
 
+			case 'A': //ctrl+A. 임시 전체 삭제 기능
+				if (e.key.control) setText(L"");
+				break;
+
 			default:
 				return false;
 			}
