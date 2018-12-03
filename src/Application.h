@@ -365,6 +365,8 @@ public:
 	Group* AddEditGraphic(MusicType* data);
 
 	void Close();
+
+	int EditMusic(MusicType* music);
 };
 #pragma once
 #endif

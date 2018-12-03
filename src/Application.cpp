@@ -398,16 +398,44 @@ int Application::AddMusic()
 
 	MusicType music;
 	music.SetPath(path);
-	music.ReadDataFromID3();
-	if (music.GetName().empty())
+	music.ReadDataFromID3(); //id3 태그를 읽어온다.
+
+	if (music.GetName().empty()) //이름 정보가 없으면
 	{
 		int dir = path.find_last_of(L'\\');
 		std::wstring file = path.substr(dir + 1);
 		file = file.substr(0, file.size() - 4);
+		music.SetName(String::WstrToStr(file)); //파일 이름으로 설정
 	}
-	else music.SetID(music.GetName());
 
-	OutputDebugStringA((music.GetLyrics() + '\n').c_str());
+	if (music.GetName().empty() || music.GetArtist().empty()) //ID에 필요한 정보가 없는 경우
+	{
+		EditMusic(&music);
+	}
+	
+	if (!musicList.Add(music))
+	{
+		System::AlertError("해당 경로의 음악이 이미 존재합니다.", "Music Already Exists", MB_OK);
+		return 0;
+	}
+
+	SimpleMusicType simple = music; //형변환 연산자로 SimpleMusicType으로 변환
+	simple.SetID(music.GetName() + '_' + music.GetArtist()); //ID를 이름_아티스트로 변경
+	nameList.Add(simple);
+	return 1;
+}
+
+int Application::EditMusic(MusicType* music)
+{
+	sf::RenderWindow editWindow;
+	editWindow.create(sf::VideoMode(400, 500), L"Music Edit Window", sf::Style::Default & ~sf::Style::Resize);
+
+	while (editWindow.isOpen())
+	{
+		Sleep(5000);
+		editWindow.close();
+	}
+
 	return 1;
 }
 
