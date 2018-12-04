@@ -8,6 +8,7 @@ TextBox::TextBox(float x, float y, float width, float height, bool multi_line)
 	this->width = width;
 	this->height = height;
 	multiLine = multi_line;
+	onlyNumber = false;
 	
 	shape = sf::RectangleShape(sf::Vector2f(width, height));
 	shape.setPosition(x, y);
@@ -60,8 +61,19 @@ void TextBox::draw(sf::RenderWindow* window)
 
 void TextBox::setText(const std::wstring& str)
 {
-	if (maxLen >= 0) this->str = str.substr(0, maxLen);
-	else this->str = str;
+	std::wstring filtered = L"";
+
+	for (int i = 0; i < str.size(); i++)
+	{
+		wchar_t ch = str.at(i);
+		if (onlyNumber && (ch < 48 || ch > 57)) continue; //숫자가 아닌 데이터가 있는 경우 생략
+		if (multiLine && ch == L'\n') continue; //여러 줄이 허용되지 않는 경우 생략
+		filtered.push_back(ch);
+	}
+
+	if (maxLen >= 0) this->str = filtered.substr(0, maxLen);
+	else this->str = filtered;
+
 	cursorPos = (this->str).size();
 	updateText();
 }
@@ -75,6 +87,23 @@ void TextBox::setFont(sf::Font& font)
 {
 	this->font = font;
 	text.setFont(font);
+}
+
+void TextBox::setOnlyNumber(bool only)
+{
+	onlyNumber = only;
+
+	if (onlyNumber)
+	{
+		std::wstring newStr = L"";
+		for (int i = 0; i < str.size(); i++)
+		{
+			wchar_t ch = str.at(i);
+			if (ch >= 48 && ch <= 57) newStr.push_back(ch);
+		}
+
+		setText(newStr);
+	}
 }
 
 bool TextBox::pollEvent(CustomWinEvent e)
@@ -134,8 +163,49 @@ bool TextBox::pollEvent(CustomWinEvent e)
 				if (cursorPos < str.size()) cursorPos++;
 				break;
 
-			case 'A': //ctrl+A. 임시 전체 삭제 기능
+			case 'D': //ctrl+D. 전체 삭제
 				if (e.key.control) setText(L"");
+				break;
+
+			case 'X': //ctrl+X. 전체 잘라내기
+				if (e.key.control)
+				{
+					const char* output = String::WstrToStr(str).c_str();
+					const size_t len = strlen(output) + 1;
+					HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, len);
+					memcpy(GlobalLock(hMem), output, len);
+					GlobalUnlock(hMem);
+					OpenClipboard(0);
+					EmptyClipboard();
+					SetClipboardData(CF_TEXT, hMem);
+					CloseClipboard();
+					setText(L"");
+				}
+				break;
+
+			case 'C': //ctrl+C. 전체 복사
+				if (e.key.control)
+				{
+					const char* output = String::WstrToStr(str).c_str();
+					const size_t len = strlen(output) + 1;
+					HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, len);
+					memcpy(GlobalLock(hMem), output, len);
+					GlobalUnlock(hMem);
+					OpenClipboard(0);
+					EmptyClipboard();
+					SetClipboardData(CF_TEXT, hMem);
+					CloseClipboard();
+				}
+				break;
+
+			case 'V': //ctrl+V. 붙여넣기
+				if (e.key.control)
+				{
+					if (!OpenClipboard(NULL)) return false;
+					std::string newStr = (char*)GetClipboardData(CF_TEXT);
+					setText(str + String::StrToWstr(newStr));
+					CloseClipboard();
+				}
 				break;
 
 			default:
@@ -236,6 +306,8 @@ bool TextBox::textEvent(sf::Uint32 code)
 		{
 			if (maxLen < 0 || str.size() < maxLen)
 			{
+				if (onlyNumber && (code < 48 || code > 57)) return false; //숫자 여부 판단
+
 				if (cursorPos < str.size()) str = str.substr(0, cursorPos) + (wchar_t)code + str.substr(cursorPos); //다른 경우	
 				else str += (wchar_t)code;
 				cursorPos++;

@@ -26,6 +26,7 @@ private:
 	bool blink; ///<깜빡임 여부
 	int cursorPos; ///<현재 커서 위치
 	unsigned int maxLen; ///<최대 길이 (무제한은 -1)
+	bool onlyNumber; ///<숫자만 입력받을 지 여부
 	float x; ///<x 좌표
 	float y; ///<y 좌표
 	float width; ///<너비
@@ -66,6 +67,9 @@ public:
 
 	void setMaxLength(unsigned int len);
 	unsigned int getMaxLength();
+
+	void setOnlyNumber(bool only);
+	bool IsOnlyNumber();
 
 	void SetPosition(float x, float y) override;
 
