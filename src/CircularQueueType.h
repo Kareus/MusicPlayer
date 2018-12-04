@@ -127,6 +127,15 @@ public:
 	*/
 	int Replace(const T &find, const T &data);
 
+	/**
+	*	@brief	현재 데이터에 대상 데이터의 값을 복사하여 대입한다.
+	*	@pre	대상 데이터의 변수가 할당되어 있어야 한다.
+	*	@post	대상 데이터의 변수 값이 현재 데이터에 복사된다.
+	*	@param	data	복사할 대상 데이터
+	*	@return	복사 대입한 현재 데이터를 반환한다.
+	*/
+	CircularQueueType<T>& operator=(const CircularQueueType<T>& data);
+
 private:
 	int m_iFront;	//index of one infront of the first element.
 	int m_iRear;	//index of the last element.
@@ -238,5 +247,18 @@ int CircularQueueType<T>::Replace(const T& item, const T& data)
 	}
 
 	return 0;
+}
+
+template <typename T>
+CircularQueueType<T>& CircularQueueType<T>::operator=(const CircularQueueType<T>& data)
+{
+	m_pItems = new T[data.max];
+	m_nMaxQueue = data.max;
+	m_iFront = m_nMaxQueue - 1;
+	m_iRear = m_nMaxQueue - 1;
+
+	for (int i = 0; i < m_nMaxQueue; i++) m_pItems[i] = data.m_pItems[i];
+
+	return *this;
 }
 #endif

@@ -48,7 +48,6 @@ void Update(HWND hwnd, PlayerState state);
 
 //윈도우 프로토콜을 처리할 함수
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
-LRESULT CALLBACK EditProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 //플레이어를 실행 중일 때 처리할 이벤트
 void OnPlayerEvent(HWND hwnd, WPARAM pUnkPtr);

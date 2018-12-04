@@ -59,9 +59,9 @@ private:
 
 	AVLTreeNode<T>* DoubleRightRotate(AVLTreeNode<T>* node);
 
-	void findNode(AVLTreeNode<T>*& node, std::function<bool(const T&)>& search, std::function<void(const T&)>& todo);
+	void findNode(AVLTreeNode<T>*& node, std::function<bool(T&)>& search, std::function<void(T&)>& todo);
 
-	void doNode(AVLTreeNode<T>*& node, std::function<void(const T&)>& todo);
+	void doNode(AVLTreeNode<T>*& node, std::function<void(T&)>& todo);
 
 	std::function<int(const T&, const T&)> compareFunc; ///< 데이터 비교 함수
 
@@ -91,9 +91,9 @@ public:
 
 	AVLTree<T>& operator=(const AVLTree<T>& tree);
 
-	void Find(const std::function<bool(const T&)>& search, const std::function<void(const T&)>& todo);
+	void Find(const std::function<bool(T&)>& search, const std::function<void(T&)>& todo);
 
-	void Do(const std::function<void(const T&)>& todo);
+	void Do(const std::function<void(T&)>& todo);
 
 	/**
 	*	@brief	데이터 비교 함수를 설정한다.
@@ -193,13 +193,13 @@ AVLTree<T>& AVLTree<T>::operator=(const AVLTree<T>& tree)
 }
 
 template <typename T>
-void AVLTree<T>::Find(const std::function<bool(const T&)>& search, const std::function<void(const T&)>& todo)
+void AVLTree<T>::Find(const std::function<bool(T&)>& search, const std::function<void(T&)>& todo)
 {
 	findNode(root, search, todo);
 }
 
 template <typename T>
-void AVLTree<T>::Do(const std::function<void(const T&)>& todo)
+void AVLTree<T>::Do(const std::function<void(T&)>& todo)
 {
 	doNode(root, todo);
 }
@@ -446,7 +446,7 @@ int AVLTree<T>::height(AVLTreeNode<T>*& node)
 }
 
 template <typename T>
-void AVLTree<T>::findNode(AVLTreeNode<T>*& node, std::function<bool(const T&)>& search, std::function<void(const T&)>& todo)
+void AVLTree<T>::findNode(AVLTreeNode<T>*& node, std::function<bool(T&)>& search, std::function<void(T&)>& todo)
 {
 	if (node == nullptr) return; //node가 null이면 return
 
@@ -456,7 +456,7 @@ void AVLTree<T>::findNode(AVLTreeNode<T>*& node, std::function<bool(const T&)>& 
 }
 
 template <typename T>
-void AVLTree<T>::doNode(AVLTreeNode<T>*& node, std::function<void(const T&)>& todo)
+void AVLTree<T>::doNode(AVLTreeNode<T>*& node, std::function<void(T&)>& todo)
 {
 	if (node == nullptr) return;
 	doNode(node->left, todo);

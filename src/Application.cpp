@@ -13,7 +13,7 @@ Application::Application()
 {
 	focus = nullptr;
 	m_Command = 0;
-	recentListCount = 0;
+	recentPlayCount = 0;
 	addedCount = 0;
 	nameList.SetCompareFunction(compareMusicName);
 	recentPlayedList.SetCompareFunction(compareToLast);
@@ -29,7 +29,8 @@ Application::Application()
 	currentGroup = nullptr;
 	running = false;
 	editing = false;
-	toEdit = 0;
+	editMusic = nullptr;
+	displayMode = 0;
 
 	defaultFont.loadFromFile("C:/Windows/Fonts/malgun.ttf");
 
@@ -95,7 +96,7 @@ void Application::RenderMain()
 
 		while (iter.NotNull())
 		{
-			Sleep(5); //draw가 thread-detached로 작동하므로, 각 draw의 처리를 위해 5 밀리초 대기
+			Sleep(10); //draw가 thread-detached로 작동하므로, 각 draw의 처리를 위해 10 밀리초 대기
 			//대기가 없을 경우 특히 text box 렌더링에서 오류가 발생함
 
 			if (!running) return; //그 사이에 닫힌 경우 종료
@@ -122,7 +123,7 @@ void Application::RenderEditor()
 
 		while (iter.NotNull())
 		{
-			Sleep(5);
+			Sleep(10);
 
 			if (!running) return;
 
@@ -137,6 +138,13 @@ void Application::RenderEditor()
 void Application::Close()
 {
 	SendMessage(Handle, WM_CLOSE, NULL, NULL);
+}
+
+void Application::CloseEditor()
+{
+	ShowWindow(editHandle, SW_HIDE);
+	editing = false;
+	SendMessage(Handle, WM_ACTIVATE, NULL, NULL);
 }
 
 int Application::AddGraphicToMain(Graphic* graphic)
@@ -235,6 +243,8 @@ void Application::Run(HINSTANCE instance)
 
 void Application::initMainGraphic()
 {
+	//메인 윈도우에 사용할 그래픽 로드 및 배치
+
 	playerSprite->SetMouseDownFunction(func_dragStart);
 	AddGraphicToMain(playerSprite);
 
@@ -297,6 +307,8 @@ void Application::initMainGraphic()
 
 void Application::initEditorGraphic()
 {
+	//에디터 윈도우에 사용할 그래픽 로드 및 배치
+
 	editorSprite->SetMouseDownFunction(func_dragStart_edit);
 	AddGraphicToEditor(editorSprite);
 
@@ -444,14 +456,19 @@ Group* Application::AddEditGraphic(MusicType* data)
 	return group;
 }
 
-void Application::DisplayAllMusic()
+void Application::DisplayResult()
 {
-	
 	if (currentGroup == nullptr)
 	{
 		currentGroup = new Group();
 		AddGraphicToMain(currentGroup);
 	}
+
+
+}
+
+void Application::DisplayAllMusic()
+{
 
 	currentGroup->MakeEmpty();
 
@@ -467,16 +484,16 @@ int Application::AddMusic()
 	MusicType music;
 	music.SetPath(path);
 	music.ReadDataFromID3(); //id3 태그를 읽어온다.
+	int dir = path.find_last_of(L'\\'); //마지막 폴더에 해당하는 인덱스
 
 	if (music.GetName().empty()) //이름 정보가 없으면
 	{
-		int dir = path.find_last_of(L'\\');
 		std::wstring file = path.substr(dir + 1);
 		file = file.substr(0, file.size() - 4);
 		music.SetName(String::WstrToStr(file)); //파일 이름으로 설정
 	}
 
-	music.SetID(music.GetName() + '_' + music.GetArtist());
+	music.SetID(String::WstrToStr(music.GetPath()));
 	
 	if (!musicList.Add(music))
 	{
@@ -485,14 +502,103 @@ int Application::AddMusic()
 	}
 
 	SimpleMusicType simple = music; //형변환 연산자로 SimpleMusicType으로 변환
-	nameList.Add(simple);
+
+	string simpleID = music.GetName() + '_' + music.GetArtist();
+	simple.SetID(simpleID);
+
+	int count = 0;
+
+	while (!nameList.Add(simple)) //경로는 다르지만 이름_아티스트가 같을 수 있으므로 중복 방지 처리
+	{
+		simple.SetID(simpleID + '_' + std::to_string(count));
+		count++;
+	}
+
+	if (!music.GetAlbum().empty()) //앨범 타입 추가
+	{
+		Album album;
+		album.SetAlbumName(music.GetAlbum());
+		album.SetArtist(music.GetArtist());
+		album.SetID(music.GetAlbum() + '_' + music.GetArtist());
+
+		if (albumList.Get(album)) //앨범이 이미 존재하는 경우
+		{
+			album.AddMusic(simple);
+			albumList.Replace(album);
+		}
+		else
+		{
+			album.AddMusic(simple);
+			albumList.Add(album);
+		}
+	}
+
+	if (!music.GetArtist().empty()) //아티스트 타입 추가
+	{
+		Artist artist;
+		artist.SetName(music.GetArtist());
+		artist.SetID(music.GetArtist());
+
+		if (artistList.Get(artist)) //아티스트가 이미 존재하는 경우
+		{
+			artist.AddMusic(simple);
+			artistList.Replace(artist);
+		}
+		else
+		{
+			artist.AddMusic(simple);
+			artistList.Add(artist);
+		}
+	}
+
+	if (!music.GetGenre().empty()) //장르 타입 추가
+	{
+		GenreType genre;
+		genre.SetGenre(music.GetGenre());
+		
+		if (genreList.Get(genre)) //장르가 이미 존재하는 경우
+		{
+			genre.AddMusic(simple);
+			genreList.Replace(genre);
+		}
+		else
+		{
+			genre.AddMusic(simple);
+			genreList.Add(genre);
+		}
+	}
+
+	FolderType folder; //폴더 타입 추가 (경로는 비어있을 수 없으므로 empty 체크 안함)
+	folder.SetPath(path.substr(0, dir));
+	
+	if (folderList.Get(folder)) //폴더 타입이 이미 존재하는 경우
+	{
+		folder.AddMusic(simple);
+		folderList.Replace(folder);
+	}
+	else
+	{
+		folder.AddMusic(simple);
+		folderList.Add(folder);
+	}
+
+	if (newAddMusicList.IsFull()) //최근 추가한 리스트가 꽉 차 있으면
+	{
+		SimpleMusicType temp;
+		newAddMusicList.DeQueue(temp);
+		addedCount--;
+	}
+
+	simple.SetID(music.GetID()); //primary key를 경로로 재설정
+	newAddMusicList.EnQueue(simple);
+	addedCount++;
+
 	return 1;
 }
 
-int Application::EditMusic(MusicType* music)
+int Application::EditMusic()
 {
 	ShowWindow(editHandle, SW_SHOW);
-	toEdit = 0;
 	editing = true;
 
 	RECT rect;
@@ -512,6 +618,193 @@ int Application::EditMusic(MusicType* music)
 	SetWindowPos(editHandle, NULL, x, y, 0, 0, SWP_NOSIZE);
 
 	return 1;
+}
+
+int Application::ReplaceMusic()
+{
+	if (editMusic == nullptr) return 0; //수정할 음악 타입이 정해져 있지 않으면 0 반환
+
+	string newName = String::WstrToStr(nameEdit->getText());
+	string newArtist = String::WstrToStr(artistEdit->getText());
+	
+	bool idChange = strcmp(editMusic->GetName().c_str(), newName.c_str()) || strcmp(editMusic->GetArtist().c_str(), newArtist.c_str());
+
+	Album album;
+	Artist artist;
+	GenreType genre;
+	FolderType folder;
+
+	album.SetID(editMusic->GetAlbum() + '_' + editMusic->GetArtist());
+	artist.SetID(editMusic->GetArtist());
+	genre.SetGenre(editMusic->GetGenre());
+	
+	wstring path = editMusic->GetPath();
+	path = path.substr(0, path.find_last_of(L'\\'));
+	folder.SetPath(path);
+	folderList.Get(folder);
+
+	SimpleMusicType simple = *editMusic;
+
+	if (idChange)
+	{
+		//이름이나 아티스트가 바뀐 경우, ID가 변경되었으므로 리스트에서 삭제
+		nameList.Delete(simple);
+
+		albumList.Get(album);
+		album.DeleteMusic(simple);
+		albumList.Replace(album);
+
+		artistList.Get(artist);
+		artist.DeleteMusic(simple);
+		artistList.Replace(artist);
+		
+		genreList.Get(genre);
+		genre.DeleteMusic(simple);
+		genreList.Replace(genre);
+		
+		folder.DeleteMusic(simple);
+	}
+
+	editMusic->SetName(newName);
+	editMusic->SetArtist(newArtist);
+	editMusic->SetComposer(String::WstrToStr(composerEdit->getText()));
+	editMusic->SetWriter(String::WstrToStr(writerEdit->getText()));
+
+	unsigned int newDate = std::stoi(dateEdit->getText());
+	while (newDate < 10000000) newDate *= 10; //YYYYMMDD 형식에 맞춘다.
+	editMusic->SetDate(newDate);
+	editMusic->SetAlbum(String::WstrToStr(albumEdit->getText()));
+	editMusic->SetGenre(String::WstrToStr(genreEdit->getText()));
+	editMusic->SetLyrics(String::WstrToStr(lyricsEdit->getText()));
+
+	//musicList는 포인터를 이용해 수정했으므로 Replace할 필요 없음
+	
+	simple = *editMusic;
+
+	if (!idChange)
+	{
+		nameList.Replace(simple);
+		
+		albumList.Get(album);
+		album.ReplaceMusic(simple);
+		albumList.Replace(album);
+
+		artistList.Get(artist);
+		artist.ReplaceMusic(simple);
+		artistList.Replace(artist);
+
+		genreList.Get(genre);
+		genre.ReplaceMusic(simple);
+		genreList.Replace(genre);
+
+		folder.ReplaceMusic(simple);
+		folderList.Replace(folder);
+
+		return 1;
+	}
+
+	nameList.Add(simple);
+	
+	album.SetID(editMusic->GetAlbum() + '_' + editMusic->GetArtist());
+	artist.SetID(editMusic->GetArtist());
+	genre.SetGenre(editMusic->GetGenre());
+
+	folder.AddMusic(simple);
+	folderList.Replace(folder);
+
+	if (albumList.Get(album))
+	{
+		album.AddMusic(simple);
+		albumList.Replace(album);
+	}
+	else
+	{
+		album.AddMusic(simple);
+		albumList.Add(album);
+	}
+
+	if (artistList.Get(artist))
+	{
+		artist.AddMusic(simple);
+		artistList.Replace(artist);
+	}
+	else
+	{
+		artist.AddMusic(simple);
+		artistList.Add(artist);
+	}
+
+	if (genreList.Get(genre))
+	{
+		genre.AddMusic(simple);
+		genreList.Replace(genre);
+	}
+	else
+	{
+		genre.AddMusic(simple);
+		genreList.Add(genre);
+	}
+
+	return 1;
+}
+
+int Application::DeleteMusic(const MusicType& data)
+{	
+	if (!musicList.Delete(data)) return 0;
+
+	SimpleMusicType simple;
+	simple.SetID(data.GetName() + '_' + data.GetArtist());
+
+	Album album;
+	Artist artist;
+	GenreType genre;
+	FolderType folder;
+
+	album.SetID(data.GetAlbum() + '_' + data.GetArtist());
+	artist.SetID(data.GetArtist());
+	genre.SetGenre(data.GetGenre());
+	wstring path = editMusic->GetPath();
+	path = path.substr(0, path.find_last_of(L'\\'));
+	folder.SetPath(path);
+
+	albumList.Get(album);
+	artistList.Get(artist);
+	genreList.Get(genre);
+	folderList.Get(folder);
+
+	nameList.Delete(simple);
+	album.DeleteMusic(simple);
+	artist.DeleteMusic(simple);
+	genre.DeleteMusic(simple);
+	folder.DeleteMusic(simple);
+
+	if (album.GetMusicNum() > 0) albumList.Replace(album);
+	else albumList.Delete(album);
+
+	if (artist.GetMusicNum() > 0) artistList.Replace(artist);
+	else artistList.Delete(artist);
+
+	if (genre.GetMusicNum() > 0) genreList.Replace(genre);
+	else genreList.Delete(genre);
+
+	if (folder.GetLength() > 0) folderList.Replace(folder);
+	else folderList.Delete(folder);
+
+	CircularQueueType<SimpleMusicType> newQueue = CircularQueueType<SimpleMusicType>(31);
+
+	newAddMusicList.ResetQueue();
+	SimpleMusicType temp;
+
+	for (int i = 0; i < addedCount; i++)
+	{
+		newAddMusicList.GetNextItem(temp);
+		if (temp.GetID() == simple.GetID()) continue;
+		newQueue.EnQueue(temp);
+	}
+
+	newAddMusicList = newQueue; //삭제한 아이템이 큐에 있는지 검사하여 덮어쓰기.
+
+	playLists.Do([simple](PlayList& p) { p.DeleteMusic(simple); }); //플레이리스트에서 데이터를 찾아 삭제
 }
 
 int Application::OpenInFile(char *fileName)
@@ -589,10 +882,10 @@ int Application::ReadDataFromFile()
 		newAddMusicList.EnQueue(music);
 	}
 
-	m_inputFile >> recentListCount;
+	m_inputFile >> recentPlayCount;
 	m_inputFile.ignore();
 
-	for (int i = 0; i < recentListCount; i++)
+	for (int i = 0; i < recentPlayCount; i++)
 	{
 		music.ReadDataFromFile(m_inputFile);
 		recentPlayedList.Add(music);
@@ -664,7 +957,7 @@ int Application::WriteDataToFile()
 		music.WriteDataToFile(m_outFile);
 	}
 
-	m_outFile << recentListCount << endl;
+	m_outFile << recentPlayCount << endl;
 
 	SimpleMusicType* simple;
 
@@ -680,64 +973,6 @@ int Application::WriteDataToFile()
 	m_outFile.close();	// file close
 
 	return 1;
-}
-
-int Application::DeleteMusic()
-{
-	MusicType music;
-
-	music.SetIDFromKB();
-
-	if (DeleteMusic(music))
-	{
-		cout << "\tMusic has been successfully deleted" << endl;
-		return 1;
-	}
-
-	cout << "\tThere is no music that has such ID" << endl;
-	return 0;
-}
-
-int Application::ReplaceMusic()
-{
-	cout << "\tInput the ID of the music you want to edit" << endl;
-	MusicType music;
-	music.SetIDFromKB();
-	
-	cout << "\tInput the data of the music" << endl;
-
-	DoublyIterator<MusicType> iter(musicList);
-	MusicType* data = NULL; //리스트에서 찾은 아이템에 대한 포인터 변수
-
-	while (iter.NotNull())
-	{
-		data = iter.CurrentPtr();
-		if (music == *data) break;
-		iter.Next();
-	}
-
-	if (data == NULL)
-	{
-		cout << "\tThere is no music that has such ID" << endl;
-		return 0;
-	}
-	
-	data->SetAllFromKB();
-
-	data->SetID(data->GetName() + '_' + data->GetArtist());
-
-	music = *data; //backup
-
-	musicList.Delete(iter); //iterator를 이용해 빠르게 아이템을 제거한다.
-
-	if (ReplaceMusic(music)) //다시 정렬하여 추가
-	{
-		cout << "\tMusic has been successfully replaced" << endl;
-		return 1;
-	}
-
-	cout << "\tFailed to replace the music" << endl;
-	return 0;
 }
 
 void Application::MakeEmpty()
@@ -784,89 +1019,6 @@ void Application::AddToMostPlayed(const MusicType& music)
 		iter.ResetToLastPointer();
 		mostPlayedList.Delete(iter);
 	}
-}
-
-int Application::ReplaceMusic(const MusicType& music)
-{
-
-	if (musicList.Replace(music) == 0) return 0;
-
-	SimpleMusicType simple;
-	simple.SetID(music.GetID());
-	simple.SetName(music.GetName());
-	simple.SetLength(music.GetLength());
-	simple.SetPlayedTime(music.GetPlayedTime());
-
-	nameList.Replace(simple);
-
-	DoublyIterator<GenreType> iter(genreList);
-
-	GenreType* genre;
-
-	while (iter.NotNull())
-	{
-		genre = iter.CurrentPtr();
-		if (!strcmp(genre->GetGenre().c_str(), music.GetGenre().c_str()))
-		{
-			genre->Replace(simple);
-			break;
-		}
-		iter.Next();
-	}
-
-	Album* album;
-	DoublyIterator<Album> iter_a(albumList);
-
-	while (iter_a.NotNull())
-	{
-		album = iter_a.CurrentPtr();
-		album->ReplaceMusic(simple);
-		iter_a.Next();
-	}
-
-	recentPlayedList.Replace(simple);
-	mostPlayedList.Replace(simple);
-
-	return 1;
-}
-
-int Application::DeleteMusic(const MusicType& music)
-{
-	SimpleMusicType simpleMusic;
-	simpleMusic.SetID(music.GetID());
-
-	if (musicList.Delete(music) == 0) return 0;
-
-	nameList.Delete(simpleMusic);
-
-	GenreType* genre = NULL;
-
-	DoublyIterator<GenreType> iter(genreList);
-
-	while (iter.NotNull())
-	{
-		genre = iter.CurrentPtr();
-		if (genre->Delete(simpleMusic)) break;
-		iter.Next();
-	}
-
-	if (genre != NULL && genre->GetMusicNum() == 0) genreList.Delete(iter);
-
-	Album* album;
-	
-	DoublyIterator<Album> iter_a(albumList);
-
-	while (iter_a.NotNull())
-	{
-		album = iter_a.CurrentPtr();
-		if (album->DeleteMusic(simpleMusic)) break;
-		iter_a.Next();
-	}
-
-	recentPlayedList.Delete(simpleMusic);
-	mostPlayedList.Delete(simpleMusic);
-
-	return 1;
 }
 
 void Application::ClearEmptyAlbums()
