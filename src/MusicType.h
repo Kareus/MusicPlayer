@@ -27,13 +27,11 @@ private:
 	string artist; ///<가수
 	string composer; ///<작곡가
 	string writer; ///<작사가
-	string record; ///<레코드
 	unsigned int date; ///<발표일
 	string album; ///<앨범
 	string genre; ///<장르
 	unsigned int length; ///<재생 길이 (second)
 	unsigned int time; ///<재생 횟수
-	string note;	///<악보
 	string lyrics;	///<가사
 	string ID; ///<고유 키
 	wstring path; ///<경로
@@ -119,14 +117,6 @@ public:
 	string GetWriter() const;
 
 	/**
-	*	@brief	음반 회사명을 반환한다.
-	*	@pre	record가 할당되어 있어야 한다.
-	*	@post	없음.
-	*	@return	음반 회사명.
-	*/
-	string GetRecord() const;
-
-	/**
 	*	@brief	음악의 파일 경로를 반환한다.
 	*	@pre	path가 할당되어 있어야 한다.
 	*	@post	없음.
@@ -157,14 +147,6 @@ public:
 	*	@return	재생 횟수.
 	*/
 	unsigned int GetPlayedTime() const;
-
-	/**
-	*	@brief	악보를 반환한다.
-	*	@pre	note가 할당되어 있어야 한다.
-	*	@post	없음.
-	*	@return 악보.
-	*/
-	string GetNote() const;
 
 	//------------------------------
 	//------------------------------Setter 함수들
@@ -235,14 +217,6 @@ public:
 	void SetWriter(const string& writer);
 
 	/**
-	*	@brief	음반 회사를 설정한다.
-	*	@pre	없음.
-	*	@post	record 변수가 할당된다.
-	*	@param	record	설정할 음반 회사명
-	*/
-	void SetRecord(const string& record);
-
-	/**
 	*	@brief	발표일을 설정한다.
 	*	@pre	없음.
 	*	@post	date 변수가 할당된다.
@@ -267,222 +241,12 @@ public:
 	void SetPlayedTime(unsigned int time);
 
 	/**
-	*	@brief	악보를 설정한다.
-	*	@pre	없음.
-	*	@post	note 변수가 할당된다.
-	*	@param	note	설정할 곡의 악보.
-	*/
-	void SetNote(const string& note);
-
-	/**
 	*	@brief	경로를 설정한다.
 	*	@pre	없음.
 	*	@post	path 변수가 할당된다.
 	*	@param	path	설정할 파일 경로.
 	*/
 	void SetPath(const wstring& path);
-
-	//------------------------------
-	//------------------------------기타 함수들
-	//------------------------------
-
-	/**
-	*	@brief	곡명을 콘솔에 출력한다.
-	*	@pre	곡명이 할당되어 있어야 한다.
-	*	@post	곡명이 콘솔에 출력된다.
-	*/
-	void DisplayNameOnScreen();
-
-	/**
-	*	@brief	가수의 이름을 콘솔에 출력한다.
-	*	@pre	가수의 이름이 할당되어 있어야 한다.
-	*	@post	가수의 이름이 콘솔에 출력된다.
-	*/
-	void DisplayArtistOnScreen();
-
-	/**
-	*	@brief	앨범 이름을 콘솔에 출력한다.
-	*	@pre	앨범이 할당되어 있어야 한다.
-	*	@post	앨범 이름이 콘솔에 출력된다.
-	*/
-	void DisplayAlbumOnScreen();
-
-	/**
-	*	@brief	장르를 콘솔에 출력한다.
-	*	@pre	장르가 할당되어 있어야 한다.
-	*	@post	장르가 콘솔에 출력된다.
-	*/
-	void DisplayGenreOnScreen();
-
-	/**
-	*	@brief	가사를 콘솔에 출력한다.
-	*	@pre	가사가 할당되어 있어야 한다.
-	*	@post	가사가 콘솔에 출력된다.
-	*/
-	void DisplayLyricsOnScreen();
-
-	/**
-	*	@brief	곡의 고유 키를 콘솔에 출력한다.
-	*	@pre	곡의 고유 키가 할당되어 있어야 한다.
-	*	@post	곡의 고유 키가 콘솔에 출력된다.
-	*/
-	void DisplayIDOnScreen();
-
-	/**
-	*	@brief	작곡가의 이름을 콘솔에 출력한다.
-	*	@pre	composer 변수가 할당되어 있어야 한다.
-	*	@post	작곡가의 이름이 콘솔에 출력된다.
-	*/
-	void DisplayComposerOnScreen();
-
-	/**
-	*	@brief	작사가의 이름을 콘솔에 출력한다.
-	*	@pre	writer 변수가 할당되어 있어야 한다.
-	*	@post	작사가의 이름이 콘솔에 출력된다.
-	*/
-	void DisplayWriterOnScreen();
-
-	/**
-	*	@brief	음반 회사의 이름을 콘솔에 출력한다.
-	*	@pre	record가 할당되어 있어야 한다.
-	*	@post	음악이 나온 음반의 회사 이름이 콘솔에 출력된다.
-	*/
-	void DisplayRecordOnScreen();
-
-	/**
-	*	@brief	음악의 발표일을 콘솔에 출력한다.
-	*	@pre	day 변수가 할당되어 있어야 한다.
-	*	@post	음악의 발표년도, 월, 일이 콘솔에 출력된다.
-	*/
-	void DisplayDateOnScreen();
-
-	/**
-	*	@brief	곡의 길이를 콘솔에 출력한다.
-	*	@pre	length 변수가 할당되어 있어야 한다.
-	*	@post	곡의 길이가 콘솔에 출력된다.
-	*/
-	void DisplayLengthOnScreen();
-
-	/**
-	*	@brief	곡의 재생횟수를 콘솔에 출력한다.
-	*	@pre	time 변수가 할당되어 있어야 한다.
-	*	@post	곡의 재생횟수가 콘솔에 출력된다.
-	*/
-	void DisplayPlayedTimeOnScreen();
-
-	/**
-	*	@brief	곡의 악보를 콘솔에 출력한다.
-	*	@pre	note 변수가 할당되어 있어야 한다.
-	*	@post	곡의 악보가 콘솔에 출력된다.
-	*/
-	void DisplayNoteOnScreen();
-
-	/**
-	*	@brief	음악의 모든 정보를 콘솔에 출력한다.
-	*	@pre	정보를 나타내는 변수들이 할당되어 있어야 한다.
-	*	@post	음악의 모든 정보가 콘솔에 출력된다.
-	*/
-	void DisplayAllOnScreen();
-
-
-
-	/**
-	*	@brief	키보드로부터 음악의 이름을 입력받는다.
-	*	@pre	없음.
-	*	@post	곡명을 할당한다.
-	*/
-	void SetNameFromKB();
-
-	/**
-	*	@brief	키보드로부터 가수의 이름을 입력받는다.
-	*	@pre	없음.
-	*	@post	가수의 이름을 할당한다.
-	*/
-	void SetArtistFromKB();
-
-	/**
-	*	@brief	키보드로부터 앨범을 입력받는다.
-	*	@pre	없음.
-	*	@post	앨범을 할당한다.
-	*/
-	void SetAlbumFromKB();
-
-	/**
-	*	@brief	키보드로부터 장르를 입력받는다.
-	*	@pre	없음.
-	*	@post	장르를 할당한다.
-	*/
-	void SetGenreFromKB();
-
-	/**
-	*	@brief	키보드로부터 가사를 입력받는다.
-	*	@pre	없음.
-	*	@post	가사를 할당한다.
-	*/
-	void SetLyricsFromKB();
-
-	/**
-	*	@brief	키보드로부터 곡의 고유 키를 입력받는다.
-	*	@pre	없음.
-	*	@post	곡의 고유 키를 할당한다.
-	*/
-	void SetIDFromKB();
-
-	/**
-	*	@brief	작곡가의 이름을 키보드로부터 입력받는다.
-	*	@pre	없음.
-	*	@post	입력받은 이름을 composer 변수에 할당한다.
-	*/
-	void SetComposerFromKB();
-
-	/**
-	*	@brief	작사가의 이름을 키보드로부터 입력받는다.
-	*	@pre	없음.
-	*	@post	입력받은 이름을 writer 변수에 할당한다.
-	*/
-	void SetWriterFromKB();
-
-	/**
-	*	@brief	키보드로부터 음반 회사명을 입력받는다.
-	*	@pre	없음.
-	*	@post	음반 회사명을 할당한다.
-	*/
-	void SetRecordFromKB();
-
-	/**
-	*	@brief	음악의 발표일을 키보드로부터 입력받는다.
-	*	@pre	없음.
-	*	@post	입력받은 날짜를 day 변수에 할당한다.
-	*/
-	void SetDateFromKB();
-
-	/**
-	*	@brief	곡의 길이를 키보드로부터 입력받는다.
-	*	@pre	없음.
-	*	@post	입력받은 길이를 length 변수에 할당한다.
-	*/
-	void SetLengthFromKB();
-
-	/**
-	*	@brief	재생 횟수를 키보드로부터 입력받는다.
-	*	@pre	없음.
-	*	@post	입력받은 횟수를 time 변수에 할당한다.
-	*/
-	void SetPlayedTimeFromKB();
-
-	/**
-	*	@brief	곡의 악보를 키보드로부터 입력받는다.
-	*	@pre	없음.
-	*	@post	입력받은 악보를 note 변수에 할당한다.
-	*/
-	void SetNoteFromKB();
-
-	/**
-	*	@brief	모든 변수를 키보드로부터 입력받는다.
-	*	@pre	없음.
-	*	@post	입력받은 데이터를 각각 변수에 할당한다.
-	*/
-	void SetAllFromKB();
 
 	/**
 	*	@brief	파일로부터 음악의 정보를 읽는다.

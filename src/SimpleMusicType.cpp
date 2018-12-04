@@ -72,49 +72,6 @@ wstring SimpleMusicType::GetPath() const
 	return path;
 }
 
-void SimpleMusicType::DisplayIDOnScreen()
-{
-	cout << "\tID: " << id << endl;
-}
-
-void SimpleMusicType::DisplayNameOnScreen()
-{
-	cout << "\tName: " << name << endl;
-}
-
-void SimpleMusicType::DisplayLengthOnScreen()
-{
-	cout << "\tLength: ";
-
-	unsigned int m, s;
-	m = length / 60;
-	s = length % 60;
-
-	if (m < 10) cout << 0;
-	cout << m << ':';
-	if (s < 10) cout << 0;
-	cout << s << endl;
-}
-
-void SimpleMusicType::DisplayPlayedTimeOnScreen()
-{
-	cout << "\tPlayed Time: " << time << endl;
-}
-
-void SimpleMusicType::DisplayAllOnScreen()
-{
-	DisplayIDOnScreen();
-	DisplayNameOnScreen();
-	DisplayLengthOnScreen();
-	DisplayPlayedTimeOnScreen();
-}
-
-void SimpleMusicType::SetIDFromKB()
-{
-	cout << "\tID : ";
-	getline(cin, id);
-}
-
 bool SimpleMusicType::operator>(const SimpleMusicType& data) const
 {
 	return id > data.GetID();

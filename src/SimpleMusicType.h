@@ -119,48 +119,6 @@ public:
 	void SetPath(const wstring& path);
 
 	/**
-	*	@brief	곡번호를 콘솔에 출력한다.
-	*	@pre	곡번호가 할당되어 있어야 한다.
-	*	@post	곡번호가 콘솔에 출력된다.
-	*/
-	void DisplayIDOnScreen();
-
-	/**
-	*	@brief	곡명을 콘솔에 출력한다.
-	*	@pre	곡명이 할당되어 있어야 한다.
-	*	@post	곡명이 콘솔에 출력된다.
-	*/
-	void DisplayNameOnScreen();
-
-	/**
-	*	@brief	곡의 길이를 콘솔에 출력한다.
-	*	@pre	곡의 길이가 할당되어 있어야 한다.
-	*	@post	곡의 길이가 콘솔에 출력된다.
-	*/
-	void DisplayLengthOnScreen();
-
-	/**
-	*	@brief	곡의 재생횟수를 콘솔에 출력한다.
-	*	@pre	곡의 재생횟수가 할당되어 있어야 한다.
-	*	@post	곡의 재생횟수가 콘솔에 출력된다.
-	*/
-	void DisplayPlayedTimeOnScreen();
-
-	/**
-	*	@brief	음악의 정보를 콘솔에 출력한다.
-	*	@pre	음악의 정보(곡번호, 곡명)가 할당되어 있어야 한다.
-	*	@post	음악의 정보가 콘솔에 출력된다.
-	*/
-	void DisplayAllOnScreen();
-	
-	/**
-	*	@brief	키보드로부터 곡의 고유 키를 입력받는다.
-	*	@pre	없음.
-	*	@post	곡의 고유 키를 할당한다.
-	*/
-	void SetIDFromKB();
-
-	/**
 	*	@brief	현재 데이터가 비교하는 데이터보다 큰지 반환한다.
 	*	@pre	현재 데이터와 비교하는 데이터의 primary key가 할당되어 있어야 한다.
 	*	@post	없음.

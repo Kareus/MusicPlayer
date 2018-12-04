@@ -39,5 +39,9 @@ public:
 	int GetLength() const;
 
 	FolderType& operator=(const FolderType& data);
+
+	bool operator<(const FolderType& data);
+	bool operator>(const FolderType& data);
+	bool operator==(const FolderType& data);
 };
 #endif

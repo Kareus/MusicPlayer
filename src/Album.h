@@ -19,11 +19,9 @@ class Album
 {
 private:
 	string album; ///<앨범명
-	string record; ///<음반 회사
 	string artist; ///<가수
 	string ID; ///<고유 키
 	DoublyLinkedList<SimpleMusicType> list; ///<수록곡 리스트
-	unsigned int date; ///<발표 날짜
 
 public:
 
@@ -51,14 +49,6 @@ public:
 	string GetAlbumName() const;
 
 	/**
-	*	@brief	음반 회사명을 반환한다.
-	*	@pre	record 변수가 할당되어 있어야 한다.
-	*	@post	없음.
-	*	@return	음반 회사명.
-	*/
-	string GetRecord() const;
-
-	/**
 	*	@brief	가수의 이름을 반환한다.
 	*	@pre	artist 변수가 할당되어 있어야 한다.
 	*	@post	없음.
@@ -83,28 +73,12 @@ public:
 	string GetID() const;
 
 	/**
-	*	@brief	앨범의 발표 날짜를 반환한다.
-	*	@pre	date 변수가 할당되어 있어야 한다.
-	*	@post	없음.
-	*	@return	앨범의 발표 날짜.
-	*/
-	unsigned int GetDate() const;
-
-	/**
 	*	@brief	앨범명을 설정한다.
 	*	@pre	없음.
 	*	@post	album 변수를 할당한다.
 	*	@param	name	설정할 앨범의 이름.
 	*/
 	void SetAlbumName(const string& name);
-
-	/**
-	*	@brief	음반 회사 이름을 설정한다.
-	*	@pre	없음.
-	*	@post	record 변수를 할당한다.
-	*	@param	record	설정할 음반 회사의 이름.
-	*/
-	void SetRecord(const string& record);
 
 	/**
 	*	@brief	가수의 이름을 설정한다.
@@ -121,14 +95,6 @@ public:
 	*	@param	id	설정할 앨범의 고유 키.
 	*/
 	void SetID(const string& id);
-
-	/**
-	*	@brief	앨범의 발표 날짜를 설정한다.
-	*	@pre	없음.
-	*	@post	date 변수를 할당한다.
-	*	@param	date	설정할 앨범의 발표 날짜.
-	*/
-	void SetDate(unsigned int date);
 
 	/**
 	*	@brief	수록곡 리스트에 해당 음악 데이터를 추가한다.
@@ -213,83 +179,6 @@ public:
 	*	@return	복사 대입한 현재 데이터를 반환한다.
 	*/
 	Album& operator=(const Album& data);
-
-	/**
-	*	@brief	키보드로부터 앨범의 primary key를 입력받는다.
-	*	@pre	없음.
-	*	@post	primary key를 할당한다.
-	*/
-	void SetIDFromKB();
-
-	/**
-	*	@brief	키보드로부터 앨범의 이름을 입력받는다.
-	*	@pre	없음.
-	*	@post	앨범의 이름 할당한다.
-	*/
-	void SetAlbumNameFromKB();
-
-	/**
-	*	@brief	키보드로부터 앨범의 아티스트를 입력받는다.
-	*	@pre	없음.
-	*	@post	아티스트를 할당한다.
-	*/
-	void SetArtistFromKB();
-
-	/**
-	*	@brief	키보드로부터 앨범의 레코드(음반 회사)를 입력받는다.
-	*	@pre	없음.
-	*	@post	레코드를 할당한다.
-	*/
-	void SetRecordFromKB();
-
-	/**
-	*	@brief	키보드로부터 앨범의 발표 날짜를 입력받는다.
-	*	@pre	없음.
-	*	@post	발표 날짜를 할당한다.
-	*/
-	void SetDateFromKB();
-
-	/**
-	*	@brief	primary key를 콘솔에 출력한다.
-	*	@pre	primary key가 할당되어 있어야 한다.
-	*	@post	primary key가 콘솔에 출력된다.
-	*/
-	void DisplayIDOnScreen();
-
-	/**
-	*	@brief	앨범의 이름을 콘솔에 출력한다.
-	*	@pre	앨범 이름이 할당되어 있어야 한다.
-	*	@post	앨범의 이름이 콘솔에 출력된다.
-	*/
-	void DisplayAlbumNameOnScreen();
-
-	/**
-	*	@brief	앨범의 아티스트를 콘솔에 출력한다.
-	*	@pre	아티스트가 할당되어 있어야 한다.
-	*	@post	앨범의 아티스트가 콘솔에 출력된다.
-	*/
-	void DisplayArtistOnScreen();
-
-	/**
-	*	@brief	앨범의 음반 회사를 콘솔에 출력한다.
-	*	@pre	레코드가 할당되어 있어야 한다.
-	*	@post	앨범의 음반 회사가 콘솔에 출력된다.
-	*/
-	void DisplayRecordOnScreen();
-
-	/**
-	*	@brief	앨범의 정보를 모두 콘솔에 출력한다.
-	*	@pre	각각의 정보가 모두 할당되어 있어야 한다.
-	*	@post	앨범의 정보가 모두 콘솔에 출력된다.
-	*/
-	void DisplayAllOnScreen();
-
-	/**
-	*	@brief	앨범의 발표 날짜를 콘솔에 출력한다.
-	*	@pre	발표 날짜가 할당되어 있어야 한다.
-	*	@post	앨범의 발표 날짜가 콘솔에 출력된다.
-	*/
-	void DisplayDateOnScreen();
 
 	/**
 	*	@brief	파일로부터 앨범의 정보를 읽는다.

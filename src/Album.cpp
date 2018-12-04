@@ -48,11 +48,6 @@ string Album::GetID() const
 	return ID;
 }
 
-unsigned int Album::GetDate() const
-{
-	return date;
-}
-
 void Album::SetAlbumName(const string& name)
 {
 	album = name;
@@ -63,19 +58,9 @@ void Album::SetArtist(const string& artist)
 	this->artist = artist;
 }
 
-void Album::SetRecord(const string& record)
-{
-	this->record = record;
-}
-
 void Album::SetID(const string& id)
 {
 	ID = id;
-}
-
-void Album::SetDate(unsigned int date)
-{
-	this->date = date;
 }
 
 int Album::AddMusic(const SimpleMusicType& data)
@@ -134,135 +119,10 @@ Album& Album::operator=(const Album& data)
 {
 	album = data.GetAlbumName();
 	artist = data.GetArtist();
-	record = data.GetRecord();
 	list = data.list;
 	ID = data.GetID();
-	date = data.GetDate();
 
 	return *this;
-}
-
-void Album::SetIDFromKB()
-{
-	cout << "\tAlbum ID : ";
-	string id;
-	getline(cin, id);
-	SetID(id);
-}
-
-void Album::SetAlbumNameFromKB()
-{
-	cout << "\tAlbum Name : ";
-	string name;
-	getline(cin, name);
-	SetAlbumName(name);
-}
-
-void Album::SetArtistFromKB()
-{
-	cout << "\tAlbum Artist : ";
-	string artist;
-	getline(cin, artist);
-	SetArtist(artist);
-}
-
-void Album::SetRecordFromKB()
-{
-	cout << "\tAlbum Record : ";
-	string record;
-	getline(cin, record);
-	SetRecord(record);
-}
-
-void Album::SetDateFromKB()
-{
-	cout << "\tAlbum Release Date (YYYYMMDD) : ";
-	cin >> date;
-
-	while (cin.fail())
-	{
-		cout << "\tYou should input integer value" << endl;
-		cin.clear();
-		cin.ignore(std::numeric_limits<streamsize>::max(), '\n');
-		cout << "\tAlbum Release Date (YYYYMMDD) : ";
-		cin >> date;
-	}
-	cin.ignore();
-}
-
-void Album::DisplayIDOnScreen()
-{
-	cout << "\tAlbum ID : " << ID << endl;
-}
-
-void Album::DisplayAlbumNameOnScreen()
-{
-	cout << "\tAlbum Name : " << album << endl;
-}
-
-void Album::DisplayArtistOnScreen()
-{
-	cout << "\tAlbum Artist : " << artist << endl;
-}
-
-void Album::DisplayRecordOnScreen()
-{
-	cout << "\tAlbum Record : " << record << endl;
-}
-
-void Album::DisplayDateOnScreen()
-{
-	unsigned int m, d;
-
-	m = date % 10000 / 100;
-	d = date % 100;
-	cout << "\tRelease Date : " << date / 10000 << '.';
-
-	if (m == 0)
-	{
-		cout << endl;
-		return; //월 정보가 없으면 끝냄
-	}
-
-	if (m < 10) cout << 0;
-	cout << m << '.';
-
-	if (d == 0)
-	{
-		cout << endl;
-		return; //일 정보가 없으면 끝냄
-	}
-	if (d < 10) cout << 0;
-	cout << d << endl;
-}
-
-void Album::DisplayAllOnScreen()
-{
-	DisplayIDOnScreen();
-	DisplayAlbumNameOnScreen();
-	DisplayArtistOnScreen();
-	DisplayRecordOnScreen();
-	DisplayDateOnScreen();
-
-	cout << "\tThe number of musics: " << list.GetLength() << endl;
-
-	SimpleMusicType* temp;
-	DoublyIterator<SimpleMusicType> iter(list);
-
-	cout << endl << "\t---------------" << endl;
-
-	int count = 0;
-	while (iter.NotNull())
-	{
-		temp = iter.CurrentPtr();
-		count++;
-		cout << "\tMusic No. " << count << endl;
-		temp->DisplayIDOnScreen();
-		temp->DisplayNameOnScreen();
-		temp->DisplayLengthOnScreen();
-		cout << "\t---------------" << endl;
-		iter.Next();
-	}
 }
 
 int Album::ReadDataFromFile(ifstream& fin)
@@ -270,8 +130,6 @@ int Album::ReadDataFromFile(ifstream& fin)
 	if (!fin) return 0;
 	getline(fin, album);
 	getline(fin, artist);
-	getline(fin, record);
-	fin >> date;
 	fin.ignore();
 	
 	int musicLen;
@@ -304,8 +162,6 @@ int Album::WriteDataToFile(ofstream& fout)
 	if (!fout) return 0;
 	fout << album << endl;
 	fout << artist << endl;
-	fout << record << endl;
-	fout << date << endl;
 	fout << list.GetLength() << endl;
 
 	SimpleMusicType* music;

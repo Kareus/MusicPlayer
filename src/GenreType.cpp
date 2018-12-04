@@ -27,22 +27,22 @@ void GenreType::SetGenre(const string& name)
 	genreName = name;
 }
 
-int GenreType::Add(const SimpleMusicType& music)
+int GenreType::AddMusic(const SimpleMusicType& music)
 {
 	return list.Add(music);
 }
 
-int GenreType::Delete(const SimpleMusicType& music)
+int GenreType::DeleteMusic(const SimpleMusicType& music)
 {
 	return list.Delete(music);
 }
 
-int GenreType::Replace(const SimpleMusicType& music)
+int GenreType::ReplaceMusic(const SimpleMusicType& music)
 {
 	return list.Replace(music);
 }
 
-int GenreType::Get(SimpleMusicType& music)
+int GenreType::GetMusic(SimpleMusicType& music)
 {
 	return list.Get(music);
 }

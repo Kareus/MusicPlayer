@@ -1,22 +1,21 @@
 #include "Artist.h"
+#include "DoublyIterator.h"
 
 Artist::Artist()
 {
 	name = "";
-	birthDate = 0;
-	albumList.MakeEmpty();
+	musicList.MakeEmpty();
 }
 
 Artist::~Artist()
 {
-	albumList.MakeEmpty();
+	musicList.MakeEmpty();
 }
 
 Artist::Artist(const Artist& data)
 {
 	name = data.GetName();
-	birthDate = data.GetBirthDate();
-	albumList = data.albumList;
+	musicList = data.musicList;
 }
 
 string Artist::GetName() const
@@ -24,14 +23,9 @@ string Artist::GetName() const
 	return name;
 }
 
-unsigned int Artist::GetBirthDate() const
+unsigned int Artist::GetMusicNum() const
 {
-	return birthDate;
-}
-
-unsigned int Artist::GetAlbumNum() const
-{
-	return albumList.GetLength();
+	return musicList.GetLength();
 }
 
 string Artist::GetID() const
@@ -44,164 +38,48 @@ void Artist::SetName(const string& name)
 	this->name = name;
 }
 
-void Artist::SetBirthDate(unsigned int date)
-{
-	this->birthDate = date;
-}
-
 void Artist::SetID(const string& id)
 {
 	ID = id;
 }
 
-int Artist::AddAlbum(const Album& data)
+int Artist::AddMusic(const SimpleMusicType& data)
 {
-	return albumList.Add(data);
+	return musicList.Add(data);
 }
 
-int Artist::DeleteAlbum(const Album& data)
+int Artist::DeleteMusic(const SimpleMusicType& data)
 {
-	return albumList.Delete(data);
+	return musicList.Delete(data);
 }
 
-int Artist::DeleteAlbumFrom(const string& albumName)
+int Artist::ReplaceMusic(const SimpleMusicType& data)
 {
-	Album album;
-	album.SetAlbumName(albumName);
-	album.SetArtist(name);
-
-	return albumList.Delete(album);
-}
-
-int Artist::ReplaceAlbum(const Album& data)
-{
-	return albumList.Replace(data);
-}
-
-RelationType Artist::Compare(const Artist& data) const
-{
-	int compare = strcmp(ID.c_str(), data.GetID().c_str());
-
-	if (compare) return compare < 0 ? LESS : GREATER;
-	
-	return EQUAL;
+	return musicList.Replace(data);
 }
 
 bool Artist::operator<(const Artist& data) const
 {
-	return Compare(data) == LESS;
+	return strcmp(ID.c_str(), data.GetID().c_str()) < 0;
 }
 
 bool Artist::operator>(const Artist& data) const
 {
-	return Compare(data) == GREATER;
+	return strcmp(ID.c_str(), data.GetID().c_str()) > 0;
 }
 
 bool Artist::operator==(const Artist& data) const
 {
-	return Compare(data) == EQUAL;
+	return strcmp(ID.c_str(), data.GetID().c_str()) == 0;
 }
 
 Artist& Artist::operator=(const Artist& data)
 {
 	name = data.GetName();
-	birthDate = data.GetBirthDate();
-	albumList = data.albumList;
+	musicList = data.musicList;
 	ID = data.GetID();
 
 	return *this;
-}
-
-void Artist::DisplayIDOnScreen()
-{
-	cout << "\tArtist ID : ";
-	cout << ID << endl;
-}
-
-void Artist::DisplayNameOnScreen()
-{
-	cout << "\tArtist Name : ";
-	cout << name << endl;
-}
-
-void Artist::DisplayBirthDateOnScreen()
-{
-	cout << "\tArtist Birth Date : ";
-	unsigned int m, d;
-	m = birthDate % 10000 / 100;
-	d = birthDate % 100;
-	cout << birthDate / 10000 << '.';
-
-	if (m == 0)
-	{
-		cout << endl;
-		return; //월 정보가 없으면 끝냄
-	}
-
-	if (m < 10) cout << 0;
-	cout << m << '.';
-
-	if (d == 0)
-	{
-		cout << endl;
-		return; //일 정보가 없으면 끝냄
-	}
-	if (d < 10) cout << 0;
-	cout << d << endl;
-}
-
-void Artist::DisplayAllOnScreen()
-{
-	DisplayIDOnScreen();
-	DisplayNameOnScreen();
-	DisplayBirthDateOnScreen();
-
-	cout << "\tThe number of albums: " << albumList.GetLength() << endl;
-	cout << "\t---------------" << endl;
-	
-	Album* album;
-	DoublyIterator<Album> iter(albumList);
-	int count = 1;
-
-	while (iter.NotNull())
-	{
-		album = iter.CurrentPtr();
-		cout << "\tAlbum Num: " << count << endl;
-		album->DisplayIDOnScreen();
-		album->DisplayAlbumNameOnScreen();
-		album->DisplayDateOnScreen();
-		cout << endl;
-		count++;
-		iter.Next();
-	}
-}
-
-void Artist::SetIDFromKB()
-{
-	cout << "\tArtist ID: ";
-	getline(cin, ID);
-}
-
-void Artist::SetNameFromKB()
-{
-	cout << "\tArtist Name : ";
-	getline(cin, name);
-}
-
-void Artist::SetBirthDateFromKB()
-{
-	cout << "\tBirth Date (YYYYMMDD) : ";
-	cin >> birthDate;
-
-	while (cin.fail())
-	{
-		cout << "\tYou should input integer value" << endl;
-		cin.clear();
-		cin.ignore(std::numeric_limits<streamsize>::max(), '\n');
-		cout << "\tBirth Date (YYYYMMDD) : ";
-		cin >> birthDate;
-	}
-	cin.ignore();
 }
 
 int Artist::ReadDataFromFile(ifstream& fin)
@@ -209,34 +87,28 @@ int Artist::ReadDataFromFile(ifstream& fin)
 	if (!fin) return 0;
 
 	getline(fin, name);
-	fin >> birthDate;
+
+	int musicLen;
+	fin >> musicLen;
 	fin.ignore();
 
-	int albumLen;
-	fin >> albumLen;
-	fin.ignore();
+	musicList.MakeEmpty();
 
-	albumList.MakeEmpty();
-
-	for (int i = 0; i < albumLen; i++)
+	for (int i = 0; i < musicLen; i++)
 	{
 		string id, name;
-		unsigned int date;
 
 		getline(fin, id);
 		getline(fin, name);
-		fin >> date;
-		fin.ignore();
 
-		Album album;
-		album.SetID(id);
-		album.SetAlbumName(name);
-		album.SetDate(date);
+		SimpleMusicType music;
+		music.SetID(id);
+		music.SetName(name);
 
-		albumList.Add(album);
+		musicList.Add(music);
 	}
 
-	SetID(name + '_' + std::to_string(birthDate));
+	SetID(name);
 
 	return 1;
 }
@@ -246,26 +118,24 @@ int Artist::WriteDataToFile(ofstream& fout)
 	if (!fout) return 0;
 
 	fout << name << endl;
-	fout << birthDate << endl;
-	fout << albumList.GetLength() << endl;
+	fout << musicList.GetLength() << endl;
 
-	Album* album;
-	DoublyIterator<Album> iter(albumList);
+	SimpleMusicType* music;
+	DoublyIterator<SimpleMusicType> iter(musicList);
 
 	while (iter.NotNull())
 	{
-		album = iter.CurrentPtr();
-		fout << album->GetID() << endl;
-		fout << album->GetAlbumName() << endl;
-		fout << album->GetDate() << endl;
+		music = iter.CurrentPtr();
+		fout << music->GetID() << endl;
+		fout << music->GetName() << endl;
 		iter.Next();
 	}
 
 	return 1;
 }
 
-DoublyIterator<Album>& Artist::GetIterator() const
+DoublyIterator<SimpleMusicType>& Artist::GetIterator() const
 {
-	DoublyIterator<Album> iter(albumList);
+	DoublyIterator<SimpleMusicType> iter(musicList);
 	return iter;
 }

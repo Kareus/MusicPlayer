@@ -55,7 +55,7 @@ public:
 	*	@param	music	추가할 음악 정보.
 	*	@return 추가에 성공하면 1, 실패하면 0을 반환한다.
 	*/
-	int Add(const SimpleMusicType& music);
+	int AddMusic(const SimpleMusicType& music);
 
 	/**
 	*	@brief	음악 정보를 장르의 음악 리스트에서 갱신한다.
@@ -64,7 +64,7 @@ public:
 	*	@param	music	갱신할 음악 정보.
 	*	@return 갱신에 성공하면 1, 실패하면 0을 반환한다.
 	*/
-	int Replace(const SimpleMusicType& music);
+	int ReplaceMusic(const SimpleMusicType& music);
 
 	/**
 	*	@brief	음악 정보를 장르의 음악 리스트에서 삭제한다.
@@ -73,7 +73,7 @@ public:
 	*	@param	music	삭제할 음악 정보.
 	*	@return 삭제에 성공하면 1, 실패하면 0을 반환한다.
 	*/
-	int Delete(const SimpleMusicType& music);
+	int DeleteMusic(const SimpleMusicType& music);
 
 	/**
 	*	@brief	parameter와 일치하는 음악 정보를 parameter에 저장한다.
@@ -82,7 +82,7 @@ public:
 	*	@param	music	검색할 음악 정보.
 	*	@return	찾으면 1, 찾지 못하면 0을 리턴한다.
 	*/
-	int Get(SimpleMusicType& music);
+	int GetMusic(SimpleMusicType& music);
 
 	/**
 	*	@brief	장르에 해당하는 음악의 수를 반환한다.

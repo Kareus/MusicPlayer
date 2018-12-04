@@ -57,3 +57,18 @@ FolderType& FolderType::operator=(const FolderType& data)
 	list = data.list;
 	return *this;
 }
+
+bool FolderType::operator<(const FolderType& data)
+{
+	return wcscmp(dirPath.c_str(), data.GetPath().c_str()) < 0;
+}
+
+bool FolderType::operator>(const FolderType& data)
+{
+	return wcscmp(dirPath.c_str(), data.GetPath().c_str()) > 0;
+}
+
+bool FolderType::operator==(const FolderType& data)
+{
+	return wcscmp(dirPath.c_str(), data.GetPath().c_str()) == 0;
+}
