@@ -21,7 +21,8 @@ enum RelationType { LESS, GREATER, EQUAL };
 *	@date	2018.09.23
 */
 
-class MusicType {
+class MusicType
+{
 private:
 	string name; ///<곡명
 	string artist; ///<가수
@@ -46,6 +47,11 @@ public:
 	* 기본 소멸자
 	*/
 	~MusicType();
+
+	/**
+	* 복사 생성자
+	*/
+	MusicType(const MusicType& data);
 
 
 	//------------------------------

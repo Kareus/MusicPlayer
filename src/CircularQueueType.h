@@ -252,8 +252,8 @@ int CircularQueueType<T>::Replace(const T& item, const T& data)
 template <typename T>
 CircularQueueType<T>& CircularQueueType<T>::operator=(const CircularQueueType<T>& data)
 {
-	m_pItems = new T[data.max];
-	m_nMaxQueue = data.max;
+	m_pItems = new T[data.m_nMaxQueue];
+	m_nMaxQueue = data.m_nMaxQueue;
 	m_iFront = m_nMaxQueue - 1;
 	m_iRear = m_nMaxQueue - 1;
 

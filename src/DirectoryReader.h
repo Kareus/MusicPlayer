@@ -5,17 +5,17 @@
 #include "dirent.h" //디렉토리에서 파일 정보를 읽어오기 위한 헤더
 #include "Windows.h"
 #include <string>
-#include "AVLTree.h"
+#include "DoublyLinkedList.h"
 
 class DirectoryReader
 {
 private:
-	AVLTree<std::wstring> pathList;
+	DoublyLinkedList<std::wstring> pathList;
 
 public:
 	DirectoryReader();
 	void openDirWithFileBox();
 	bool openDirectory(const std::wstring& filepath);
-	AVLTree<std::wstring>& getTree() { return pathList; }
+	DoublyIterator<std::wstring> getIterator();
 };
 #endif

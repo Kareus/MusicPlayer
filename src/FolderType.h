@@ -40,8 +40,8 @@ public:
 
 	FolderType& operator=(const FolderType& data);
 
-	bool operator<(const FolderType& data);
-	bool operator>(const FolderType& data);
-	bool operator==(const FolderType& data);
+	bool operator<(const FolderType& data) const;
+	bool operator>(const FolderType& data) const;
+	bool operator==(const FolderType& data) const;
 };
 #endif

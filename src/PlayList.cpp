@@ -40,3 +40,18 @@ PlayList& PlayList::operator=(const PlayList& data)
 	list = data.list;
 	return *this;
 }
+
+bool PlayList::operator<(const PlayList& data) const
+{
+	return 1;
+}
+
+bool PlayList::operator>(const PlayList& data) const
+{
+	return 0;
+}
+
+bool PlayList::operator==(const PlayList& data) const
+{
+	return &list == &data.list;
+}

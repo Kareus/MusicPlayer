@@ -1,7 +1,8 @@
 #include "MusicType.h"
 #include "ID3Reader.h"
 
-MusicType::MusicType() {
+MusicType::MusicType()
+{
 	name = "";
 	artist = "";
 	album = "";
@@ -9,12 +10,26 @@ MusicType::MusicType() {
 	lyrics = "";
 	composer = "";
 	writer = "";
-	record = "";
 	path = L"";
 	date = 0;
 	time = 0;
 	length = 0;
 	ID = "";
+}
+
+MusicType::MusicType(const MusicType &data)
+{
+	ID = data.GetID();
+	name = data.GetName();
+	artist = data.GetArtist();
+	album = data.GetAlbum();
+	genre = data.GetGenre();
+	lyrics = data.GetLyrics();
+	composer = data.GetComposer();
+	writer = data.GetWriter();
+	date = data.GetDate();
+	length = data.GetLength();
+	time = data.GetPlayedTime();
 }
 
 MusicType::~MusicType() {

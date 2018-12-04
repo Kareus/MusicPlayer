@@ -58,17 +58,17 @@ FolderType& FolderType::operator=(const FolderType& data)
 	return *this;
 }
 
-bool FolderType::operator<(const FolderType& data)
+bool FolderType::operator<(const FolderType& data) const
 {
 	return wcscmp(dirPath.c_str(), data.GetPath().c_str()) < 0;
 }
 
-bool FolderType::operator>(const FolderType& data)
+bool FolderType::operator>(const FolderType& data) const
 {
 	return wcscmp(dirPath.c_str(), data.GetPath().c_str()) > 0;
 }
 
-bool FolderType::operator==(const FolderType& data)
+bool FolderType::operator==(const FolderType& data) const
 {
 	return wcscmp(dirPath.c_str(), data.GetPath().c_str()) == 0;
 }

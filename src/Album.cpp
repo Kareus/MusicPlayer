@@ -4,8 +4,6 @@ Album::Album()
 {
 	album = "";
 	artist = "";
-	record = "";
-	date = 0;
 	list.MakeEmpty();
 }
 
@@ -18,8 +16,6 @@ Album::Album(const Album& data)
 {
 	album = data.GetAlbumName();
 	artist = data.GetArtist();
-	record = data.GetRecord();
-	date = data.GetDate();
 	list = data.list;
 }
 
@@ -31,11 +27,6 @@ string Album::GetAlbumName() const
 string Album::GetArtist() const
 {
 	return artist;
-}
-
-string Album::GetRecord() const
-{
-	return record;
 }
 
 unsigned int Album::GetMusicNum() const

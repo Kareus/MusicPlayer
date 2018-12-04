@@ -4,12 +4,25 @@
 extern MediaPlayer* player;
 extern Application* app;
 
+namespace Resource
+{
+	void ReleaseResource()
+	{
+		delete defaultFont;
+		delete addSprite;
+		delete editSprite;
+		delete removeSprite;
+		delete backSprite;
+		delete playSprite;
+	}
+}
+
 namespace String
 {
 	std::wstring StrToWstr(const std::string& str)
 	{
 		USES_CONVERSION;
-		return A2W_CP(str.c_str(), CP_UTF8); //utf8로 인코딩하여 반환
+		return A2W(str.c_str());
 	}
 
 	std::string WstrToStr(const std::wstring& str)

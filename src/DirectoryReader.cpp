@@ -47,3 +47,8 @@ bool DirectoryReader::openDirectory(const wstring& filepath)
 
 	return 1;
 }
+
+DoublyIterator<std::wstring> DirectoryReader::getIterator()
+{
+	return DoublyIterator<std::wstring>(pathList);
+}

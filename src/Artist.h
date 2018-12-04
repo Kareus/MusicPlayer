@@ -3,6 +3,7 @@
 #define __ARTIST__
 
 #include "SimpleMusicType.h"
+#include "DoublyLinkedList.h"
 
 class Artist
 {

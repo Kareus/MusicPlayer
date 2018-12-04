@@ -48,9 +48,6 @@ Sprite::~Sprite()
 {
 	delete sprite;
 	texture.reset();
-
-	sprite = nullptr;
-	texture = nullptr;
 }
 
 void Sprite::updatePosition()

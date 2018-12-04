@@ -12,6 +12,9 @@ private:
 	sf::Vector2f position;
 	DoublyLinkedList<Graphic*> drawings;
 	Graphic* focus;
+	function<int(Graphic* const&, Graphic* const&)> compareGraphics = [](Graphic* const& g1, Graphic* const& g2) {
+		return (*g1 > *g2) - (*g1 < *g2); //포인터는 주소값을 비교하므로, 가리키는 객체의 비교 관계를 반환한다.
+	};
 
 public:
 	Group();

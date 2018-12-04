@@ -34,8 +34,6 @@ private:
 	HWND Handle; ///<실제 윈도우 핸들
 	HWND editHandle; ///<정보 수정 핸들
 
-	sf::Font defaultFont;
-
 	Sprite* playerSprite;
 	Sprite* minimizeSprite;
 	Sprite* closeSprite;
@@ -43,7 +41,6 @@ private:
 	Sprite* prevSprite;
 	Sprite* nextSprite;
 	Sprite* searchSprite;
-	Sprite* addSprite;
 	Sprite* addDirSprite;
 
 	Sprite* editorSprite;
@@ -65,7 +62,7 @@ private:
 	int m_Command; ///< 사용자로부터 입력받은 현재 커맨드
 	std::ifstream m_inputFile; ///< 파일 입력을 받기 위한 스트림
 	std::ofstream m_outFile; ///< 파일 출력을 하기 위한 스트림
-	DoublyLinkedList<MusicType> musicList; ///< 모든 음악을 저장하는 리스트 (master list). 경로 순으로 정렬.
+	AVLTree<MusicType> musicList; ///< 모든 음악을 저장하는 리스트 (master list). 경로 순으로 정렬.
 	DoublyLinkedList<GenreType> genreList; ///< 장르를 저장하는 리스트
 	CircularQueueType<SimpleMusicType> newAddMusicList = CircularQueueType<SimpleMusicType>(31); ///< 최근 추가된 음악 리스트.
 	//30개 데이터를 추가해야 하므로 MAXSIZE = 31
@@ -86,13 +83,14 @@ private:
 	sf::Color backColor; ///<백그라운드 컬러
 	DoublyLinkedList<Graphic*> drawings; ///<렌더링할 그래픽 리스트. 특정 아이템 탐색 보다 전체 탐색이 빈번하므로 linked list 사용.
 	DoublyLinkedList<Graphic*> edit_drawings; ///<에디터의 그래픽 리스트.
-	DoublyLinkedList<Graphic*> displayList;
+	DoublyLinkedList<Graphic*> displayList; ///<그래픽으로 출력할 데이터 리스트.
 
 	Graphic* focus; ///<포커싱 중인 그래픽
 	Group* currentGroup; ///<현재 출력중인 그룹
 	bool running; ///<애플리케이션 구동 여부
 	bool editing; ///<정보 에디터 구동 여부
 	MusicType* editMusic; ///<에디터 윈도우에서 수정할 음악 타입
+	SimpleMusicType currentMusic; ///<마지막으로 재생한 음악 데이터
 	
 	int displayMode; ///<출력할 리스트 모드 (0 : Music 1 : Album 2 : Artist 3 : Genre 4 : Playlist)
 
@@ -136,7 +134,7 @@ private:
 		else
 		{
 			sprite->SetTexturePos(41, 0);
-			PlayMusic();
+			PlayMusic(currentMusic);
 		}
 		sprite->ResetMouseOver(); //마우스 오버 상태를 리셋
 		sprite->TriggerMouseOver(); //마우스 오버 다시 트리거
@@ -144,10 +142,27 @@ private:
 	function<void(Sprite*)> func_addMusic = [this](Sprite*) {
 		AddMusic();
 	};
+	function<void(Sprite*)> func_addDirMusic = [this](Sprite*) {
+		AddMusicFromDirectory();
+	};
 	function<void(Sprite*)> func_dragStart_edit = [this](Sprite*) { SendMessage(editHandle, WM_NCLBUTTONDOWN, HTCAPTION, 0); };
 	function<void(Sprite*)> func_ok_edit = [this](Sprite*) { ReplaceMusic(); };
-	function<void(Sprite*)> func_cancel_edit = [this](Sprite*) {
-		CloseEditor(); };
+	function<void(Sprite*)> func_cancel_edit = [this](Sprite*) { CloseEditor(); };
+
+	function<void(Sprite*)> func_editData = [this](Sprite*) { 
+		SimpleMusicType data;
+		EditMusic(data);
+	};
+
+	function<void(Sprite*)> func_removeData = [this](Sprite*) { 
+		SimpleMusicType data;
+		DeleteMusic(data);
+	};
+
+	function<void(Sprite*)> func_playData = [this](Sprite*) {
+		SimpleMusicType data;
+		PlayMusic(data);
+	};
 
 	//멀티 쓰레드에서 윈도우를 렌더링할 때 쓸 함수
 	void RenderMain();
@@ -161,12 +176,15 @@ private:
 
 	void CloseEditor();
 
+	void initDisplay();
+
 public:
 
 	HWND GetHandle() { return Handle; }
 	HWND GetEditor() { return editHandle; }
 
 	bool IsEditing();
+
 	/**
 	*	기본 생성자
 	*/
@@ -195,14 +213,16 @@ public:
 	*/
 	int AddMusic();
 
+	int AddMusicFromDirectory();
+
 	/**
 	*	@brief	사용자로부터 정보를 입력받아 아이템을 삭제한다.
 	*	@pre	없음.
 	*	@post	찾은 아이템이 리스트에서 삭제된다.
-	*	@param	data	삭제할 음악 데이터
+	*	@param	music	삭제할 음악 데이터
 	*	@return 성공하면 1, 아니면 0을 반환.
 	*/
-	int DeleteMusic(const MusicType& data);
+	int DeleteMusic(const SimpleMusicType& music);
 
 	/**
 	*	@brief	사용자로부터 정보를 입력받아 아이템을 교체한다.
@@ -211,8 +231,6 @@ public:
 	*	@return 성공하면 1, 아니면 0을 반환.
 	*/
 	int ReplaceMusic();
-
-	void DisplayResult();
 
 	/**
 	*	@brief	모든 정보를 화면에 출력한다.
@@ -263,44 +281,12 @@ public:
 	void MakeEmpty();
 
 	/**
-	*	@brief	음악을 앨범에 추가한다.
-	*	@pre	없음.
-	*	@post	음악이 앨범에 추가된다.
-	*	@return	성공하면 1, 아니면 0을 반환.
-	*/
-	int AddMusicToAlbum();
-
-	/**
-	*	@brief	음악을 앨범에서 삭제한다.
-	*	@pre	없음.
-	*	@post	음악이 앨범에서 삭제된다.
-	*	@return	성공하면 1, 아니면 0을 반환.
-	*/
-	int DeleteMusicFromAlbum();
-
-	/**
-	*	@brief	앨범을 아티스트에 추가한다.
-	*	@pre	없음.
-	*	@post	앨범이 아티스트에 추가된다.
-	*	@return	성공하면 1, 아니면 0을 반환.
-	*/
-	int AddAlbumToArtist();
-
-	/**
-	*	@brief	앨범을 아티스트에서 삭제한다.
-	*	@pre	없음.
-	*	@post	앨범이 아티스트에서 삭제한다.
-	*	@return	성공하면 1, 아니면 0을 반환.
-	*/
-	int DeleteAlbumFromArtist();
-
-	/**
 	*	@brief	parameter로 받은 음악을 최근 재생한 리스트에 추가한다.
 	*	@pre	paramter는 유효한 값이어야 한다.
 	*	@post	parameter의 음악이 최근 재생한 음악 리스트에 추가된다.
 	*	@param	music	추가할 음악.
 	*/
-	void AddToRecentPlayed(const MusicType& music);
+	void AddToRecentPlayed(const SimpleMusicType& music);
 
 	/**
 	*	@brief	parameter로 받은 음악을 가장 많이 재생한 리스트에 추가한다.
@@ -308,29 +294,16 @@ public:
 	*	@post	parameter의 음악이 가장 많이 재생한 음악 리스트에 추가된다.
 	*	@param	music	추가할 음악.
 	*/
-	void AddToMostPlayed(const MusicType& music);
-
-	/**
-	*	@brief	빈 앨범들을 찾아 삭제한다.
-	*	@pre	없음.
-	*	@post	수록곡이 없는 앨범들이 리스트에서 삭제된다.
-	*/
-	void ClearEmptyAlbums();
-
-	/**
-	*	@brief	빈 아티스트들을 찾아 삭제한다.
-	*	@pre	없음.
-	*	@post	앨범이 없는 아티스트들이 리스트에서 삭제된다.
-	*/
-	void ClearEmptyArtists();
+	void AddToMostPlayed(const SimpleMusicType& music);
 
 	/**
 	*	@brief	음악을 재생한다.
 	*	@pre	없음.
-	*	@post	찾은 음악을 재생한다.
+	*	@post	음악을 재생하고 최근 재생한/많이 재생한 음악 리스트에 추가한다.
+	*	@param	music	재생할 음악 데이터
 	*	@return	성공하면 1, 실패하면 0을 반환한다.
 	*/
-	int PlayMusic();
+	int PlayMusic(const SimpleMusicType& music);
 
 	bool pollEvent(CustomWinEvent e);
 
@@ -338,13 +311,15 @@ public:
 
 	int AddGraphicToEditor(Graphic* graphic);
 
-	Group* AddDisplayGraphic(MusicType* data);
-
-	Group* AddEditGraphic(MusicType* data);
-
 	void Close();
 
-	int EditMusic();
+	int EditMusic(const SimpleMusicType& music);
+
+	int AddMusic(MusicType& music);
+
+	void UpdateList();
+
+	Group* CreateDisplayGraphic(const MusicType& data);
 };
 #pragma once
 #endif

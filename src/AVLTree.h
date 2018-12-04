@@ -59,9 +59,9 @@ private:
 
 	AVLTreeNode<T>* DoubleRightRotate(AVLTreeNode<T>* node);
 
-	void findNode(AVLTreeNode<T>*& node, std::function<bool(T&)>& search, std::function<void(T&)>& todo);
+	void findNode(AVLTreeNode<T>*& node, const std::function<bool(T&)>& search, const std::function<void(T&)>& todo);
 
-	void doNode(AVLTreeNode<T>*& node, std::function<void(T&)>& todo);
+	void doNode(AVLTreeNode<T>*& node, const std::function<void(T&)>& todo);
 
 	std::function<int(const T&, const T&)> compareFunc; ///< 데이터 비교 함수
 
@@ -446,7 +446,7 @@ int AVLTree<T>::height(AVLTreeNode<T>*& node)
 }
 
 template <typename T>
-void AVLTree<T>::findNode(AVLTreeNode<T>*& node, std::function<bool(T&)>& search, std::function<void(T&)>& todo)
+void AVLTree<T>::findNode(AVLTreeNode<T>*& node, const std::function<bool(T&)>& search, const std::function<void(T&)>& todo)
 {
 	if (node == nullptr) return; //node가 null이면 return
 
@@ -456,7 +456,7 @@ void AVLTree<T>::findNode(AVLTreeNode<T>*& node, std::function<bool(T&)>& search
 }
 
 template <typename T>
-void AVLTree<T>::doNode(AVLTreeNode<T>*& node, std::function<void(T&)>& todo)
+void AVLTree<T>::doNode(AVLTreeNode<T>*& node, const std::function<void(T&)>& todo)
 {
 	if (node == nullptr) return;
 	doNode(node->left, todo);

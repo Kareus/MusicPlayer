@@ -4,6 +4,7 @@ Group::Group()
 {
 	position.x = 0;
 	position.y = 0;
+	drawings.SetCompareFunction(compareGraphics);
 	drawings.MakeEmpty();
 	focus = nullptr;
 }
@@ -82,9 +83,11 @@ sf::Vector2f Group::GetPosition()
 
 sf::Vector2f Group::GetSize()
 {
+	if (drawings.IsEmpty()) return sf::Vector2f();
+
 	DoublyIterator<Graphic*> iter(drawings);
 	Graphic* g;
-	sf::Vector2f pos;
+	sf::Vector2f pos = iter.Current()->GetPosition();
 	sf::Vector2f size;
 	sf::Vector2f temp;
 

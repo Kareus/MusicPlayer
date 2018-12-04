@@ -31,5 +31,9 @@ public:
 	int GetMusic(SimpleMusicType& data);
 
 	PlayList& operator=(const PlayList& data);
+	
+	bool operator<(const PlayList& data) const;
+	bool operator>(const PlayList& data) const;
+	bool operator==(const PlayList& data) const;
 };
 #endif

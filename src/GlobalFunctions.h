@@ -10,8 +10,21 @@
 #include <functional>
 #include <SFML/Graphics.hpp>
 #include "MediaPlayer.h"
+#include "Sprite.h"
 
 //전역 함수 정의를 위한 헤더 파일
+
+namespace Resource
+{
+	static sf::Font* defaultFont = nullptr;
+	static Sprite* addSprite = nullptr;
+	static Sprite* editSprite = nullptr;
+	static Sprite* removeSprite = nullptr;
+	static Sprite* backSprite = nullptr;
+	static Sprite* playSprite = nullptr;
+
+	void ReleaseResource();
+}
 
 namespace String
 {
