@@ -29,6 +29,7 @@ Group::~Group()
 int Group::AddGraphic(Graphic* g)
 {
 	g->setID(drawings.GetLength());
+	g->SetData(data);
 	return drawings.Add(g);
 }
 
@@ -212,4 +213,14 @@ DoublyIterator<Graphic*> Group::GetIterator()
 {
 	DoublyIterator<Graphic*> iter(drawings);
 	return iter;
+}
+
+void Group::SetData(const std::wstring& data)
+{
+	this->data = data;
+}
+
+std::wstring Group::GetData()
+{
+	return data;
 }

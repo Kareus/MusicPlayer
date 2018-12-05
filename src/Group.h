@@ -46,5 +46,9 @@ public:
 	bool hasPoint(const sf::Vector2f& point) override;
 
 	DoublyIterator<Graphic*> GetIterator();
+
+	void SetData(const std::wstring& data);
+
+	std::wstring GetData();
 };
 #endif

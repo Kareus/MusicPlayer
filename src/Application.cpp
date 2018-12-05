@@ -560,6 +560,7 @@ void Application::initDisplay()
 Group* Application::CreateDisplayGraphic(const MusicType& data)
 {
 	Group* graphic = new Group();
+	graphic->SetData(data.GetPath());
 	graphic->SetPositionY(300);
 
 	int y = 300 + 45 * displayList.GetLength();
@@ -620,14 +621,16 @@ void Application::DisplayAllMusic()
 {
 	displayList.MakeEmpty();
 
-	//path find problem
-	function<void(MusicType&)> func = [this](MusicType& data)
+	function<void(SimpleMusicType&)> func = [this](SimpleMusicType& data)
 	{
-		displayList.Add(CreateDisplayGraphic(data));
+		MusicType music;
+		music.SetID(String::WstrToStr(data.GetPath()));
+		musicList.Get(music);
+		displayList.Add(CreateDisplayGraphic(music));
 	};
 
 	displayMode = 0;
-	musicList.Do(func);
+	nameList.Do(func);
 
 	initDisplay();
 }
@@ -660,6 +663,7 @@ int Application::AddMusic()
 
 	SimpleMusicType simple = music; //형변환 연산자로 SimpleMusicType으로 변환
 
+	simple.SetPath(music.GetPath());
 	string simpleID = music.GetName() + '_' + music.GetArtist();
 	simple.SetID(simpleID);
 
@@ -1021,10 +1025,10 @@ int Application::EditMusic(const SimpleMusicType& music)
 	writerEdit->setText(String::StrToWstr(editMusic->GetWriter()));
 	dateEdit->setText(to_wstring(editMusic->GetDate()));
 	genreEdit->setText(String::StrToWstr(editMusic->GetGenre()));
-	lengthLabel->setText(to_wstring(editMusic->GetLength()));
-	timeLabel->setText(to_wstring(editMusic->GetPlayedTime()));
+	//lengthLabel->setText(to_wstring(editMusic->GetLength()));
+	//timeLabel->setText(to_wstring(editMusic->GetPlayedTime()));
 	lyricsEdit->setText(String::StrToWstr(editMusic->GetLyrics()));
-	pathLabel->setText(editMusic->GetPath());
+	//pathLabel->setText(editMusic->GetPath());
 	//텍스트 설정
 
 	ShowWindow(editHandle, SW_SHOW);

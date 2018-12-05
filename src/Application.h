@@ -149,18 +149,21 @@ private:
 	function<void(Sprite*)> func_ok_edit = [this](Sprite*) { ReplaceMusic(); };
 	function<void(Sprite*)> func_cancel_edit = [this](Sprite*) { CloseEditor(); };
 
-	function<void(Sprite*)> func_editData = [this](Sprite*) { 
+	function<void(Sprite*)> func_editData = [this](Sprite* sprite) { 
 		SimpleMusicType data;
+		data.SetPath(sprite->GetData());
 		EditMusic(data);
 	};
 
-	function<void(Sprite*)> func_removeData = [this](Sprite*) { 
+	function<void(Sprite*)> func_removeData = [this](Sprite* sprite) { 
 		SimpleMusicType data;
+		data.SetPath(sprite->GetData());
 		DeleteMusic(data);
 	};
 
-	function<void(Sprite*)> func_playData = [this](Sprite*) {
+	function<void(Sprite*)> func_playData = [this](Sprite* sprite) {
 		SimpleMusicType data;
+		data.SetPath(sprite->GetData());
 		PlayMusic(data);
 	};
 

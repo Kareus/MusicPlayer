@@ -5,12 +5,14 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/OpenGL.hpp>
 #include "CustomWinEvent.h"
+#include <string>
 
 class Graphic
 {
 protected:
 	int id;
 	bool focus;
+	std::wstring data; ///< application에서 데이터를 찾기 위한 변수
 
 public:
 	Graphic() : id(0), focus(false) {};
@@ -31,5 +33,8 @@ public:
 	bool operator<(const Graphic& g) const { return id < g.id; }
 	bool operator>(const Graphic& g) const { return id > g.id; }
 	bool operator==(const Graphic& g) const { return id == g.id; }
+
+	void SetData(const std::wstring& data) { this->data = data; }
+	std::wstring GetData() { return data; }
 };
 #endif
