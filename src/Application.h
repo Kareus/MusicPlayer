@@ -32,7 +32,10 @@ extern MediaPlayer* player;
 class Application {
 private:
 	HWND Handle; ///<실제 윈도우 핸들
-	HWND editHandle; ///<정보 수정 핸들
+	HWND editor; ///<에디터 용 콘솔
+	FILE* buffer; ///<에디터에 쓸 버퍼
+
+	bool editor_opened;
 
 	Sprite* playerSprite;
 	Sprite* minimizeSprite;
@@ -42,22 +45,6 @@ private:
 	Sprite* nextSprite;
 	Sprite* searchSprite;
 	Sprite* addDirSprite;
-
-	Sprite* editorSprite;
-	Sprite* okSprite;
-	Sprite* cancelSprite;
-
-	TextBox* nameEdit;
-	TextBox* artistEdit;
-	TextBox* composerEdit;
-	TextBox* writerEdit;
-	TextBox* dateEdit;
-	TextBox* albumEdit;
-	TextBox* genreEdit;
-	TextBox* lyricsEdit;
-	TextLabel* lengthLabel;
-	TextLabel* timeLabel;
-	TextLabel* pathLabel;
 
 	int m_Command; ///< 사용자로부터 입력받은 현재 커맨드
 	std::ifstream m_inputFile; ///< 파일 입력을 받기 위한 스트림
@@ -79,17 +66,15 @@ private:
 	int addedCount; ///<최근 추가한 음악 수
 
 	sf::RenderWindow window; ///<뮤직 플레이어의 윈도우 객체
-	sf::RenderWindow editor;
 	sf::Color backColor; ///<백그라운드 컬러
 	DoublyLinkedList<Graphic*> drawings; ///<렌더링할 그래픽 리스트. 특정 아이템 탐색 보다 전체 탐색이 빈번하므로 linked list 사용.
-	DoublyLinkedList<Graphic*> edit_drawings; ///<에디터의 그래픽 리스트.
 	DoublyLinkedList<Graphic*> displayList; ///<그래픽으로 출력할 데이터 리스트.
 
 	Graphic* focus; ///<포커싱 중인 그래픽
 	Group* currentGroup; ///<현재 출력중인 그룹
 	bool running; ///<애플리케이션 구동 여부
-	bool editing; ///<정보 에디터 구동 여부
 	MusicType* editMusic; ///<에디터 윈도우에서 수정할 음악 타입
+	MusicType editedMusic; ///<에디터 윈도우에서 수정된 정보를 가지는 음악 타입
 	SimpleMusicType currentMusic; ///<마지막으로 재생한 음악 데이터
 	
 	int displayMode; ///<출력할 리스트 모드 (0 : Music 1 : Album 2 : Artist 3 : Genre 4 : Playlist)
@@ -145,9 +130,6 @@ private:
 	function<void(Sprite*)> func_addDirMusic = [this](Sprite*) {
 		AddMusicFromDirectory();
 	};
-	function<void(Sprite*)> func_dragStart_edit = [this](Sprite*) { SendMessage(editHandle, WM_NCLBUTTONDOWN, HTCAPTION, 0); };
-	function<void(Sprite*)> func_ok_edit = [this](Sprite*) { ReplaceMusic(); };
-	function<void(Sprite*)> func_cancel_edit = [this](Sprite*) { CloseEditor(); };
 
 	function<void(Sprite*)> func_editData = [this](Sprite* sprite) { 
 		SimpleMusicType data;
@@ -169,22 +151,22 @@ private:
 
 	//멀티 쓰레드에서 윈도우를 렌더링할 때 쓸 함수
 	void RenderMain();
-	void RenderEditor();
 
 	void initMainGraphic();
-	void initEditorGraphic();
 
 	void ReleaseMainGraphic();
-	void ReleaseEditorGraphic();
-
-	void CloseEditor();
 
 	void initDisplay();
+
+	void OpenEditor();
+
+	void EditWindow();
+
+	void CloseEditor();
 
 public:
 
 	HWND GetHandle() { return Handle; }
-	HWND GetEditor() { return editHandle; }
 
 	bool IsEditing();
 
@@ -311,8 +293,6 @@ public:
 	bool pollEvent(CustomWinEvent e);
 
 	int AddGraphicToMain(Graphic* graphic);
-
-	int AddGraphicToEditor(Graphic* graphic);
 
 	void Close();
 

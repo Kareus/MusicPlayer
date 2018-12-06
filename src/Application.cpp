@@ -5,6 +5,7 @@
 #include "FileDialog.h"
 #include "AVLTreeIterator.h"
 #include <Dwmapi.h>
+#include <conio.h>
 
 #pragma comment (lib, "Dwmapi.lib")
 
@@ -21,18 +22,17 @@ Application::Application()
 	mostPlayedList.SetCompareFunction(comparePlayedTime);
 
 	drawings.SetCompareFunction(compareGraphics);
-	edit_drawings.SetCompareFunction(compareGraphics);
 	displayList.SetCompareFunction(compareGraphics);
 
 	backColor = sf::Color::Transparent;
 	drawings.MakeEmpty();
-	edit_drawings.MakeEmpty();
 
 	currentGroup = nullptr;
 	running = false;
-	editing = false;
 	editMusic = nullptr;
 	displayMode = 0;
+	editor_opened = false;
+	buffer = NULL;
 
 	Resource::defaultFont = new sf::Font();
 	Resource::defaultFont->loadFromFile("C:/Windows/Fonts/malgun.ttf");
@@ -51,10 +51,6 @@ Application::Application()
 	Resource::backSprite = new Sprite("../../../graphic/background.png");
 	Resource::playSprite = new Sprite("../../../graphic/playmusic.png");
 	addDirSprite = new Sprite("../../../graphic/folder.png");
-	editorSprite = new Sprite("../../../graphic/editor.png");
-
-	okSprite = new Sprite("../../../graphic/ok.png");
-	cancelSprite = new Sprite("../../../graphic/cancel.png");
 }
 
 Application::~Application()
@@ -62,10 +58,6 @@ Application::~Application()
 	player->Release(); //플레이어 메모리 해제
 	
 	ReleaseMainGraphic();
-	ReleaseEditorGraphic(); //그래픽 할당 해제
-	
-	drawings.MakeEmpty();
-	edit_drawings.MakeEmpty();
 
 	Resource::ReleaseResource();
 }
@@ -73,17 +65,6 @@ Application::~Application()
 void Application::ReleaseMainGraphic()
 {
 	DoublyIterator<Graphic*> iter(drawings);
-
-	while (iter.NotNull())
-	{
-		if (iter.Current() != nullptr) delete iter.Current();
-		iter.Next();
-	}
-}
-
-void Application::ReleaseEditorGraphic()
-{
-	DoublyIterator<Graphic*> iter(edit_drawings);
 
 	while (iter.NotNull())
 	{
@@ -116,29 +97,17 @@ void Application::RenderMain()
 	}
 }
 
-void Application::RenderEditor()
+void Application::OpenEditor()
 {
-	Sleep(100);
+	if (editor_opened) return;
+	AllocConsole();
+	editor = GetConsoleWindow();
 
-	while (editor.isOpen())
-	{
-		if (!running) continue;
+	freopen_s(&buffer, "CONIN$", "r", stdin); //cin할 곳을 재설정
+	freopen_s(&buffer, "CONOUT$", "w", stdout); //cout할 곳을 재설정
 
-		editor.clear(backColor);
-
-		DoublyIterator<Graphic*> iter(edit_drawings);
-
-		while (iter.NotNull())
-		{
-
-			if (!running) return;
-
-			iter.Current()->draw(&editor); //각 그래픽을 렌더링한다
-			iter.Next();
-		}
-
-		editor.display();
-	}
+	SetWindowPos(editor, Handle, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+	editor_opened = true;
 }
 
 void Application::Close()
@@ -146,25 +115,11 @@ void Application::Close()
 	SendMessage(Handle, WM_CLOSE, NULL, NULL);
 }
 
-void Application::CloseEditor()
-{
-	ShowWindow(editHandle, SW_HIDE);
-	editing = false;
-	SendMessage(Handle, WM_ACTIVATE, NULL, NULL);
-}
-
 int Application::AddGraphicToMain(Graphic* graphic)
 {
 	graphic->setID(drawings.GetLength());
 	if (graphic->getID() < 0) return 0; //오버플로우
 	return drawings.Add(graphic);
-}
-
-int Application::AddGraphicToEditor(Graphic* graphic)
-{
-	graphic->setID(edit_drawings.GetLength());
-	if (graphic->getID() < 0) return 0;
-	return edit_drawings.Add(graphic);
 }
 
 void Application::Run(HINSTANCE instance)
@@ -191,15 +146,6 @@ void Application::Run(HINSTANCE instance)
 	window.create(Handle); //생성한 윈도우를 SFML 렌더 윈도우에 할당
 	window.setActive(false); //렌더링 분리를 위해 비활성화.
 
-	//에디터 윈도우 생성
-	editHandle = CreateWindow(L"MusicPlayer", L"Music Player Editor", WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN, 0, 0, 360, 400, NULL, NULL, instance, NULL);
-	DwmExtendFrameIntoClientArea(editHandle, &margins);
-
-	editor.create(editHandle);
-	editor.setActive(false);
-
-	ShowWindow(editHandle, SW_HIDE);
-
 	MediaPlayer::create(Handle, Handle, &player); //플레이어 생성
 
 	MSG Message;
@@ -211,13 +157,7 @@ void Application::Run(HINSTANCE instance)
 	renderer.detach(); //현재 쓰레드로부터 독립시킨다. (별개로 돌아가야 하기 때문)
 	//join 또는 detach를 호출했으므로 이 쓰레드는 함수가 종료되면 안전하게 해제된다.
 
-	std::thread renderer2([this]() {
-		this->RenderEditor();
-	});
-	renderer2.detach();
-
 	initMainGraphic();
-	initEditorGraphic();
 
 	Sleep(100); //윈도우 생성과 렌더링 사이에 이벤트가 발생하는 경우가 있어서 해결하기 위해 0.1초 대기
 	running = true;
@@ -238,11 +178,8 @@ void Application::Run(HINSTANCE instance)
 
 	Sleep(50); //thread 종료를 위해 기다림
 
-	editor.close();
+	CloseEditor();
 	window.close(); //SFML 렌더 종료
-
-	DestroyWindow(editHandle);
-	DestroyWindow(Handle); //종료되면 윈도우를 해제한다.
 
 	UnregisterClass(L"MusicPlayer", instance); //클래스 등록을 해제하고 종료.
 }
@@ -316,145 +253,6 @@ void Application::initMainGraphic()
 	AddGraphicToMain(currentGroup);
 }
 
-void Application::initEditorGraphic()
-{
-	//에디터 윈도우에 사용할 그래픽 로드 및 배치
-
-	editorSprite->SetMouseDownFunction(func_dragStart_edit);
-	AddGraphicToEditor(editorSprite);
-
-	okSprite->SetPosition(183, 368);
-	okSprite->SetMouseUpFunction(func_ok_edit);
-	okSprite->SetButton(true);
-	AddGraphicToEditor(okSprite);
-
-	cancelSprite->SetPosition(238, 368);
-	cancelSprite->SetMouseUpFunction(func_cancel_edit);
-	cancelSprite->SetButton(true);
-	AddGraphicToEditor(cancelSprite);
-
-	//name
-	TextLabel* nameTag = new TextLabel(L"Name :");
-	nameTag->setFont(*Resource::defaultFont);
-	nameTag->setCharacterSize(16);
-	nameTag->SetPosition(12, 10);
-	AddGraphicToEditor(nameTag);
-
-	nameEdit = new TextBox(110, 10, 190, 24, false);
-	nameEdit->setFont(*Resource::defaultFont);
-	nameEdit->setCharacterSize(16);
-	nameEdit->setBackgroundColor(sf::Color(0x17, 0x21, 0x29));
-	nameEdit->setBorderSize(0);
-	nameEdit->setCharacterSize(16);
-	nameEdit->setTextColor(sf::Color::White);
-	AddGraphicToEditor(nameEdit);
-
-	//artist
-	TextLabel* artistTag = new TextLabel(L"Artist :");
-	artistTag->setFont(*Resource::defaultFont);
-	artistTag->setCharacterSize(16);
-	artistTag->SetPosition(12, 38);
-	AddGraphicToEditor(artistTag);
-
-	artistEdit = new TextBox(110, 38, 190, 24, false);
-	artistEdit->setFont(*Resource::defaultFont);
-	artistEdit->setBackgroundColor(sf::Color(0x17, 0x21, 0x29));
-	artistEdit->setBorderSize(0);
-	artistEdit->setCharacterSize(16);
-	artistEdit->setTextColor(sf::Color::White);
-	AddGraphicToEditor(artistEdit);
-
-	//album
-	TextLabel* albumTag = new TextLabel(L"Album :");
-	albumTag->setFont(*Resource::defaultFont);
-	albumTag->setCharacterSize(16);
-	albumTag->SetPosition(12, 66);
-	AddGraphicToEditor(albumTag);
-
-	albumEdit = new TextBox(110, 66, 190, 24, false);
-	albumEdit->setFont(*Resource::defaultFont);
-	albumEdit->setBackgroundColor(sf::Color(0x17, 0x21, 0x29));
-	albumEdit->setBorderSize(0);
-	albumEdit->setCharacterSize(16);
-	albumEdit->setTextColor(sf::Color::White);
-	AddGraphicToEditor(albumEdit);
-
-	//genre
-	TextLabel* genreTag = new TextLabel(L"Genre :");
-	genreTag->setFont(*Resource::defaultFont);
-	genreTag->setCharacterSize(16);
-	genreTag->SetPosition(12, 94);
-	AddGraphicToEditor(genreTag);
-
-	genreEdit = new TextBox(110, 94, 190, 24, false);
-	genreEdit->setFont(*Resource::defaultFont);
-	genreEdit->setBackgroundColor(sf::Color(0x17, 0x21, 0x29));
-	genreEdit->setBorderSize(0);
-	genreEdit->setCharacterSize(16);
-	genreEdit->setTextColor(sf::Color::White);
-	AddGraphicToEditor(genreEdit);
-
-	//composer
-	TextLabel* composerTag = new TextLabel(L"Composer :");
-	composerTag->setFont(*Resource::defaultFont);
-	composerTag->setCharacterSize(16);
-	composerTag->SetPosition(12, 122);
-	AddGraphicToEditor(composerTag);
-
-	composerEdit = new TextBox(110, 122, 190, 24, false);
-	composerEdit->setFont(*Resource::defaultFont);
-	composerEdit->setBackgroundColor(sf::Color(0x17, 0x21, 0x29));
-	composerEdit->setBorderSize(0);
-	composerEdit->setCharacterSize(16);
-	composerEdit->setTextColor(sf::Color::White);
-	AddGraphicToEditor(composerEdit);
-
-	//writer
-	TextLabel* writerTag = new TextLabel(L"Writer :");
-	writerTag->setFont(*Resource::defaultFont);
-	writerTag->setCharacterSize(16);
-	writerTag->SetPosition(12, 150);
-	AddGraphicToEditor(writerTag);
-
-	writerEdit = new TextBox(110, 150, 190, 24, false);
-	writerEdit->setFont(*Resource::defaultFont);
-	writerEdit->setBackgroundColor(sf::Color(0x17, 0x21, 0x29));
-	writerEdit->setBorderSize(0);
-	writerEdit->setCharacterSize(16);
-	writerEdit->setTextColor(sf::Color::White);
-	AddGraphicToEditor(writerEdit);
-
-	//date
-	TextLabel* dateTag = new TextLabel(L"Date :");
-	dateTag->setFont(*Resource::defaultFont);
-	dateTag->setCharacterSize(16);
-	dateTag->SetPosition(12, 178);
-	AddGraphicToEditor(dateTag);
-
-	dateEdit = new TextBox(110, 178, 190, 24, false);
-	dateEdit->setFont(*Resource::defaultFont);
-	dateEdit->setBackgroundColor(sf::Color(0x17, 0x21, 0x29));
-	dateEdit->setBorderSize(0);
-	dateEdit->setCharacterSize(16);
-	dateEdit->setTextColor(sf::Color::White);
-	AddGraphicToEditor(dateEdit);
-
-	//lyrics
-	TextLabel* lyricsTag = new TextLabel(L"Lyrics :");
-	lyricsTag->setFont(*Resource::defaultFont);
-	lyricsTag->setCharacterSize(16);
-	lyricsTag->SetPosition(12, 266);
-	AddGraphicToEditor(lyricsTag);
-
-	lyricsEdit = new TextBox(110, 266, 190, 96, true);
-	lyricsEdit->setFont(*Resource::defaultFont);
-	lyricsEdit->setBackgroundColor(sf::Color(0x17, 0x21, 0x29));
-	lyricsEdit->setBorderSize(0);
-	lyricsEdit->setCharacterSize(16);
-	lyricsEdit->setTextColor(sf::Color::White);
-	AddGraphicToEditor(lyricsEdit);
-}
-
 bool Application::IsRunning()
 {
 	return running;
@@ -462,16 +260,12 @@ bool Application::IsRunning()
 
 bool Application::IsEditing()
 {
-	return editing;
+	return editor_opened;
 }
 
 bool Application::pollEvent(CustomWinEvent e)
 {
-	DoublyLinkedList<Graphic*>* toDraw;
-	if (e.hWnd == Handle) toDraw = &drawings;
-	else toDraw = &edit_drawings; //윈도우에 따라 탐색할 렌더 리스트 선택
-
-	DoublyIterator<Graphic*> iter(*toDraw);
+	DoublyIterator<Graphic*> iter(drawings);
 	iter.ResetToLastPointer();
 	Graphic* g;
 	CustomWinEvent custom;
@@ -1006,6 +800,8 @@ int Application::AddMusicFromDirectory()
 
 int Application::EditMusic(const SimpleMusicType& music)
 {
+	if (editor_opened) return 0;
+
 	AVLTreeIterator<MusicType> iter(musicList);
 	MusicType* data = nullptr;
 
@@ -1023,45 +819,168 @@ int Application::EditMusic(const SimpleMusicType& music)
 
 	editMusic = data;
 
-	nameEdit->setText(String::StrToWstr(editMusic->GetName()));
-	artistEdit->setText(String::StrToWstr(editMusic->GetArtist()));
-	albumEdit->setText(String::StrToWstr(editMusic->GetAlbum()));
-	composerEdit->setText(String::StrToWstr(editMusic->GetComposer()));
-	writerEdit->setText(String::StrToWstr(editMusic->GetWriter()));
-	dateEdit->setText(to_wstring(editMusic->GetDate()));
-	genreEdit->setText(String::StrToWstr(editMusic->GetGenre()));
-	//lengthLabel->setText(to_wstring(editMusic->GetLength()));
-	//timeLabel->setText(to_wstring(editMusic->GetPlayedTime()));
-	lyricsEdit->setText(String::StrToWstr(editMusic->GetLyrics()));
-	//pathLabel->setText(editMusic->GetPath());
-	//텍스트 설정
+	editedMusic = *editMusic; //수정할 데이터를 복사해옴
 
-	ShowWindow(editHandle, SW_SHOW);
-	editing = true;
+	OpenEditor();
 
-	RECT rect;
-
-	GetWindowRect(Handle, &rect);
-	int x = rect.left + 30;
-	int y = rect.top + 100; //메인 윈도우 기준 위치
-
-	GetWindowRect(GetDesktopWindow(), &rect);
-
-	if (x + 300 >= rect.right || y + 200 >= rect.bottom)
+	thread t([this]()
 	{
-		x = rect.right / 2 - 150;
-		y = rect.bottom / 2 - 200;
-	} //화면 영역 밖으로 벗어나면 화면 정중앙으로 설정
+		this->EditWindow();
+	});
 
-	SetWindowPos(editHandle, NULL, x, y, 0, 0, SWP_NOSIZE);
+	t.detach();
 
 	return 1;
+}
+
+void Application::EditWindow()
+{
+	string buffer = editedMusic.GetComposer();
+
+	//초기화 파트
+	system("cls");
+	cout << "정보 수정을 종료하려면 [ESC]키를 눌러주세요." << endl;
+	cout << "Name : " << editedMusic.GetName() << endl;
+	cout << "Artist : " << editedMusic.GetArtist() << endl;
+	cout << "Album : " << editedMusic.GetAlbum() << endl;
+	cout << "Genre : " << editedMusic.GetGenre() << endl;
+
+	CONSOLE_SCREEN_BUFFER_INFO cbsi;
+	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+	COORD pos = { 14 , 5 };
+
+	while (!GetAsyncKeyState(VK_ESCAPE)) //ESC키를 누르지 않는 동안
+	{
+		//출력 파트
+		system("cls");
+		cout << "정보 수정을 종료하려면 [ESC]키를 눌러주세요." << endl;
+		cout << "Name :        " << editedMusic.GetName() << endl;
+		cout << "Artist :      " << editedMusic.GetArtist() << endl;
+		cout << "Album :       " << editedMusic.GetAlbum() << endl;
+		cout << "Genre :       " << editedMusic.GetGenre() << endl;
+		cout << "Composer :    " << editedMusic.GetComposer() << endl;
+
+		SetConsoleCursorPosition(console, pos);
+		GetConsoleScreenBufferInfo(console, &cbsi);
+		pos = cbsi.dwCursorPosition; //커서 업데이트
+
+		//수정 파트
+		unsigned char ch = _getch();
+		bool moveCursor = false;
+		int lineMove = 0;
+
+		if (ch >= 128) //아스키 코드가 아닌 경우
+		{
+			if (ch == 224) //방향키
+			{
+				moveCursor = true;
+				switch (ch = _getch())
+				{
+				case 72: //위
+					pos.Y--;
+					lineMove = 1;
+					break;
+
+				case 75: //왼쪽
+					pos.X--;
+					break;
+
+				case 77: //오른쪽
+					pos.X++;
+					break;
+
+				case 80: //아래
+					pos.Y++;
+					lineMove = 1;
+					break;
+				}
+			}
+			else
+			{
+				//insert character to buffer part
+				ch = _getch();
+			}
+		}
+
+		if (moveCursor)
+		{
+			char byte[2] = { 0 };
+			DWORD len;
+			ReadConsoleOutputCharacterA(console, byte, 2, pos, &len); //2byte씩 문자를 읽어온다.
+			if (*byte < 0) //음수인 경우 아스키 코드가 아니므로 유니코드로 판단한다.
+			{
+				if (ch == 75) pos.X--; //왼쪽 이동
+				else pos.X++; //나머지는 오른쪽 이동
+				//2byte이므로 한 번 더 커서 이동
+			}
+		}
+
+		if (pos.X < 14) //위 줄로 이동
+		{
+			pos.Y--;
+			lineMove = 2;
+		}
+		else if (pos.X > 14 + buffer.size()) //아래 줄로 이동
+		{
+			pos.Y++;
+			pos.X = 14;
+			lineMove = 1;
+		}
+
+		if (!lineMove) continue;
+
+		if (pos.Y <= 0) pos.Y = 5;
+		if (pos.Y > 5) pos.Y = 1;
+
+		switch (pos.Y)
+		{
+		case 1:
+			buffer = editedMusic.GetName();
+			break;
+
+		case 2:
+			buffer = editedMusic.GetArtist();
+			break;
+
+		case 3:
+			buffer = editedMusic.GetAlbum();
+			break;
+
+		case 4:
+			buffer = editedMusic.GetGenre();
+			break;
+
+		case 5:
+			buffer = editedMusic.GetComposer();
+			break;
+		}
+
+		if (lineMove == 1)
+		{
+			if (pos.X > 14 + buffer.size()) pos.X = 14 + buffer.size();
+		}
+		else if (lineMove == 2) pos.X = 14 + buffer.size();
+	}
+	
+	CloseEditor();
+	ReplaceMusic();
+}
+
+void Application::CloseEditor()
+{
+	if (!editor_opened) return;
+	FreeConsole();
+	editor = NULL;
+	fclose(buffer);
+	buffer = NULL;
+	editor_opened = false;
 }
 
 int Application::ReplaceMusic()
 {
 	if (editMusic == nullptr) return 0; //수정할 음악 타입이 정해져 있지 않으면 0 반환
 
+	/*
 	string newName = String::WstrToStr(nameEdit->getText());
 	string newArtist = String::WstrToStr(artistEdit->getText());
 	
@@ -1184,6 +1103,7 @@ int Application::ReplaceMusic()
 	}
 
 	UpdateList();
+	*/
 	return 1;
 }
 

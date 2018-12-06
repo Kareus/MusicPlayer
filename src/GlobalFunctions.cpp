@@ -87,12 +87,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	switch (iMessage)
 	{
 	case WM_CREATE:
-		if (app->GetHandle() == hWnd) Update(hWnd, Closed);
+		Update(hWnd, Closed);
 		break;
 
 	case WM_ACTIVATE:
 		BringWindowToTop(hWnd);
-		if (app->GetHandle() == hWnd && app->IsEditing()) BringWindowToTop(app->GetEditor()); //editor가 무조건 상위에 오도록 설정
+		if (app->GetHandle() == hWnd && app->IsEditing()) BringWindowToTop(GetConsoleWindow()); //editor가 무조건 상위에 오도록 설정
 		break;
 
 	case WM_LBUTTONDOWN:
