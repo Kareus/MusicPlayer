@@ -225,7 +225,8 @@ int MusicType::ReadDataFromID3()
 	artist = String::WstrToStr(reader.getArtist());
 	album = String::WstrToStr(reader.getAlbum());
 	genre = String::WstrToStr(reader.getGenre());
-	date = reader.getYearAsInteger() * 10000; //년도이므로 10000을 곱함.
+	date = reader.getYearAsInteger();
+	while (date < 10000000) date *= 10;
 
 	if (reader.getMajorVersion() == 2) //id3v2
 	{

@@ -40,6 +40,8 @@ void TextBox::draw(sf::RenderWindow* window)
 {
 	window->draw(shape);
 
+	Sleep(30); //렌더 대기
+
 	glEnable(GL_SCISSOR_TEST); //클리핑
 	glScissor(x, window->getSize().y - height - y, width, height); //openGL과 SFML의 좌표계가 상하 반전되어 있으므로 반전시킨다.
 	window->draw(text);
@@ -67,7 +69,7 @@ void TextBox::setText(const std::wstring& str)
 	{
 		wchar_t ch = str.at(i);
 		if (onlyNumber && (ch < 48 || ch > 57)) continue; //숫자가 아닌 데이터가 있는 경우 생략
-		if (multiLine && ch == L'\n') continue; //여러 줄이 허용되지 않는 경우 생략
+		if (!multiLine && ch == L'\n') continue; //여러 줄이 허용되지 않는 경우 생략
 		filtered.push_back(ch);
 	}
 
@@ -161,6 +163,14 @@ bool TextBox::pollEvent(CustomWinEvent e)
 
 			case VK_RIGHT: //오른쪽 화살표
 				if (cursorPos < str.size()) cursorPos++;
+				break;
+
+			case VK_HOME:
+				cursorPos = 0;
+				break;
+
+			case VK_END:
+				cursorPos = str.size();
 				break;
 
 			case 'D': //ctrl+D. 전체 삭제
@@ -332,7 +342,12 @@ float TextBox::getCursorPosX()
 	if (ch == L' ') ch = L'a'; //공백의 크기를 인식하지 못하므로 a로 대체
 	float glyph = font.getGlyph(ch, text.getCharacterSize(), false).bounds.width;
 
-	return text.findCharacterPos(pos).x - text.findCharacterPos(0).x + glyph;
+	int lastLine = 0;
+
+	if (multiLine) lastLine = str.find_last_of(L'\n', pos-1);
+	if (lastLine < 0) lastLine = 0;
+
+	return text.findCharacterPos(pos).x - text.findCharacterPos(lastLine).x + glyph;
 }
 
 void TextBox::updateText()
@@ -345,12 +360,19 @@ void TextBox::updateText()
 	float end = getCursorPosX();
 	float over = end - width; //커서에 해당하는 글자 위치 - 박스 너비
 
+	int lines = 0;
+	if (multiLine)
+	{
+		for (int i = 0; i < cursorPos; i++) if (str.at(i) == L'\n') lines++;
+		lines *= font.getGlyph(L'a', text.getCharacterSize(), false).bounds.height;
+	}
+
 	if (over >= 0) text.setPosition(x - over, y); //0보다 크면 텍스트 길이가 박스보다 긴 것이므로 위치 조정
 	else text.setPosition(x, y); //아닌 경우 원래 위치로 리셋.
 
 	if (input && cursorPos == 0 && str.size() > 0) end += font.getGlyph(str.at(0), text.getCharacterSize(), false).bounds.width; //시작 지점에 insert 시에 보정
 	if (over >= 0) cursor.setPosition(x - over + end, y + 2);
-	else cursor.setPosition(x + end, y + 2);
+	else cursor.setPosition(x + end, y + lines + 2);
 }
 
 bool TextBox::hasPoint(const sf::Vector2f& point)

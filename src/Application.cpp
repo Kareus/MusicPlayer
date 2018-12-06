@@ -106,9 +106,6 @@ void Application::RenderMain()
 
 		while (iter.NotNull())
 		{
-			Sleep(10); //draw가 thread-detached로 작동하므로, 각 draw의 처리를 위해 10 밀리초 대기
-			//대기가 없을 경우 특히 text box 렌더링에서 오류가 발생함
-
 			if (!running) return; //그 사이에 닫힌 경우 종료
 
 			iter.Current()->draw(&window); //각 그래픽을 렌더링한다
@@ -133,7 +130,6 @@ void Application::RenderEditor()
 
 		while (iter.NotNull())
 		{
-			Sleep(10);
 
 			if (!running) return;
 
@@ -340,11 +336,13 @@ void Application::initEditorGraphic()
 	//name
 	TextLabel* nameTag = new TextLabel(L"Name :");
 	nameTag->setFont(*Resource::defaultFont);
+	nameTag->setCharacterSize(16);
 	nameTag->SetPosition(12, 10);
 	AddGraphicToEditor(nameTag);
 
 	nameEdit = new TextBox(110, 10, 190, 24, false);
 	nameEdit->setFont(*Resource::defaultFont);
+	nameEdit->setCharacterSize(16);
 	nameEdit->setBackgroundColor(sf::Color(0x17, 0x21, 0x29));
 	nameEdit->setBorderSize(0);
 	nameEdit->setCharacterSize(16);
@@ -354,6 +352,7 @@ void Application::initEditorGraphic()
 	//artist
 	TextLabel* artistTag = new TextLabel(L"Artist :");
 	artistTag->setFont(*Resource::defaultFont);
+	artistTag->setCharacterSize(16);
 	artistTag->SetPosition(12, 38);
 	AddGraphicToEditor(artistTag);
 
@@ -368,6 +367,7 @@ void Application::initEditorGraphic()
 	//album
 	TextLabel* albumTag = new TextLabel(L"Album :");
 	albumTag->setFont(*Resource::defaultFont);
+	albumTag->setCharacterSize(16);
 	albumTag->SetPosition(12, 66);
 	AddGraphicToEditor(albumTag);
 
@@ -382,6 +382,7 @@ void Application::initEditorGraphic()
 	//genre
 	TextLabel* genreTag = new TextLabel(L"Genre :");
 	genreTag->setFont(*Resource::defaultFont);
+	genreTag->setCharacterSize(16);
 	genreTag->SetPosition(12, 94);
 	AddGraphicToEditor(genreTag);
 
@@ -396,6 +397,7 @@ void Application::initEditorGraphic()
 	//composer
 	TextLabel* composerTag = new TextLabel(L"Composer :");
 	composerTag->setFont(*Resource::defaultFont);
+	composerTag->setCharacterSize(16);
 	composerTag->SetPosition(12, 122);
 	AddGraphicToEditor(composerTag);
 
@@ -410,6 +412,7 @@ void Application::initEditorGraphic()
 	//writer
 	TextLabel* writerTag = new TextLabel(L"Writer :");
 	writerTag->setFont(*Resource::defaultFont);
+	writerTag->setCharacterSize(16);
 	writerTag->SetPosition(12, 150);
 	AddGraphicToEditor(writerTag);
 
@@ -424,10 +427,11 @@ void Application::initEditorGraphic()
 	//date
 	TextLabel* dateTag = new TextLabel(L"Date :");
 	dateTag->setFont(*Resource::defaultFont);
-	dateTag->SetPosition(12, 10);
+	dateTag->setCharacterSize(16);
+	dateTag->SetPosition(12, 178);
 	AddGraphicToEditor(dateTag);
 
-	dateEdit = new TextBox(110, 10, 238, 24, false);
+	dateEdit = new TextBox(110, 178, 190, 24, false);
 	dateEdit->setFont(*Resource::defaultFont);
 	dateEdit->setBackgroundColor(sf::Color(0x17, 0x21, 0x29));
 	dateEdit->setBorderSize(0);
@@ -438,10 +442,11 @@ void Application::initEditorGraphic()
 	//lyrics
 	TextLabel* lyricsTag = new TextLabel(L"Lyrics :");
 	lyricsTag->setFont(*Resource::defaultFont);
+	lyricsTag->setCharacterSize(16);
 	lyricsTag->SetPosition(12, 266);
 	AddGraphicToEditor(lyricsTag);
 
-	lyricsEdit = new TextBox(110, 10, 266, 120, true);
+	lyricsEdit = new TextBox(110, 266, 190, 96, true);
 	lyricsEdit->setFont(*Resource::defaultFont);
 	lyricsEdit->setBackgroundColor(sf::Color(0x17, 0x21, 0x29));
 	lyricsEdit->setBorderSize(0);

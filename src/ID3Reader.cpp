@@ -322,7 +322,7 @@ int ID3Reader::getYearAsInteger()
 		wstring y = getYear();
 		if (y.empty()) return 0; //year 정보가 없으면 0 반환
 
-		for (int i = 0; i < 4; i++) n = n * 10 + y.at(i) - 48;
+		for (int i = 0; i < y.size(); i++) n = n * 10 + y.at(i) - 48;
 	}
 
 	return n;
