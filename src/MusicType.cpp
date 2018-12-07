@@ -30,6 +30,7 @@ MusicType::MusicType(const MusicType &data)
 	date = data.GetDate();
 	length = data.GetLength();
 	time = data.GetPlayedTime();
+	path = data.GetPath();
 }
 
 MusicType::~MusicType() {
@@ -194,6 +195,7 @@ MusicType& MusicType::operator=(const MusicType &data)
 	date = data.GetDate();
 	length = data.GetLength();
 	time = data.GetPlayedTime();
+	path = data.GetPath();
 	return *this;
 }
 

@@ -40,7 +40,7 @@ void TextBox::draw(sf::RenderWindow* window)
 {
 	window->draw(shape);
 
-	Sleep(30); //렌더 대기
+	Sleep(30); //텍스트 렌더링 전에 렌더 대기
 
 	glEnable(GL_SCISSOR_TEST); //클리핑
 	glScissor(x, window->getSize().y - height - y, width, height); //openGL과 SFML의 좌표계가 상하 반전되어 있으므로 반전시킨다.

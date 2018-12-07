@@ -32,6 +32,7 @@ Application::Application()
 	editMusic = nullptr;
 	displayMode = 0;
 	editor_opened = false;
+	updating = false;
 	buffer = NULL;
 
 	Resource::defaultFont = new sf::Font();
@@ -79,7 +80,7 @@ void Application::RenderMain()
 
 	while (window.isOpen())
 	{
-		if (!running) continue;
+		if (!running || updating) continue;
 
 		window.clear(backColor);
 
@@ -87,6 +88,7 @@ void Application::RenderMain()
 
 		while (iter.NotNull())
 		{
+			if (updating) break;
 			if (!running) return; //그 사이에 닫힌 경우 종료
 
 			iter.Current()->draw(&window); //각 그래픽을 렌더링한다
@@ -161,6 +163,9 @@ void Application::Run(HINSTANCE instance)
 
 	Sleep(100); //윈도우 생성과 렌더링 사이에 이벤트가 발생하는 경우가 있어서 해결하기 위해 0.1초 대기
 	running = true;
+
+	setlocale(LC_ALL, ""); //로케일 설정
+	wcout.imbue(std::locale("kor"));
 
 	SetCursor(LoadCursor(NULL, IDC_ARROW));
 
@@ -339,6 +344,7 @@ bool Application::pollEvent(CustomWinEvent e)
 
 void Application::initDisplay()
 {
+	updating = true;
 	currentGroup->MakeEmpty();
 
 	switch (displayMode)
@@ -354,18 +360,17 @@ void Application::initDisplay()
 		currentGroup->AddGraphic(iter.Current());
 		iter.Next();
 	}
+
+	updating = false;
 }
 
 Group* Application::CreateDisplayGraphic(const MusicType& data)
 {
 	Group* graphic = new Group();
 	graphic->SetData(data.GetPath());
-	graphic->SetPositionY(300);
-
-	int y = 300 + 45 * displayList.GetLength();
+	graphic->SetPositionY(45 * displayList.GetLength());
 
 	Sprite* background = Resource::backSprite->clone();
-	background->SetPositionY(y);
 
 	graphic->AddGraphic(background);
 
@@ -374,7 +379,7 @@ Group* Application::CreateDisplayGraphic(const MusicType& data)
 	nameLabel->setTextColor(sf::Color::White);
 	nameLabel->setAlign(TextAlign::LEFT);
 	nameLabel->setFont(*Resource::defaultFont);
-	nameLabel->SetPosition(7, 4 + y);
+	nameLabel->SetPosition(7, 4);
 	graphic->AddGraphic(nameLabel);
 
 	TextLabel* idLabel = new TextLabel(L"nonid");
@@ -382,7 +387,7 @@ Group* Application::CreateDisplayGraphic(const MusicType& data)
 	idLabel->setTextColor(sf::Color::White);
 	idLabel->setAlign(TextAlign::LEFT);
 	idLabel->setFont(*Resource::defaultFont);
-	idLabel->SetPosition(7, 25 + y);
+	idLabel->SetPosition(7, 25);
 	graphic->AddGraphic(idLabel);
 
 	std::wstring wstr = String::StrToWstr(data.GetName());
@@ -396,17 +401,17 @@ Group* Application::CreateDisplayGraphic(const MusicType& data)
 
 	Sprite* button1 = Resource::editSprite->clone();
 	button1->SetButton(true);
-	button1->SetPosition(261, 20 + y);
+	button1->SetPosition(261, 20);
 	button1->SetMouseUpFunction(func_editData);
 
 	Sprite* button2 = Resource::removeSprite->clone();
 	button2->SetButton(true);
-	button2->SetPosition(292, 20 + y);
+	button2->SetPosition(292, 20);
 	button2->SetMouseUpFunction(func_removeData);
 
 	Sprite* player = Resource::playSprite->clone();
 	player->SetButton(true);
-	player->SetPosition(230, 20 + y);
+	player->SetPosition(230, 20);
 	player->SetMouseUpFunction(func_playData);
 
 	graphic->AddGraphic(button1);
@@ -838,15 +843,8 @@ void Application::EditWindow()
 	string buffer = editedMusic.GetComposer();
 
 	//초기화 파트
-	system("cls");
-	cout << "정보 수정을 종료하려면 [ESC]키를 눌러주세요." << endl;
-	cout << "Name : " << editedMusic.GetName() << endl;
-	cout << "Artist : " << editedMusic.GetArtist() << endl;
-	cout << "Album : " << editedMusic.GetAlbum() << endl;
-	cout << "Genre : " << editedMusic.GetGenre() << endl;
-
-	CONSOLE_SCREEN_BUFFER_INFO cbsi;
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+	CONSOLE_SCREEN_BUFFER_INFO cbsi;
 	COORD pos = { 14 , 5 };
 
 	while (!GetAsyncKeyState(VK_ESCAPE)) //ESC키를 누르지 않는 동안
@@ -859,6 +857,15 @@ void Application::EditWindow()
 		cout << "Album :       " << editedMusic.GetAlbum() << endl;
 		cout << "Genre :       " << editedMusic.GetGenre() << endl;
 		cout << "Composer :    " << editedMusic.GetComposer() << endl;
+		cout << "Writer :      " << editedMusic.GetWriter() << endl;
+		cout << "Date :        " << editedMusic.GetDate() << endl;
+		cout << "Length :      " << editedMusic.GetLength() << endl;
+		cout << "Lyrics :      " << editedMusic.GetLyrics() << endl;
+
+		cout << endl << "CANNOT EDIT BELOW---------------" << endl;
+		cout << "Played Time : " << editedMusic.GetPlayedTime() << endl;
+		cout << "Path :        ";
+		wcout << editedMusic.GetPath() << endl;
 
 		SetConsoleCursorPosition(console, pos);
 		GetConsoleScreenBufferInfo(console, &cbsi);
@@ -871,6 +878,8 @@ void Application::EditWindow()
 
 		if (ch >= 128) //아스키 코드가 아닌 경우
 		{
+			//2 byte를 읽어와야 한다.
+
 			if (ch == 224) //방향키
 			{
 				moveCursor = true;
@@ -896,13 +905,32 @@ void Application::EditWindow()
 				}
 			}
 			else
+				buffer = buffer.substr(0, pos.X - 14) + (char)ch + (char)_getch() + buffer.substr(pos.X - 14); //스트링 삽입
+		}
+		else
+		{
+			if (ch == 8 && pos.X > 14) //backspace. 맨 앞 글자가 아닌 경우
 			{
-				//insert character to buffer part
-				ch = _getch();
+				if (buffer.at(pos.X - 15) < 128) buffer = buffer.substr(0, pos.X - 15) + buffer.substr(pos.X - 14); //ascii 코드인 경우
+				else buffer = buffer.substr(0, pos.X - 15) + buffer.substr(pos.X - 15); //2byte 지우기
+				pos.X--;
 			}
+			else if (ch == '\n' && pos.Y == 9) //enter 키. 여러 줄 입력이 허용되는 가사인 경우
+			{
+				buffer = buffer.substr(0, pos.X - 14) + (char)ch + buffer.substr(pos.X - 14);
+				pos.X = 0;
+				pos.Y++;
+			}
+
+			else if (ch >= 32) //일반적인 경우
+			{
+				buffer = buffer.substr(0, pos.X - 14) + (char)ch + buffer.substr(pos.X - 14);
+				pos.X++;
+			}
+				
 		}
 
-		if (moveCursor)
+		if (moveCursor) //커서가 이동한 경우
 		{
 			char byte[2] = { 0 };
 			DWORD len;
@@ -912,6 +940,31 @@ void Application::EditWindow()
 				if (ch == 75) pos.X--; //왼쪽 이동
 				else pos.X++; //나머지는 오른쪽 이동
 				//2byte이므로 한 번 더 커서 이동
+			}
+		} 
+		else //커서가 이동한 것이 아닌 경우
+		{
+			switch (pos.Y)
+			{
+			case 1:
+				editedMusic.SetName(buffer);
+				break;
+
+			case 2:
+				editedMusic.SetArtist(buffer);
+				break;
+
+			case 3:
+				editedMusic.SetAlbum(buffer);
+				break;
+
+			case 4:
+				editedMusic.SetGenre(buffer);
+				break;
+
+			case 5:
+				editedMusic.SetComposer(buffer);
+				break;
 			}
 		}
 
@@ -926,6 +979,8 @@ void Application::EditWindow()
 			pos.X = 14;
 			lineMove = 1;
 		}
+
+		
 
 		if (!lineMove) continue;
 
@@ -969,9 +1024,9 @@ void Application::EditWindow()
 void Application::CloseEditor()
 {
 	if (!editor_opened) return;
-	FreeConsole();
-	editor = NULL;
 	fclose(buffer);
+	ShowWindow(GetConsoleWindow(), SW_HIDE);
+	FreeConsole();
 	buffer = NULL;
 	editor_opened = false;
 }

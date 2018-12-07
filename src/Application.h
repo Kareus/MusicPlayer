@@ -36,6 +36,7 @@ private:
 	FILE* buffer; ///<에디터에 쓸 버퍼
 
 	bool editor_opened;
+	bool updating;
 
 	Sprite* playerSprite;
 	Sprite* minimizeSprite;

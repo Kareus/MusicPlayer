@@ -18,6 +18,8 @@ TextLabel::TextLabel(const std::wstring& str)
 
 void TextLabel::draw(sf::RenderWindow* window)
 {
+	Sleep(50); //텍스트 렌더링 전에 렌더 대기
+
 	if (rect.x < 0) window->draw(text);
 	else {
 		glEnable(GL_SCISSOR_TEST);

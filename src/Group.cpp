@@ -29,6 +29,8 @@ Group::~Group()
 int Group::AddGraphic(Graphic* g)
 {
 	g->setID(drawings.GetLength());
+	sf::Vector2f p = g->GetPosition();
+	g->SetPosition(position.x + p.x, position.y + p.y);
 	g->SetData(data);
 	return drawings.Add(g);
 }
@@ -63,17 +65,54 @@ void Group::draw(sf::RenderWindow* window)
 
 void Group::SetPosition(float x, float y)
 {
+	DoublyIterator<Graphic*> iter(drawings);
+	Graphic* g;
+	sf::Vector2f pos;
+
+	while (iter.NotNull())
+	{
+		g = iter.Current();
+		pos = g->GetPosition();
+		g->SetPosition(pos.x + x - position.x, pos.y + y - position.y);
+		iter.Next();
+	}
+
 	position.x = x;
 	position.y = y;
 }
 
 void Group::SetPositionX(float x)
 {
+	DoublyIterator<Graphic*> iter(drawings);
+	Graphic* g;
+	sf::Vector2f pos;
+
+	while (iter.NotNull())
+	{
+		g = iter.Current();
+		pos = g->GetPosition();
+		g->SetPositionX(pos.x + x - position.x);
+		iter.Next();
+	}
+
+
 	position.x = x;
 }
 
 void Group::SetPositionY(float y)
 {
+	DoublyIterator<Graphic*> iter(drawings);
+	Graphic* g;
+	sf::Vector2f pos;
+
+	while (iter.NotNull())
+	{
+		g = iter.Current();
+		pos = g->GetPosition();
+		g->SetPositionY(pos.y + y - position.y);
+		iter.Next();
+	}
+
 	position.y = y;
 }
 
