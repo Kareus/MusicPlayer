@@ -13,7 +13,6 @@ MusicType::MusicType()
 	path = L"";
 	date = 0;
 	time = 0;
-	length = 0;
 	ID = "";
 }
 
@@ -28,7 +27,6 @@ MusicType::MusicType(const MusicType &data)
 	composer = data.GetComposer();
 	writer = data.GetWriter();
 	date = data.GetDate();
-	length = data.GetLength();
 	time = data.GetPlayedTime();
 	path = data.GetPath();
 }
@@ -73,10 +71,6 @@ unsigned int MusicType::GetDate() const {
 	return date;
 }
 
-unsigned int MusicType::GetLength() const {
-	return length;
-}
-
 unsigned int MusicType::GetPlayedTime() const {
 	return time;
 }
@@ -97,7 +91,7 @@ void MusicType::SetAlbum(const string& album) {
 	this->album = album;
 }
 
-void MusicType::SetGenre(const string& gerne) {
+void MusicType::SetGenre(const string& genre) {
 	this->genre = genre;
 }
 
@@ -119,10 +113,6 @@ void MusicType::SetWriter(const string& writer) {
 
 void MusicType::SetDate(unsigned int date) {
 	this->date = date;
-}
-
-void MusicType::SetLength(unsigned int length) {
-	this->length = length;
 }
 
 void MusicType::SetPlayedTime(unsigned int time) {
@@ -147,7 +137,6 @@ int MusicType::ReadDataFromFile(ifstream& fin)
 	getline(fin, genre);
 
 	fin >> date;
-	fin >> length;
 	fin >> time;
 	fin.ignore();
 
@@ -167,7 +156,6 @@ int MusicType::WriteDataToFile(ofstream& fout)
 	fout << album << endl;
 	fout << genre << endl;
 	fout << date << " ";
-	fout << length << " ";
 	fout << time << endl;
 	fout << endl;
 
@@ -193,7 +181,6 @@ MusicType& MusicType::operator=(const MusicType &data)
 	composer = data.GetComposer();
 	writer = data.GetWriter();
 	date = data.GetDate();
-	length = data.GetLength();
 	time = data.GetPlayedTime();
 	path = data.GetPath();
 	return *this;
@@ -237,9 +224,6 @@ int MusicType::ReadDataFromID3()
 		if (writer.empty()) writer = String::WstrToStr(reader.getFrame("TEXT")); //writer
 		lyrics = String::WstrToStr(reader.getFrame("SYLT")); //lyrics
 		if (lyrics.empty()) lyrics = String::WstrToStr(reader.getFrame("USLT")); //lyrics
-		length = 0;
-		wstring len = reader.getFrame("TLEN");
-		for (int i = 0; i < len.size(); i++) length = length * 10 + len.at(i) - 48;
 	}
 
 	return 1;

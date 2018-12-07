@@ -33,7 +33,6 @@ Application::Application()
 	displayMode = 0;
 	editor_opened = false;
 	updating = false;
-	buffer = NULL;
 
 	Resource::defaultFont = new sf::Font();
 	Resource::defaultFont->loadFromFile("C:/Windows/Fonts/malgun.ttf");
@@ -52,6 +51,8 @@ Application::Application()
 	Resource::backSprite = new Sprite("../../../graphic/background.png");
 	Resource::playSprite = new Sprite("../../../graphic/playmusic.png");
 	addDirSprite = new Sprite("../../../graphic/folder.png");
+	scrollbackSprite = new Sprite("../../../graphic/scroll_background.png");
+	scrollSprite = new Sprite("../../../graphic/scroll.png");
 }
 
 Application::~Application()
@@ -84,6 +85,8 @@ void Application::RenderMain()
 
 		window.clear(backColor);
 
+		Sleep(50); //렌더 전 쓰레드 대기 (렌더가 제대로 되지 않는 현상 방지 차원)
+
 		DoublyIterator<Graphic*> iter(drawings);
 
 		while (iter.NotNull())
@@ -97,19 +100,6 @@ void Application::RenderMain()
 
 		window.display();
 	}
-}
-
-void Application::OpenEditor()
-{
-	if (editor_opened) return;
-	AllocConsole();
-	editor = GetConsoleWindow();
-
-	freopen_s(&buffer, "CONIN$", "r", stdin); //cin할 곳을 재설정
-	freopen_s(&buffer, "CONOUT$", "w", stdout); //cout할 곳을 재설정
-
-	SetWindowPos(editor, Handle, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-	editor_opened = true;
 }
 
 void Application::Close()
@@ -139,11 +129,27 @@ void Application::Run(HINSTANCE instance)
 	WindowClass.lpszClassName = L"MusicPlayer";
 	RegisterClass(&WindowClass); //윈도우 생성을 위한 class 등록
 
+	WNDCLASS EditClass;
+	EditClass.style = 0;
+	EditClass.lpfnWndProc = &EditProc;
+	EditClass.cbClsExtra = 0;
+	EditClass.cbWndExtra = 0;
+	EditClass.hInstance = instance;
+	EditClass.hIcon = NULL;
+	EditClass.hCursor = 0;
+	EditClass.hbrBackground = CreateSolidBrush(RGB(0xbd, 0xbd, 0xbd));
+	EditClass.lpszMenuName = NULL;
+	EditClass.lpszClassName = L"MusicEditor";
+	RegisterClass(&EditClass); //에디터 생성을 위한 class 등록
+
 	MARGINS margins;
 	margins.cxLeftWidth = -1; //aero를 사용해 윈도우 백그라운드를 투명하게 하기 위한 변수
 
 	Handle = CreateWindow(L"MusicPlayer", L"Music Player Application", WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN, 0, 0, 360, 600, NULL, NULL, instance, NULL); //메인 윈도우 생성
 	DwmExtendFrameIntoClientArea(Handle, &margins); //배경을 투명하게 한다.
+
+	editor = CreateWindow(L"MusicEditor", L"Music Data Editor", WS_VISIBLE | WS_CLIPCHILDREN, 0, 0, 360, 420, NULL, NULL, instance, NULL); //에디터 윈도우 생성
+	ShowWindow(editor, SW_HIDE); //윈도우 숨기기
 
 	window.create(Handle); //생성한 윈도우를 SFML 렌더 윈도우에 할당
 	window.setActive(false); //렌더링 분리를 위해 비활성화.
@@ -160,12 +166,10 @@ void Application::Run(HINSTANCE instance)
 	//join 또는 detach를 호출했으므로 이 쓰레드는 함수가 종료되면 안전하게 해제된다.
 
 	initMainGraphic();
+	initEditor(); //초기 그래픽 생성
 
 	Sleep(100); //윈도우 생성과 렌더링 사이에 이벤트가 발생하는 경우가 있어서 해결하기 위해 0.1초 대기
 	running = true;
-
-	setlocale(LC_ALL, ""); //로케일 설정
-	wcout.imbue(std::locale("kor"));
 
 	SetCursor(LoadCursor(NULL, IDC_ARROW));
 
@@ -180,12 +184,13 @@ void Application::Run(HINSTANCE instance)
 	}
 
 	running = false;
-
+	
 	Sleep(50); //thread 종료를 위해 기다림
 
-	CloseEditor();
+	DestroyWindow(editor); //에디터 종료
 	window.close(); //SFML 렌더 종료
 
+	UnregisterClass(L"MusicEditor", instance);
 	UnregisterClass(L"MusicPlayer", instance); //클래스 등록을 해제하고 종료.
 }
 
@@ -208,7 +213,7 @@ void Application::initMainGraphic()
 
 	TextLabel* playName = new TextLabel(L"Artist - Song");
 	playName->setAlign(TextAlign::MIDDLE);
-	playName->setDisplayRect(250, 40);
+	playName->setDisplayRect(240, 40);
 	playName->setFont(*Resource::defaultFont);
 	playName->setCharacterSize(24);
 	playName->setTextColor(sf::Color::White);
@@ -255,7 +260,33 @@ void Application::initMainGraphic()
 
 	currentGroup = new Group();
 	currentGroup->SetPositionY(300);
+	currentGroup->SetViewRect(0, 0, 320, 280);
 	AddGraphicToMain(currentGroup);
+}
+
+void Application::initEditor()
+{
+	edit_nameLabel = CreateWindow(L"STATIC", L"Name :", WS_VISIBLE | WS_CHILD, 5, 5, 90, 20, editor, NULL, NULL, NULL);
+	edit_nameEdit = CreateWindow(L"EDIT", L"", WS_VISIBLE | WS_CHILD | ES_AUTOHSCROLL, 100, 5, 240, 20, editor, NULL, NULL, NULL);
+	edit_artistLabel = CreateWindow(L"STATIC", L"Artist :", WS_VISIBLE | WS_CHILD, 5, 30, 90, 20, editor, NULL, NULL, NULL);
+	edit_artistEdit = CreateWindow(L"EDIT", L"", WS_VISIBLE | WS_CHILD | ES_AUTOHSCROLL, 100, 30, 240, 20, editor, NULL, NULL, NULL);
+	edit_albumLabel = CreateWindow(L"STATIC", L"Album :", WS_VISIBLE | WS_CHILD, 5, 55, 90, 20, editor, NULL, NULL, NULL);
+	edit_albumEdit = CreateWindow(L"EDIT", L"", WS_VISIBLE | WS_CHILD | ES_AUTOHSCROLL, 100, 55, 240, 20, editor, NULL, NULL, NULL);
+	edit_genreLabel = CreateWindow(L"STATIC", L"Genre :", WS_VISIBLE | WS_CHILD, 5, 80, 90, 20, editor, NULL, NULL, NULL);
+	edit_genreEdit = CreateWindow(L"EDIT", L"", WS_VISIBLE | WS_CHILD | ES_AUTOHSCROLL, 100, 80, 240, 20, editor, NULL, NULL, NULL);
+	edit_composerLabel = CreateWindow(L"STATIC", L"Composer :", WS_VISIBLE | WS_CHILD, 5, 105, 90, 20, editor, NULL, NULL, NULL);
+	edit_composerEdit = CreateWindow(L"EDIT", L"", WS_VISIBLE | WS_CHILD | ES_AUTOHSCROLL, 100, 105, 240, 20, editor, NULL, NULL, NULL);
+	edit_writerLabel = CreateWindow(L"STATIC", L"Writer :", WS_VISIBLE | WS_CHILD, 5, 130, 90, 20, editor, NULL, NULL, NULL);
+	edit_writerEdit = CreateWindow(L"EDIT", L"", WS_VISIBLE | WS_CHILD | ES_AUTOHSCROLL, 100, 130, 240, 20, editor, NULL, NULL, NULL);
+	edit_dateLabel = CreateWindow(L"STATIC", L"Date :", WS_VISIBLE | WS_CHILD, 5, 155, 90, 20, editor, NULL, NULL, NULL);
+	edit_dateEdit = CreateWindow(L"EDIT", L"", WS_VISIBLE | WS_CHILD | ES_AUTOHSCROLL, 100, 155, 240, 20, editor, NULL, NULL, NULL);
+	edit_lyricsLabel = CreateWindow(L"STATIC", L"Lyrics :", WS_VISIBLE | WS_CHILD, 5, 180, 90, 20, editor, NULL, NULL, NULL);
+	edit_lyricsEdit = CreateWindow(L"EDIT", L"", WS_VISIBLE | WS_CHILD | ES_AUTOHSCROLL | ES_AUTOVSCROLL | ES_MULTILINE, 100, 180, 240, 120, editor, NULL, NULL, NULL);
+	edit_timeLabel = CreateWindow(L"STATIC", L"Played Time :", WS_VISIBLE | WS_CHILD, 5, 320, 330, 20, editor, NULL, NULL, NULL);
+	edit_pathLabel = CreateWindow(L"EDIT", L"Path :", WS_VISIBLE | WS_CHILD | ES_READONLY | ES_AUTOHSCROLL, 5, 345, 330, 20, editor, NULL, NULL, NULL);
+	edit_ok = CreateWindow(L"BUTTON", L"OK", WS_VISIBLE | WS_CHILD, 300, 360, 40, 20, editor, NULL, NULL, NULL);
+
+	oldProc = (WNDPROC)SetWindowLong(edit_dateEdit, GWL_WNDPROC, (LONG)NumericProc); //처리 함수를 바꾸고 기존 설정을 저장
 }
 
 bool Application::IsRunning()
@@ -368,7 +399,9 @@ Group* Application::CreateDisplayGraphic(const MusicType& data)
 {
 	Group* graphic = new Group();
 	graphic->SetData(data.GetPath());
-	graphic->SetPositionY(45 * displayList.GetLength());
+	int id = displayList.GetLength();
+	graphic->setID(id);
+	graphic->SetPositionY(45 * id);
 
 	Sprite* background = Resource::backSprite->clone();
 
@@ -688,13 +721,13 @@ int Application::AddMusicFromDirectory()
 	bool folderExist = folderList.Get(folder);
 
 	DoublyIterator<wstring> iter = dirReader.getIterator();
-	MusicType music;
 
 	while (iter.NotNull())
 	{
 		wstring newPath = iter.Current();
 		if (newPath.size() > 4 && newPath.substr(newPath.size() - 4, 4) == L".mp3")
 		{
+			MusicType music;
 			music.SetPath(newPath);
 			music.ReadDataFromID3(); //id3 태그를 읽어온다.
 			int dir = newPath.find_last_of(L'\\');
@@ -800,13 +833,41 @@ int Application::AddMusicFromDirectory()
 
 	if (folderExist) folderList.Replace(folder);
 	else folderList.Add(folder);
+
+	UpdateList();
 	return 1;
+}
+
+void Application::SwapEditor()
+{
+	BringWindowToTop(editor);
+}
+
+void Application::OpenEditor()
+{
+	if (editor_opened) return;
+
+	editor_opened = true;
+	
+	ShowWindow(editor, SW_SHOW);
+	SwapEditor();
+}
+
+void Application::CloseEditor()
+{
+	if (!editor_opened) return;
+
+	ReplaceMusic();
+	editor_opened = false;
+
+	ShowWindow(editor, SW_HIDE);
 }
 
 int Application::EditMusic(const SimpleMusicType& music)
 {
 	if (editor_opened) return 0;
 
+	editMusic = nullptr;
 	AVLTreeIterator<MusicType> iter(musicList);
 	MusicType* data = nullptr;
 
@@ -814,232 +875,46 @@ int Application::EditMusic(const SimpleMusicType& music)
 	{
 		data = iter.CurrentPtr();
 		int compare = wcscmp(data->GetPath().c_str(), music.GetPath().c_str());
-		if (compare < 0) iter.GotoLeft();
-		else if (compare > 0) iter.GotoRight();
-
-		break; //찾으면 종료
+		if (compare > 0) iter.GotoLeft();
+		else if (compare < 0) iter.GotoRight();
+		else break; //찾으면 종료
 	}
 
 	if (data == nullptr) return 0; //못 찾으면 0 반환
 
 	editMusic = data;
 
-	editedMusic = *editMusic; //수정할 데이터를 복사해옴
-
+	SetWindowTextA(edit_nameEdit, editMusic->GetName().c_str());
+	SetWindowTextA(edit_artistEdit, editMusic->GetArtist().c_str());
+	SetWindowTextA(edit_albumEdit, editMusic->GetAlbum().c_str());
+	SetWindowTextA(edit_genreEdit, editMusic->GetGenre().c_str());
+	SetWindowTextA(edit_composerEdit, editMusic->GetComposer().c_str());
+	SetWindowTextA(edit_writerEdit, editMusic->GetWriter().c_str());
+	SetWindowTextA(edit_dateEdit, to_string(editMusic->GetDate()).c_str());
+	SetWindowTextA(edit_lyricsEdit, editMusic->GetLyrics().c_str());
+	SetWindowTextA(edit_timeLabel, ("Played Time : " + to_string(editMusic->GetPlayedTime())).c_str());
+	SetWindowTextW(edit_pathLabel, (L"Path : " + editMusic->GetPath()).c_str());
 	OpenEditor();
-
-	thread t([this]()
-	{
-		this->EditWindow();
-	});
-
-	t.detach();
-
 	return 1;
-}
-
-void Application::EditWindow()
-{
-	string buffer = editedMusic.GetComposer();
-
-	//초기화 파트
-	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
-	CONSOLE_SCREEN_BUFFER_INFO cbsi;
-	COORD pos = { 14 , 5 };
-
-	while (!GetAsyncKeyState(VK_ESCAPE)) //ESC키를 누르지 않는 동안
-	{
-		//출력 파트
-		system("cls");
-		cout << "정보 수정을 종료하려면 [ESC]키를 눌러주세요." << endl;
-		cout << "Name :        " << editedMusic.GetName() << endl;
-		cout << "Artist :      " << editedMusic.GetArtist() << endl;
-		cout << "Album :       " << editedMusic.GetAlbum() << endl;
-		cout << "Genre :       " << editedMusic.GetGenre() << endl;
-		cout << "Composer :    " << editedMusic.GetComposer() << endl;
-		cout << "Writer :      " << editedMusic.GetWriter() << endl;
-		cout << "Date :        " << editedMusic.GetDate() << endl;
-		cout << "Length :      " << editedMusic.GetLength() << endl;
-		cout << "Lyrics :      " << editedMusic.GetLyrics() << endl;
-
-		cout << endl << "CANNOT EDIT BELOW---------------" << endl;
-		cout << "Played Time : " << editedMusic.GetPlayedTime() << endl;
-		cout << "Path :        ";
-		wcout << editedMusic.GetPath() << endl;
-
-		SetConsoleCursorPosition(console, pos);
-		GetConsoleScreenBufferInfo(console, &cbsi);
-		pos = cbsi.dwCursorPosition; //커서 업데이트
-
-		//수정 파트
-		unsigned char ch = _getch();
-		bool moveCursor = false;
-		int lineMove = 0;
-
-		if (ch >= 128) //아스키 코드가 아닌 경우
-		{
-			//2 byte를 읽어와야 한다.
-
-			if (ch == 224) //방향키
-			{
-				moveCursor = true;
-				switch (ch = _getch())
-				{
-				case 72: //위
-					pos.Y--;
-					lineMove = 1;
-					break;
-
-				case 75: //왼쪽
-					pos.X--;
-					break;
-
-				case 77: //오른쪽
-					pos.X++;
-					break;
-
-				case 80: //아래
-					pos.Y++;
-					lineMove = 1;
-					break;
-				}
-			}
-			else
-				buffer = buffer.substr(0, pos.X - 14) + (char)ch + (char)_getch() + buffer.substr(pos.X - 14); //스트링 삽입
-		}
-		else
-		{
-			if (ch == 8 && pos.X > 14) //backspace. 맨 앞 글자가 아닌 경우
-			{
-				if (buffer.at(pos.X - 15) < 128) buffer = buffer.substr(0, pos.X - 15) + buffer.substr(pos.X - 14); //ascii 코드인 경우
-				else buffer = buffer.substr(0, pos.X - 15) + buffer.substr(pos.X - 15); //2byte 지우기
-				pos.X--;
-			}
-			else if (ch == '\n' && pos.Y == 9) //enter 키. 여러 줄 입력이 허용되는 가사인 경우
-			{
-				buffer = buffer.substr(0, pos.X - 14) + (char)ch + buffer.substr(pos.X - 14);
-				pos.X = 0;
-				pos.Y++;
-			}
-
-			else if (ch >= 32) //일반적인 경우
-			{
-				buffer = buffer.substr(0, pos.X - 14) + (char)ch + buffer.substr(pos.X - 14);
-				pos.X++;
-			}
-				
-		}
-
-		if (moveCursor) //커서가 이동한 경우
-		{
-			char byte[2] = { 0 };
-			DWORD len;
-			ReadConsoleOutputCharacterA(console, byte, 2, pos, &len); //2byte씩 문자를 읽어온다.
-			if (*byte < 0) //음수인 경우 아스키 코드가 아니므로 유니코드로 판단한다.
-			{
-				if (ch == 75) pos.X--; //왼쪽 이동
-				else pos.X++; //나머지는 오른쪽 이동
-				//2byte이므로 한 번 더 커서 이동
-			}
-		} 
-		else //커서가 이동한 것이 아닌 경우
-		{
-			switch (pos.Y)
-			{
-			case 1:
-				editedMusic.SetName(buffer);
-				break;
-
-			case 2:
-				editedMusic.SetArtist(buffer);
-				break;
-
-			case 3:
-				editedMusic.SetAlbum(buffer);
-				break;
-
-			case 4:
-				editedMusic.SetGenre(buffer);
-				break;
-
-			case 5:
-				editedMusic.SetComposer(buffer);
-				break;
-			}
-		}
-
-		if (pos.X < 14) //위 줄로 이동
-		{
-			pos.Y--;
-			lineMove = 2;
-		}
-		else if (pos.X > 14 + buffer.size()) //아래 줄로 이동
-		{
-			pos.Y++;
-			pos.X = 14;
-			lineMove = 1;
-		}
-
-		
-
-		if (!lineMove) continue;
-
-		if (pos.Y <= 0) pos.Y = 5;
-		if (pos.Y > 5) pos.Y = 1;
-
-		switch (pos.Y)
-		{
-		case 1:
-			buffer = editedMusic.GetName();
-			break;
-
-		case 2:
-			buffer = editedMusic.GetArtist();
-			break;
-
-		case 3:
-			buffer = editedMusic.GetAlbum();
-			break;
-
-		case 4:
-			buffer = editedMusic.GetGenre();
-			break;
-
-		case 5:
-			buffer = editedMusic.GetComposer();
-			break;
-		}
-
-		if (lineMove == 1)
-		{
-			if (pos.X > 14 + buffer.size()) pos.X = 14 + buffer.size();
-		}
-		else if (lineMove == 2) pos.X = 14 + buffer.size();
-	}
-	
-	CloseEditor();
-	ReplaceMusic();
-}
-
-void Application::CloseEditor()
-{
-	if (!editor_opened) return;
-	fclose(buffer);
-	ShowWindow(GetConsoleWindow(), SW_HIDE);
-	FreeConsole();
-	buffer = NULL;
-	editor_opened = false;
 }
 
 int Application::ReplaceMusic()
 {
 	if (editMusic == nullptr) return 0; //수정할 음악 타입이 정해져 있지 않으면 0 반환
 
-	/*
-	string newName = String::WstrToStr(nameEdit->getText());
-	string newArtist = String::WstrToStr(artistEdit->getText());
+	char* newName;
+	int len = GetWindowTextLengthA(edit_nameEdit) + 1; //여유분 +1
+	newName = new char[len];
+	newName[len-1] = 0;
+	GetWindowTextA(edit_nameEdit, newName, len);
+
+	char* newArtist;
+	len = GetWindowTextLengthA(edit_artistEdit) + 1;
+	newArtist = new char[len];
+	newArtist[len-1] = 0;
+	GetWindowTextA(edit_artistEdit, newArtist, len);
 	
-	bool idChange = strcmp(editMusic->GetName().c_str(), newName.c_str()) || strcmp(editMusic->GetArtist().c_str(), newArtist.c_str());
+	bool idChange = strcmp(newName, editMusic->GetName().c_str()) || strcmp(newArtist, editMusic->GetArtist().c_str());
 
 	Album album;
 	Artist artist;
@@ -1056,6 +931,7 @@ int Application::ReplaceMusic()
 	folderList.Get(folder);
 
 	SimpleMusicType simple = *editMusic;
+	simple.SetID(editMusic->GetName() + '_' + editMusic->GetArtist());
 
 	if (idChange)
 	{
@@ -1079,17 +955,54 @@ int Application::ReplaceMusic()
 
 	editMusic->SetName(newName);
 	editMusic->SetArtist(newArtist);
-	editMusic->SetComposer(String::WstrToStr(composerEdit->getText()));
-	editMusic->SetWriter(String::WstrToStr(writerEdit->getText()));
+	delete[] newName;
+	delete[] newArtist;
 
-	unsigned int newDate = std::stoi(dateEdit->getText());
-	while (newDate < 10000000) newDate *= 10; //YYYYMMDD 형식에 맞춘다.
-	editMusic->SetDate(newDate);
-	editMusic->SetAlbum(String::WstrToStr(albumEdit->getText()));
-	editMusic->SetGenre(String::WstrToStr(genreEdit->getText()));
-	editMusic->SetLyrics(String::WstrToStr(lyricsEdit->getText()));
+	char* newValue;
 
-	//musicList는 포인터를 이용해 수정했으므로 Replace할 필요 없음
+	len = GetWindowTextLengthA(edit_composerEdit) + 1;
+	newValue = new char[len];
+	newValue[len - 1] = 0;
+	GetWindowTextA(edit_composerEdit, newValue, len);
+	editMusic->SetComposer(newValue);
+	delete[] newValue;
+
+	len = GetWindowTextLengthA(edit_writerEdit) + 1;
+	newValue = new char[len];
+	newValue[len - 1] = 0;
+	GetWindowTextA(edit_writerEdit, newValue, len);
+	editMusic->SetWriter(newValue);
+	delete[] newValue;
+
+	len = GetWindowTextLengthA(edit_dateEdit) + 1;
+	newValue = new char[len];
+	newValue[len - 1] = 0;
+	GetWindowTextA(edit_dateEdit, newValue, len);
+	editMusic->SetDate(stoi(newValue));
+	delete[] newValue;
+
+	len = GetWindowTextLengthA(edit_albumEdit) + 1;
+	newValue = new char[len];
+	newValue[len - 1] = 0;
+	GetWindowTextA(edit_albumEdit, newValue, len);
+	editMusic->SetAlbum(newValue);
+	delete[] newValue;
+
+	len = GetWindowTextLengthA(edit_genreEdit) + 1;
+	newValue = new char[len];
+	newValue[len - 1] = 0;
+	GetWindowTextA(edit_genreEdit, newValue, len);
+	editMusic->SetGenre(newValue);
+	delete[] newValue;
+
+	len = GetWindowTextLengthA(edit_lyricsEdit) + 1;
+	newValue = new char[len];
+	newValue[len - 1] = 0;
+	GetWindowTextA(edit_lyricsEdit, newValue, len);
+	editMusic->SetLyrics(newValue);
+	delete[] newValue;
+
+	//musicList는 포인터를 이용해 수정했으므로 Replace할 필요 없음 (Path가 ID인데 Path는 그대로임)
 	
 	simple = *editMusic;
 
@@ -1112,6 +1025,7 @@ int Application::ReplaceMusic()
 		folder.ReplaceMusic(simple);
 		folderList.Replace(folder);
 
+		UpdateList();
 		return 1;
 	}
 
@@ -1158,14 +1072,15 @@ int Application::ReplaceMusic()
 	}
 
 	UpdateList();
-	*/
+
+	editMusic = nullptr;
 	return 1;
 }
 
 int Application::DeleteMusic(const SimpleMusicType& music)
 {	
 	MusicType data;
-	data.SetPath(music.GetPath());
+	data.SetID(String::WstrToStr(music.GetPath()));
 
 	if (!musicList.Get(data)) return 0;
 	musicList.Delete(data);
@@ -1181,7 +1096,7 @@ int Application::DeleteMusic(const SimpleMusicType& music)
 	album.SetID(data.GetAlbum() + '_' + data.GetArtist());
 	artist.SetID(data.GetArtist());
 	genre.SetGenre(data.GetGenre());
-	wstring path = editMusic->GetPath();
+	wstring path = data.GetPath();
 	path = path.substr(0, path.find_last_of(L'\\'));
 	folder.SetPath(path);
 
@@ -1466,4 +1381,9 @@ void Application::UpdateList()
 		DisplayAllMusic();
 		break;
 	}
+}
+
+int Application::InputNumeric(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+	return CallWindowProc(oldProc, hWnd, iMessage, wParam, lParam);
 }

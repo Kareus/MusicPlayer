@@ -18,7 +18,6 @@ class SimpleMusicType
 private:
 	string id; ///<곡의 primary key
 	string name; ///<곡명
-	unsigned int length; ///<길이
 	unsigned int time; ///<재생 횟수
 	wstring path; ///<파일 경로
 
@@ -53,14 +52,6 @@ public:
 	*	@return	곡의 primary key.
 	*/
 	string GetID() const;
-
-	/**
-	*	@brief	곡의 길이를 반환한다.
-	*	@pre	length 변수가 할당되어 있어야 한다.
-	*	@post	없음.
-	*	@return	곡의 길이.
-	*/
-	unsigned int GetLength() const;
 	
 	/**
 	*	@brief	곡의 재생 횟수를 반환한다.
@@ -93,14 +84,6 @@ public:
 	*	@param	id	설정할 곡의 primary key.
 	*/
 	void SetID(const string& id);
-
-	/**
-	*	@brief	곡의 길이를 설정한다.
-	*	@pre	없음.
-	*	@post	곡의 길이를 할당한다.
-	*	@param	length	설정할 곡의 길이.
-	*/
-	void SetLength(unsigned int length);
 
 	/**
 	*	@brief	곡의 재생횟수를 설정한다.

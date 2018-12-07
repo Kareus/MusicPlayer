@@ -67,6 +67,43 @@ void Update(HWND hwnd, PlayerState state)
 
 }
 
+LRESULT CALLBACK NumericProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+	switch (iMessage)
+	{
+	case WM_CHAR:
+		if (wParam < 20) break; //특수 코드는 제외
+		if (GetWindowTextLength(hWnd) >= 8) return 0;
+		if (wParam < 48 || wParam > 57) return 0; //숫자가 아닌 경우 처리하지 않음
+	}
+
+	return app->InputNumeric(hWnd, iMessage, wParam, lParam);
+}
+
+LRESULT CALLBACK EditProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+	switch (iMessage)
+	{
+	case WM_CTLCOLORSTATIC:
+	{
+		HDC hdcStatic = (HDC)wParam;
+		SetBkColor(hdcStatic, RGB(0xbd, 0xbd, 0xbd));
+
+		return (INT_PTR)CreateSolidBrush(RGB(0xbd, 0xbd, 0xbd));
+	}
+
+	case WM_COMMAND:
+		if (HIWORD(wParam) == BN_CLICKED)
+		{
+			app->CloseEditor();
+			return 0;
+		}
+		break;
+	}
+
+	return DefWindowProc(hWnd, iMessage, wParam, lParam);
+}
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	if (!app->IsRunning()) return DefWindowProc(hWnd, iMessage, wParam, lParam);
@@ -92,7 +129,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 	case WM_ACTIVATE:
 		BringWindowToTop(hWnd);
-		if (app->GetHandle() == hWnd && app->IsEditing()) BringWindowToTop(GetConsoleWindow()); //editor가 무조건 상위에 오도록 설정
+		if (app->GetHandle() == hWnd && app->IsEditing()) app->SwapEditor(); //editor가 무조건 상위에 오도록 설정
 		break;
 
 	case WM_LBUTTONDOWN:

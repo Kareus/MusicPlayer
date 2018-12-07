@@ -139,7 +139,6 @@ int Album::ReadDataFromFile(ifstream& fin)
 		SimpleMusicType music;
 		music.SetID(id);
 		music.SetName(name);
-		music.SetLength(length);
 
 		list.Add(music);
 	}
@@ -163,7 +162,6 @@ int Album::WriteDataToFile(ofstream& fout)
 		music = iter.CurrentPtr();
 		fout << music->GetID() << endl;
 		fout << music->GetName() << endl;
-		fout << music->GetLength() << endl;
 		iter.Next();
 	}
 	return 1;

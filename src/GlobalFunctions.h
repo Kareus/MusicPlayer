@@ -59,8 +59,14 @@ namespace System
 //플레이어에 의해 윈도우를 업데이트하는 함수
 void Update(HWND hwnd, PlayerState state);
 
-//윈도우 프로토콜을 처리할 함수
+//윈도우 프로시저를 처리할 함수
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+
+//에디터 프로시저를 처리할 함수
+LRESULT CALLBACK EditProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+
+//숫자만 입력받기 위한 프로시저 함수
+LRESULT CALLBACK NumericProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 //플레이어를 실행 중일 때 처리할 이벤트
 void OnPlayerEvent(HWND hwnd, WPARAM pUnkPtr);

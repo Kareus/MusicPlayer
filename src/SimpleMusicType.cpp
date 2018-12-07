@@ -3,7 +3,6 @@
 SimpleMusicType::SimpleMusicType()
 {
 	id = "";
-	length = 0;
 	name = "";
 	time = 0;
 	path = L"";
@@ -13,7 +12,6 @@ SimpleMusicType::SimpleMusicType(const SimpleMusicType& data)
 {
 	name = data.GetName();
 	id = data.GetID();
-	length = data.GetLength();
 	time = data.GetPlayedTime();
 	path = data.GetPath();
 }
@@ -30,11 +28,6 @@ void SimpleMusicType::SetName(const string& name)
 void SimpleMusicType::SetID(const string& id)
 {
 	this->id = id;
-}
-
-void SimpleMusicType::SetLength(unsigned int length)
-{
-	this->length = length;
 }
 
 void SimpleMusicType::SetPlayedTime(unsigned int time)
@@ -55,11 +48,6 @@ string SimpleMusicType::GetName() const
 string SimpleMusicType::GetID() const
 {
 	return id;
-}
-
-unsigned int SimpleMusicType::GetLength() const
-{
-	return length;
 }
 
 unsigned int SimpleMusicType::GetPlayedTime() const
@@ -91,7 +79,6 @@ SimpleMusicType& SimpleMusicType::operator=(const SimpleMusicType& data)
 {
 	name = data.GetName();
 	id = data.GetID();
-	length = data.GetLength();
 	time = data.GetPlayedTime();
 	path = data.GetPath();
 
@@ -104,7 +91,6 @@ int SimpleMusicType::ReadDataFromFile(ifstream& fin)
 
 	getline(fin, id);
 	getline(fin, name);
-	fin >> length;
 	fin.ignore();
 	fin >> time;
 	fin.ignore();
@@ -118,7 +104,6 @@ int SimpleMusicType::WriteDataToFile(ofstream& fout)
 
 	fout << id << endl;
 	fout << name << endl;
-	fout << length << endl;
 	fout << time << endl;
 
 	return 1;

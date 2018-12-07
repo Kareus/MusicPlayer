@@ -267,6 +267,8 @@ int DoublyLinkedList<T>::Add(const T& item)
 		DoublyNodeType<T>* current;	// iterator에서 접근할 노드
 		do
 		{
+			if (!iter.NotNull() || !iter.NotNull()) return 0;
+
 			//앞 탐색
 			current = iter.m_pCurPointer;
 
@@ -340,7 +342,8 @@ int DoublyLinkedList<T>::Get(T& item)
 		{
 			if (compare < 0) iter.Next();
 			if (compare2 > 0) iter2.Prev();
-			continue;
+			if (iter.NotNull() && iter2.NotNull()) continue;
+			return 0;
 		}
 
 		return 1;
@@ -371,7 +374,8 @@ int DoublyLinkedList<T>::Delete(const T& item)
 		{
 			if (compare < 0) iter.Next();
 			if (compare2 > 0) iter2.Prev();
-			continue;
+			if (iter.NotNull() && iter2.NotNull()) continue;
+			return 0;
 		}
 
 		if (node->prev != nullptr) node->prev->next = node->next; //이전 노드의 다음을 다음 노드로 설정
@@ -408,7 +412,8 @@ int DoublyLinkedList<T>::Replace(const T& item)
 		{
 			if (compare < 0) iter.Next();
 			if (compare2 > 0) iter2.Prev();
-			continue;
+			if (iter.NotNull() && iter2.NotNull()) continue;
+			return 0;
 		}
 
 		return 1;

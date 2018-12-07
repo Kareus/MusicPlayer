@@ -14,11 +14,7 @@ void DirectoryReader::openDirWithFileBox()
 {
 	wstring path = L"";
 	FileDialog dialog;
-	if (dialog.openDirectoryDialog(path) != DIALOG_SUCCESS)
-	{
-		cout << "error!" << endl;
-		return;
-	}
+	if (dialog.openDirectoryDialog(path) != DIALOG_SUCCESS) return;
 	else openDirectory(path);
 }
 
@@ -35,15 +31,11 @@ bool DirectoryReader::openDirectory(const wstring& filepath)
 		while ((ent = wreaddir(dir)) != NULL) {
 			wstring name = ent->d_name;
 			pathList.Add(name);
-			OutputDebugStringW((name + L'\n').c_str());
 		}
 
 		wclosedir(dir);
 	}
-	else {
-		cout << "Cannot open the directory" << endl;
-		return 0;
-	}
+	else return 0;
 
 	return 1;
 }

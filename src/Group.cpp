@@ -4,6 +4,7 @@ Group::Group()
 {
 	position.x = 0;
 	position.y = 0;
+	viewRect.left = -1;
 	drawings.SetCompareFunction(compareGraphics);
 	drawings.MakeEmpty();
 	focus = nullptr;
@@ -55,10 +56,20 @@ void Group::draw(sf::RenderWindow* window)
 	DoublyIterator<Graphic*> iter(drawings);
 	Graphic* g;
 
+	bool clip = false;
+	if (viewRect.left >= 0) clip = true;
+
 	while (iter.NotNull())
 	{
 		g = iter.Current();
-		g->draw(window);
+		if (clip)
+		{
+			glEnable(GL_SCISSOR_TEST);
+			glScissor(viewRect.left + position.x, window->getSize().y - viewRect.height - viewRect.top - position.y, viewRect.width, viewRect.height);
+			g->draw(window);
+			glDisable(GL_SCISSOR_TEST);
+		}
+		else g->draw(window);
 		iter.Next();
 	}
 }
@@ -254,12 +265,15 @@ DoublyIterator<Graphic*> Group::GetIterator()
 	return iter;
 }
 
-void Group::SetData(const std::wstring& data)
+void Group::SetViewRect(float x, float y, float width, float height)
 {
-	this->data = data;
+	viewRect.left = x;
+	viewRect.top = y;
+	viewRect.width = width;
+	viewRect.height = height;
 }
 
-std::wstring Group::GetData()
+sf::FloatRect Group::GetViewRect()
 {
-	return data;
+	return viewRect;
 }

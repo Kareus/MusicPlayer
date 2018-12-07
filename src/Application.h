@@ -33,7 +33,6 @@ class Application {
 private:
 	HWND Handle; ///<실제 윈도우 핸들
 	HWND editor; ///<에디터 용 콘솔
-	FILE* buffer; ///<에디터에 쓸 버퍼
 
 	bool editor_opened;
 	bool updating;
@@ -46,6 +45,30 @@ private:
 	Sprite* nextSprite;
 	Sprite* searchSprite;
 	Sprite* addDirSprite;
+	Sprite* scrollbackSprite;
+	Sprite* scrollSprite;
+
+	HWND edit_nameLabel;
+	HWND edit_nameEdit;
+	HWND edit_artistLabel;
+	HWND edit_artistEdit;
+	HWND edit_albumLabel;
+	HWND edit_albumEdit;
+	HWND edit_genreLabel;
+	HWND edit_genreEdit;
+	HWND edit_composerLabel;
+	HWND edit_composerEdit;
+	HWND edit_writerLabel;
+	HWND edit_writerEdit;
+	HWND edit_dateLabel;
+	HWND edit_dateEdit;
+	HWND edit_lyricsLabel;
+	HWND edit_lyricsEdit;
+	HWND edit_timeLabel;
+	HWND edit_pathLabel;
+	HWND edit_ok;
+
+	WNDPROC oldProc;
 
 	int m_Command; ///< 사용자로부터 입력받은 현재 커맨드
 	std::ifstream m_inputFile; ///< 파일 입력을 받기 위한 스트림
@@ -75,7 +98,6 @@ private:
 	Group* currentGroup; ///<현재 출력중인 그룹
 	bool running; ///<애플리케이션 구동 여부
 	MusicType* editMusic; ///<에디터 윈도우에서 수정할 음악 타입
-	MusicType editedMusic; ///<에디터 윈도우에서 수정된 정보를 가지는 음악 타입
 	SimpleMusicType currentMusic; ///<마지막으로 재생한 음악 데이터
 	
 	int displayMode; ///<출력할 리스트 모드 (0 : Music 1 : Album 2 : Artist 3 : Genre 4 : Playlist)
@@ -154,6 +176,7 @@ private:
 	void RenderMain();
 
 	void initMainGraphic();
+	void initEditor();
 
 	void ReleaseMainGraphic();
 
@@ -161,15 +184,13 @@ private:
 
 	void OpenEditor();
 
-	void EditWindow();
-
-	void CloseEditor();
-
 public:
 
 	HWND GetHandle() { return Handle; }
 
 	bool IsEditing();
+
+	void SwapEditor();
 
 	/**
 	*	기본 생성자
@@ -304,6 +325,10 @@ public:
 	void UpdateList();
 
 	Group* CreateDisplayGraphic(const MusicType& data);
+
+	int InputNumeric(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+
+	void CloseEditor();
 };
 #pragma once
 #endif

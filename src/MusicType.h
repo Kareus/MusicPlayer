@@ -31,7 +31,6 @@ private:
 	unsigned int date; ///<발표일
 	string album; ///<앨범
 	string genre; ///<장르
-	unsigned int length; ///<재생 길이 (second)
 	unsigned int time; ///<재생 횟수
 	string lyrics;	///<가사
 	string ID; ///<고유 키
@@ -139,14 +138,6 @@ public:
 	unsigned int GetDate() const;
 
 	/**
-	*	@brief	곡의 길이를 반환한다.
-	*	@pre	length가 할당되어 있어야 한다.
-	*	@post	없음.
-	*	@return	곡의 길이.
-	*/
-	unsigned int GetLength() const;
-
-	/**
 	*	@brief	재생 횟수를 반환한다.
 	*	@pre	time이 할당되어 있어야 한다.
 	*	@post	없음.
@@ -229,14 +220,6 @@ public:
 	*	@param	date	설정할 발표년월일 (YYYYMMDD 형식. ex: 20180924 )
 	*/
 	void SetDate(unsigned int date);
-
-	/**
-	*	@brief	곡의 길이를 설정한다.
-	*	@pre	없음.
-	*	@post	length 변수가 할당된다.
-	*	@param	length	설정할 곡의 길이.
-	*/
-	void SetLength(unsigned int length);
 
 	/**
 	*	@brief	재생 횟수를 설정한다.
@@ -345,9 +328,9 @@ public:
 	{
 		SimpleMusicType simple;
 		simple.SetID(ID);
-		simple.SetLength(length);
 		simple.SetName(name);
 		simple.SetPlayedTime(time);
+		simple.SetPath(path);
 
 		return simple;
 	}
