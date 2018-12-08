@@ -303,11 +303,15 @@ int AVLTree<T>::DeleteNode(AVLTreeNode<T>*& node, const T& data)
 		if (node->left && node->right) //child가 둘인 경우
 		{
 			AVLTreeNode<T>* r = node->right;
-			AVLTreeNode<T>* n = r; //r의 부모 노드
+			AVLTreeNode<T>* n = node; //r의 부모 노드
+
+			bool leftChild = false;
+
 			while (r->left)
 			{
 				n = r;
 				r = r->left;
+				leftChild = true;
 			}
 			//현재 data보다 큰 값 중 가장 작은 값을 찾는다. (되도록 complete tree를 만들기 위함)
 			//r은 leaf node임이 보장된다.
@@ -315,7 +319,8 @@ int AVLTree<T>::DeleteNode(AVLTreeNode<T>*& node, const T& data)
 			node->data = r->data;
 			delete r;
 
-			n->left = nullptr; //부모 노드가 dangling pointer를 가리키지 않도록 방지
+			if (leftChild) n->left = nullptr; //부모 노드가 dangling pointer를 가리키지 않도록 방지
+			else n->right = nullptr; //right node가 leaf node인 경우
 		}
 		else //child가 없거나 하나인 경우
 		{
