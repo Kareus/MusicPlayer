@@ -21,11 +21,12 @@ Sprite::Sprite(const std::string& texturePath)
 	overColor = sf::Color(180, 180, 180);
 	normalColor = sf::Color(255, 255, 255);
 	textureRect = sprite->getTextureRect();
+	visible = true;
 
 	mouseOver = false;
 	button = false;
-	mouseDownFunc = [](Sprite* spr) {return; };
-	mouseUpFunc = [](Sprite* spr) {return; };
+	mouseDownFunc = [](Sprite*) {return; };
+	mouseUpFunc = [](Sprite*) {return; };
 }
 
 Sprite::Sprite(const Sprite& data)
@@ -114,6 +115,8 @@ void Sprite::SetMouseUpFunction(const std::function<void(Sprite*)>& func)
 
 bool Sprite::pollEvent(CustomWinEvent e)
 {
+	if (!visible) return false;
+
 	switch (e.type)
 	{
 	case CustomWinEvent::MouseDown:

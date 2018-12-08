@@ -16,8 +16,8 @@
 #include <SFML/Graphics.hpp>
 #include "MediaPlayer.h"
 #include "GraphicElements.h"
-#include <thread>
 #include "CustomWinEvent.h"
+#include "GlobalFunctions.h"
 
 #define FILENAMESIZE 1024
 
@@ -37,6 +37,7 @@ private:
 	bool editor_opened;
 	bool updating;
 
+	TextBox* defaultSearch;
 	Sprite* playerSprite;
 	Sprite* minimizeSprite;
 	Sprite* closeSprite;
@@ -47,6 +48,20 @@ private:
 	Sprite* addDirSprite;
 	Sprite* scrollbackSprite;
 	Sprite* scrollSprite;
+
+	Group* tab_song;
+	Group* tab_album;
+	Group* tab_artist;
+	Group* tab_genre;
+	Group* tab_folder;
+	Group* tab_playlist;
+
+	Sprite* song_sprite;
+	Sprite* album_sprite;
+	Sprite* artist_sprite;
+	Sprite* genre_sprite;
+	Sprite* folder_sprite;
+	Sprite* playlist_sprite;
 
 	HWND edit_nameLabel;
 	HWND edit_nameEdit;
@@ -74,13 +89,13 @@ private:
 	std::ifstream m_inputFile; ///< 파일 입력을 받기 위한 스트림
 	std::ofstream m_outFile; ///< 파일 출력을 하기 위한 스트림
 	AVLTree<MusicType> musicList; ///< 모든 음악을 저장하는 리스트 (master list). 경로 순으로 정렬.
-	DoublyLinkedList<GenreType> genreList; ///< 장르를 저장하는 리스트
+	AVLTree<GenreType> genreList; ///< 장르를 저장하는 리스트
 	CircularQueueType<SimpleMusicType> newAddMusicList = CircularQueueType<SimpleMusicType>(31); ///< 최근 추가된 음악 리스트.
 	//30개 데이터를 추가해야 하므로 MAXSIZE = 31
 	
 	AVLTree<SimpleMusicType> nameList; ///<이름 순으로 음악을 저장하는 리스트. 이름_아티스트 순으로 정렬.
-	DoublyLinkedList<Album> albumList;
-	DoublyLinkedList<Artist> artistList;
+	AVLTree<Album> albumList;
+	AVLTree<Artist> artistList;
 	DoublyLinkedList<SimpleMusicType> recentPlayedList;
 	DoublyLinkedList<SimpleMusicType> mostPlayedList;
 	AVLTree<FolderType> folderList;
@@ -99,6 +114,8 @@ private:
 	bool running; ///<애플리케이션 구동 여부
 	MusicType* editMusic; ///<에디터 윈도우에서 수정할 음악 타입
 	SimpleMusicType currentMusic; ///<마지막으로 재생한 음악 데이터
+	bool scrolling; ///<스크롤바 드래그 여부
+	bool mouseDown;
 	
 	int displayMode; ///<출력할 리스트 모드 (0 : Music 1 : Album 2 : Artist 3 : Genre 4 : Playlist)
 
@@ -156,20 +173,38 @@ private:
 
 	function<void(Sprite*)> func_editData = [this](Sprite* sprite) { 
 		SimpleMusicType data;
-		data.SetPath(sprite->GetData());
+		data.SetPath(String::StrToWstr(sprite->GetData()));
 		EditMusic(data);
 	};
 
 	function<void(Sprite*)> func_removeData = [this](Sprite* sprite) { 
 		SimpleMusicType data;
-		data.SetPath(sprite->GetData());
+		data.SetPath(String::StrToWstr(sprite->GetData()));
 		DeleteMusic(data);
 	};
 
 	function<void(Sprite*)> func_playData = [this](Sprite* sprite) {
 		SimpleMusicType data;
-		data.SetPath(sprite->GetData());
+		data.SetPath(String::StrToWstr(sprite->GetData()));
 		PlayMusic(data);
+	};
+
+	function<void(Sprite*)> func_scrollDown = [this](Sprite*) {
+		scrolling = true;
+	};
+
+	function<void(Sprite*)> func_scrollUp = [this](Sprite*) {
+		scrolling = false;
+	};
+
+	function<void(Sprite*)> func_detail = [this](Sprite* sprite) {
+		SendToDetail(sprite->GetData());
+	};
+
+	function<void(Sprite*)> func_search = [this](Sprite* sprite) {
+		string data = String::WstrToStr(defaultSearch->getText());
+		if (!data.empty()) Search(data, displayMode);
+		else UpdateList();
 	};
 
 	//멀티 쓰레드에서 윈도우를 렌더링할 때 쓸 함수
@@ -324,11 +359,40 @@ public:
 
 	void UpdateList();
 
-	Group* CreateDisplayGraphic(const MusicType& data);
+	Group* CreateDisplayGraphic(const SimpleMusicType& data);
+
+	Group* CreateDisplayGraphic(const Album& data);
+
+	Group* CreateDisplayGraphic(const Artist& data);
+
+	Group* CreateDisplayGraphic(const GenreType& data);
+
+	Group* CreateDisplayGraphic(const FolderType& data);
 
 	int InputNumeric(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 	void CloseEditor();
+
+	void UpdateScroll();
+
+	void ChangeState(int state);
+
+	void UpdateMode();
+
+	void DisplayAllAlbum();
+
+	void DisplayAllArtist();
+
+	void DisplayAllGenre();
+
+	void DisplayAllFolder();
+
+	void Search(const std::string& keyword, int mode = 0);
+
+	void SendToDetail(const std::string& data);
+
+	void FilterDisplay(const std::string& label, const std::string& content, bool& notLabel);
+
 };
 #pragma once
 #endif

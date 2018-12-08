@@ -14,6 +14,9 @@ namespace Resource
 		delete removeSprite;
 		delete backSprite;
 		delete playSprite;
+		delete tabSprite;
+		delete detailSprite;
+		delete tolistSprite;
 	}
 }
 
@@ -29,6 +32,23 @@ namespace String
 	{
 		USES_CONVERSION;
 		return W2A(str.c_str());
+	}
+
+	std::string Strip(const std::string& str)
+	{
+		std::string newString = "";
+		for (int i = 0; i < str.size(); i++)
+			if (str.at(i) != ' ') newString += str.at(i);
+		return newString;
+	}
+
+	std::string Strip_LR(const std::string& str)
+	{
+		int start = 0;
+		int end = str.size() - 1;
+		while (str.at(start) == ' ') start++;
+		while (str.at(end) == ' ') end--;
+		return str.substr(start, end+1);
 	}
 }
 

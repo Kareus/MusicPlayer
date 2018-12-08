@@ -22,6 +22,9 @@ namespace Resource
 	static Sprite* removeSprite = nullptr;
 	static Sprite* backSprite = nullptr;
 	static Sprite* playSprite = nullptr;
+	static Sprite* tabSprite = nullptr;
+	static Sprite* detailSprite = nullptr;
+	static Sprite* tolistSprite = nullptr;
 
 	void ReleaseResource();
 }
@@ -33,6 +36,12 @@ namespace String
 
 	//wstring에서 string으로 변환하는 함수
 	std::string WstrToStr(const std::wstring& str);
+
+	//공백을 제거하는 함수 (ex: '  abc de  ' -> 'abcde')
+	std::string Strip(const std::string& str);
+
+	//좌우 공백만 제거하는 함수 (ex: '  abc de  ' -> 'abc de')
+	std::string Strip_LR(const std::string& str);
 }
 
 namespace Stream

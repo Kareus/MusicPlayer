@@ -136,10 +136,13 @@ public:
 	*/
 	CircularQueueType<T>& operator=(const CircularQueueType<T>& data);
 
+	int GetLength() const;
+
 private:
 	int m_iFront;	//index of one infront of the first element.
 	int m_iRear;	//index of the last element.
 	int m_nMaxQueue;	//max size of the queue.
+	int m_nLength; //현재 큐에 있는 데이터 개수
 	int m_curPointer;	//현재 포인터
 	T* m_pItems;	//pointer for dynamic allocation.
 };
@@ -152,6 +155,7 @@ CircularQueueType<T>::CircularQueueType()
 	m_nMaxQueue = maxQueue;
 	m_iFront = m_nMaxQueue - 1;
 	m_iRear = m_nMaxQueue - 1;	//멤버 변수들을 초기화시켜준다.
+	m_nLength = 0;
 }
 
 //Allocate dynamic array whose size is max.
@@ -162,6 +166,7 @@ CircularQueueType<T>::CircularQueueType(int max)
 	m_nMaxQueue = max;
 	m_iFront = m_nMaxQueue - 1;
 	m_iRear = m_nMaxQueue - 1;	//멤버 변수들을 초기화시켜준다.
+	m_nLength = 0;
 }
 
 //Destruct the object. Free the array dynamically allocated.
@@ -201,20 +206,20 @@ void CircularQueueType<T>::MakeEmpty()
 template <typename T>
 void CircularQueueType<T>::EnQueue(const T& item)
 {
-	if (IsFull())
-		throw FullQueue();	//꽉 찼을땐 throw FullQueue
+	if (IsFull()) throw FullQueue();	//꽉 찼을땐 throw FullQueue
 	m_iRear = (m_iRear + 1) % m_nMaxQueue;
 	m_pItems[m_iRear] = item;	//m_iRear를 1증가시켜주고 item값을 넣어준다.
+	m_nLength++;
 }
 
 //Removes first item from the queue.
 template <typename T>
 void CircularQueueType<T>::DeQueue(T& item)
 {
-	if (IsEmpty())
-		throw EmptyQueue();	//비어있을땐 throw EmptyQueue
+	if (IsEmpty()) throw EmptyQueue();	//비어있을땐 throw EmptyQueue
 	m_iFront = (m_iFront + 1) % m_nMaxQueue;
 	item = m_pItems[m_iFront];	//m_iFront를 1 증가시켜주고 삭제될 값을 item에 복사해준다.
+	m_nLength--;
 }
 
 template <typename T>
@@ -252,13 +257,23 @@ int CircularQueueType<T>::Replace(const T& item, const T& data)
 template <typename T>
 CircularQueueType<T>& CircularQueueType<T>::operator=(const CircularQueueType<T>& data)
 {
+	delete[] m_pItems;
+	m_nLength = 0;
+
 	m_pItems = new T[data.m_nMaxQueue];
 	m_nMaxQueue = data.m_nMaxQueue;
 	m_iFront = m_nMaxQueue - 1;
 	m_iRear = m_nMaxQueue - 1;
 
-	for (int i = 0; i < m_nMaxQueue; i++) m_pItems[i] = data.m_pItems[i];
+	for (int i = 0; i < data.GetLength(); i++) EnQueue(data.m_pItems[i]);
 
 	return *this;
 }
+
+template <typename T>
+int CircularQueueType<T>::GetLength() const
+{
+	return m_nLength;
+}
+
 #endif

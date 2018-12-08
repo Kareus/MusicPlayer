@@ -54,6 +54,7 @@ int FolderType::GetLength() const
 
 FolderType& FolderType::operator=(const FolderType& data)
 {
+	dirPath = data.GetPath();
 	list = data.list;
 	return *this;
 }
@@ -71,4 +72,9 @@ bool FolderType::operator>(const FolderType& data) const
 bool FolderType::operator==(const FolderType& data) const
 {
 	return wcscmp(dirPath.c_str(), data.GetPath().c_str()) == 0;
+}
+
+DoublyIterator<SimpleMusicType> FolderType::GetIterator()
+{
+	return DoublyIterator<SimpleMusicType>(list);
 }

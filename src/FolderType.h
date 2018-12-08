@@ -3,7 +3,7 @@
 #define __FOLDER_TYPE__
 
 #include "SimpleMusicType.h"
-#include "AVLTree.h"
+#include "DoublyLinkedList.h"
 #include <string>
 
 /**
@@ -15,7 +15,7 @@ class FolderType
 {
 private:
 	std::wstring dirPath; ///<directory path
-	AVLTree<SimpleMusicType> list; ///<music list
+	DoublyLinkedList<SimpleMusicType> list; ///<music list
 
 public:
 	FolderType();
@@ -39,6 +39,8 @@ public:
 	int GetLength() const;
 
 	FolderType& operator=(const FolderType& data);
+
+	DoublyIterator<SimpleMusicType> GetIterator();
 
 	bool operator<(const FolderType& data) const;
 	bool operator>(const FolderType& data) const;

@@ -228,8 +228,8 @@ void DoublyLinkedList<T>::MakeEmpty()
 	}
 
 	m_nLength = 0;
-	m_pFirst = NULL;
-	m_pLast = NULL;
+	m_pFirst = nullptr;
+	m_pLast = nullptr;
 	//첫 노드, 마지막 노드에 NULL pointer를 할당한다.
 	//메모리 해제가 완전히 끝나지 않았을 때 MakeEmpty가 다시 호출되면 error가 발생하므로 해결하기 위해 추가함.
 
@@ -384,6 +384,7 @@ int DoublyLinkedList<T>::Delete(const T& item)
 		else m_pLast = node->prev; //다음 노드가 nullptr이면 마지막 노드
 
 		delete node; //메모리 해제
+		m_nLength--;
 		return 1;
 
 	} while (!(iter.m_pCurPointer->data > iter2.m_pCurPointer->data));
@@ -461,6 +462,7 @@ int DoublyLinkedList<T>::Delete(DoublyIterator<T>& iter)
 	iter.Next();
 
 	delete node;
+	m_nLength--;
 	return 1;
 }
 #endif

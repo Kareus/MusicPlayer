@@ -4,6 +4,7 @@
 
 #include "Graphic.h"
 #include <string>
+#include <functional>
 #include <Windows.h>
 
 enum TextAlign
@@ -20,6 +21,8 @@ private:
 	sf::Vector2f position;
 	sf::Vector2f rect;
 	TextAlign align;
+	std::function<void(TextLabel*)> mouseDownFunc; ///<마우스를 눌렀을 때 실행할 함수
+	std::function<void(TextLabel*)> mouseUpFunc; ///<마우스를 뗐을 때 실행할 함수
 
 	void updateText();
 
@@ -55,6 +58,10 @@ public:
 	sf::Vector2f GetPosition() override;
 
 	sf::Vector2f GetSize() override;
+
+	void SetMouseDownFunction(const std::function<void(TextLabel*)>& func);
+
+	void SetMouseUpFunction(const std::function<void(TextLabel*)>& func);
 
 };
 #endif

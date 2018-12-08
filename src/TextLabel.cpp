@@ -14,6 +14,8 @@ TextLabel::TextLabel(const std::wstring& str)
 	align = LEFT;
 
 	focus = false;
+	mouseDownFunc = [](TextLabel*) {return; };
+	mouseUpFunc = [](TextLabel*) {return; };
 }
 
 void TextLabel::draw(sf::RenderWindow* window)
@@ -51,6 +53,24 @@ void TextLabel::setFont(sf::Font& font)
 
 bool TextLabel::pollEvent(CustomWinEvent e)
 {
+	if (!visible) return false;
+
+	switch (e.type)
+	{
+	case CustomWinEvent::MouseDown:
+		if (e.mouse.button == sf::Mouse::Left) mouseDownFunc(this);
+		else return false;
+		return true;
+
+	case CustomWinEvent::MouseUp:
+		if (e.mouse.button == CustomWinEvent::MouseButton::Left && hasPoint(sf::Vector2f(e.mouse.x, e.mouse.y)))
+		{
+			mouseUpFunc(this);
+			return true;
+		}
+		return false;
+	}
+
 	return false;
 }
 
@@ -163,4 +183,14 @@ void TextLabel::setAlign(TextAlign align)
 TextAlign TextLabel::getAlign()
 {
 	return align;
+}
+
+void TextLabel::SetMouseDownFunction(const std::function<void(TextLabel*)>& func)
+{
+	this->mouseDownFunc = func;
+}
+
+void TextLabel::SetMouseUpFunction(const std::function<void(TextLabel*)>& func)
+{
+	this->mouseUpFunc = func;
 }

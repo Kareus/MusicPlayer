@@ -12,27 +12,15 @@ Group::Group()
 
 Group::~Group()
 {
-	DoublyIterator<Graphic*> iter(drawings);
-	iter.ResetToLastPointer();
-	Graphic* g;
-
-	while (iter.NotNull())
-	{
-		g = iter.Current();
-
-		delete g;
-		iter.Prev();
-	}
-
-	drawings.MakeEmpty();
+	MakeEmpty();
 }
 
-int Group::AddGraphic(Graphic* g)
+int Group::AddGraphic(Graphic* g, bool inherit)
 {
 	g->setID(drawings.GetLength());
 	sf::Vector2f p = g->GetPosition();
 	g->SetPosition(position.x + p.x, position.y + p.y);
-	g->SetData(data);
+	if (inherit) g->SetData(data);
 	return drawings.Add(g);
 }
 
@@ -41,8 +29,27 @@ int Group::DeleteGraphic(Graphic* g)
 	return drawings.Delete(g);
 }
 
-void Group::MakeEmpty()
+void Group::MakeEmpty(bool clear)
 {
+	focus = nullptr;
+
+	if (clear) //리스트의 메모리 해제 여부
+	{
+		DoublyIterator<Graphic*> iter(drawings);
+		iter.ResetToLastPointer();
+		Graphic* g;
+
+		while (iter.NotNull())
+		{
+			g = iter.Current();
+
+			if (g != nullptr) delete g;
+			g = nullptr;
+			iter.Prev();
+		}
+	}
+	
+
 	drawings.MakeEmpty();
 }
 
@@ -200,26 +207,23 @@ bool Group::pollEvent(CustomWinEvent e)
 		break;
 
 	case CustomWinEvent::MouseMoved:
+		custom.type = CustomWinEvent::MouseOver;
+		custom.mouse = CustomWinEvent::MouseEvent();
+		custom.mouse.x = e.mouse.x;
+		custom.mouse.y = e.mouse.y;
+
 		while (iter.NotNull())
 		{
 			g = iter.Current();
 
-			if (g->hasPoint(sf::Vector2f(e.mouse.x, e.mouse.y)))
-			{
-				custom.type = CustomWinEvent::MouseOver;
-				custom.mouse = CustomWinEvent::MouseEvent();
-				custom.mouse.x = e.mouse.x;
-				custom.mouse.y = e.mouse.y;
-				g->pollEvent(custom);
-				break;
-			}
+			if (g->hasPoint(sf::Vector2f(e.mouse.x, e.mouse.y))) g->pollEvent(custom);
 			else g->pollEvent(e);
 
 			iter.Prev();
 		}
 		break;
 
-	case sf::Event::MouseLeft:
+	case CustomWinEvent::MouseLeft:
 		while (iter.NotNull())
 		{
 			iter.Current()->pollEvent(e);
@@ -256,7 +260,14 @@ bool Group::pollEvent(CustomWinEvent e)
 bool Group::hasPoint(const sf::Vector2f& point)
 {
 	sf::Vector2f size = GetSize();
-	return position.x <= point.x && point.x < position.x + size.x && position.y <= point.y && point.y < position.y + size.y;
+
+	if (viewRect.left < 0) return position.x <= point.x && point.x < position.x + size.x && position.y <= point.y && point.y < position.y + size.y;
+
+	if (size.x > viewRect.width) size.x = viewRect.width;
+	if (size.y > viewRect.height) size.y = viewRect.height;
+
+	return position.x + viewRect.left <= point.x && point.x < position.x + viewRect.left + size.x &&
+		position.y + viewRect.top <= point.y && point.y < position.y + viewRect.top + size.y;
 }
 
 DoublyIterator<Graphic*> Group::GetIterator()

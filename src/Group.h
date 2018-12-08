@@ -22,11 +22,11 @@ public:
 
 	~Group();
 
-	int AddGraphic(Graphic* graphic);
+	int AddGraphic(Graphic* graphic, bool inherit = true);
 
 	int DeleteGraphic(Graphic* graphic);
 
-	void MakeEmpty();
+	void MakeEmpty(bool clear = true);
 
 	int GetLength() const;
 
