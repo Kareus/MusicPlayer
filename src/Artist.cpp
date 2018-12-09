@@ -82,58 +82,6 @@ Artist& Artist::operator=(const Artist& data)
 	return *this;
 }
 
-int Artist::ReadDataFromFile(ifstream& fin)
-{
-	if (!fin) return 0;
-
-	getline(fin, name);
-
-	int musicLen;
-	fin >> musicLen;
-	fin.ignore();
-
-	musicList.MakeEmpty();
-
-	for (int i = 0; i < musicLen; i++)
-	{
-		string id, name;
-
-		getline(fin, id);
-		getline(fin, name);
-
-		SimpleMusicType music;
-		music.SetID(id);
-		music.SetName(name);
-
-		musicList.Add(music);
-	}
-
-	SetID(name);
-
-	return 1;
-}
-
-int Artist::WriteDataToFile(ofstream& fout)
-{
-	if (!fout) return 0;
-
-	fout << name << endl;
-	fout << musicList.GetLength() << endl;
-
-	SimpleMusicType* music;
-	DoublyIterator<SimpleMusicType> iter(musicList);
-
-	while (iter.NotNull())
-	{
-		music = iter.CurrentPtr();
-		fout << music->GetID() << endl;
-		fout << music->GetName() << endl;
-		iter.Next();
-	}
-
-	return 1;
-}
-
 DoublyIterator<SimpleMusicType>& Artist::GetIterator() const
 {
 	DoublyIterator<SimpleMusicType> iter(musicList);

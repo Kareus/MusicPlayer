@@ -3,6 +3,7 @@
 #define __MEDIA_PLAYER__
 
 #include "MFFunctions.h"
+#include <ctime>
 
 using namespace std;
 
@@ -61,6 +62,9 @@ protected:
 		return S_OK;
 	}
 
+	unsigned int startTime; ///<재생을 시작한 시간
+	unsigned int startPosition; ///<재생을 시작한 위치
+
 public:
 
 	//***COM의 IUnknown으로 인해 다음 세 함수(IUnkown의 가상 함수)를 정의해야 함.
@@ -91,7 +95,7 @@ public:
 
 	static HRESULT create(HWND playerWindow, HWND event, MediaPlayer** p_player);
 
-	HRESULT openFile(const wstring& filepath);
+	bool openFile(const wstring& filepath);
 
 	HRESULT HandleEvent(UINT_PTR ptr);
 
@@ -104,5 +108,9 @@ public:
 	HRESULT ShutDown();
 
 	PlayerState GetState() { return playState; }
+
+	unsigned int getLength();
+
+	unsigned int getPosition();
 };
 #endif

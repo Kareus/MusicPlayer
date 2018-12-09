@@ -19,7 +19,8 @@ private:
 	sf::Font font;
 	std::wstring str;
 	sf::Vector2f position;
-	sf::Vector2f rect;
+	sf::FloatRect rect;
+	sf::Vector2f offset;
 	TextAlign align;
 	std::function<void(TextLabel*)> mouseDownFunc; ///<마우스를 눌렀을 때 실행할 함수
 	std::function<void(TextLabel*)> mouseUpFunc; ///<마우스를 뗐을 때 실행할 함수
@@ -46,8 +47,8 @@ public:
 	sf::Color getTextColor();
 	unsigned int getCharacterSize();
 
-	void setDisplayRect(float width, float height);
-	sf::Vector2f getDisplayRect();
+	void setDisplayRect(float x, float y, float width, float height);
+	sf::FloatRect getDisplayRect();
 
 	void SetPosition(float x, float y) override;
 
@@ -55,9 +56,15 @@ public:
 
 	void SetPositionY(float y) override;
 
+	void SetOffsetX(float x);
+
+	void SetOffsetY(float y);
+
 	sf::Vector2f GetPosition() override;
 
 	sf::Vector2f GetSize() override;
+
+	sf::Vector2f GetOffset();
 
 	void SetMouseDownFunction(const std::function<void(TextLabel*)>& func);
 

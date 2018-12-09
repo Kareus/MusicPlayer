@@ -28,6 +28,7 @@
 
 # Executables
 *.exe
+!bin/MusicPlayer.exe
 *.out
 *.app
 
@@ -40,7 +41,7 @@ Release
 x64
 
 # Doxygen files
-html
+!html
 
 # vs other files
 .vs

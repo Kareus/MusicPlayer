@@ -29,10 +29,10 @@ WPLWriter::~WPLWriter()
 bool WPLWriter::open(const wstring& filepath)
 {
 	int ext = filepath.find_last_of(L'.'); //파일 확장자 위치
-	const wchar_t* extension = filepath.substr(ext + 1).c_str(); //파일 확장자
+	std::wstring extension = filepath.substr(ext + 1); //파일 확장자
 
-	if (!_wcsicmp(extension, L"wpl")) extFlag = 1; //wpl 파일과 대소문자 구분 없이 일치하면 flag = 1
-	if (!_wcsicmp(extension, L"zpl")) extFlag = 2; //zpl 파일과 대소문자 구분 없이 일치하면 flag = 2
+	if (extension == L"wpl") extFlag = 1; //wpl 확장자이면 flag = 1
+	if (extension == L"zpl") extFlag = 2; //zpl 확장자이면 flag = 2
 	
 	if (!extFlag) return 0; //유효한 확장자가 아니면 0 반환
 
@@ -131,7 +131,7 @@ bool M3U8Writer::open(const wstring& filepath)
 {
 	int ext = filepath.find_last_of(L'.'); //파일 확장자 위치
 	wstring extension = filepath.substr(ext + 1); //파일 확장자
-	if (_wcsicmp(extension.c_str(), L"m3u8")) return 0; //m3u8 파일이 아니면 0 반환
+	if (extension != L"m3u8") return 0; //m3u8 파일이 아니면 0 반환
 
 	m_outFile.open(filepath, ios::out); //쓰기 모드로 파일 스트림을 연다.
 

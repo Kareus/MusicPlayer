@@ -4,9 +4,16 @@
 #include "FileDialog.h"
 #include "AVLTreeIterator.h"
 #include <Dwmapi.h>
-#include <conio.h>
 
 #pragma comment (lib, "Dwmapi.lib")
+
+//debug/release에 따른 경로 정의
+
+#ifdef DEBUG
+#define PATH "../bin/"
+#else
+#define PATH ""
+#endif
 
 extern MediaPlayer* player;
 
@@ -14,10 +21,7 @@ Application::Application()
 {
 	focus = nullptr;
 	m_Command = 0;
-	recentPlayCount = 0;
 	addedCount = 0;
-	nameList.SetCompareFunction(compareMusicName);
-	recentPlayedList.SetCompareFunction(compareToLast);
 	mostPlayedList.SetCompareFunction(comparePlayedTime);
 
 	drawings.SetCompareFunction(compareGraphics);
@@ -34,34 +38,37 @@ Application::Application()
 	updating = false;
 	scrolling = false;
 	mouseDown = false;
-	editList = false;
 
 	//여러 파트에서 사용하는 리소스는 객체들끼리 원본을 공유하기 때문에 clone을 통해 생성하고, Resource에서 전역으로 관리함.
 	Resource::defaultFont = new sf::Font();
-	Resource::defaultFont->loadFromFile("C:/Windows/Fonts/malgun.ttf");
-	Resource::addSprite = new Sprite("../../../graphic/plus.png");
-	Resource::editSprite = new Sprite("../../../graphic/edit.png");
-	Resource::removeSprite = new Sprite("../../../graphic/minus.png");
-	Resource::backSprite = new Sprite("../../../graphic/background.png");
-	Resource::playSprite = new Sprite("../../../graphic/playmusic.png");
-	Resource::tabSprite = new Sprite("../../../graphic/tab.png");
-	Resource::detailSprite = new Sprite("../../../graphic/detail.png");
-	Resource::tolistSprite = new Sprite("../../../graphic/tolist.png");
-	Resource::addlistSprite = new Sprite("../../../graphic/addlist.png");
-	Resource::saveSprite = new Sprite("../../../graphic/save.png");
+	Resource::defaultFont->loadFromFile(string(PATH)+"malgun.ttf");
+	Resource::addSprite = new Sprite(string(PATH)+"graphic/plus.png");
+	Resource::editSprite = new Sprite(string(PATH)+"graphic/edit.png");
+	Resource::removeSprite = new Sprite(string(PATH)+"graphic/minus.png");
+	Resource::backSprite = new Sprite(string(PATH)+"graphic/background.png");
+	Resource::playSprite = new Sprite(string(PATH)+"graphic/playmusic.png");
+	Resource::tabSprite = new Sprite(string(PATH)+"graphic/tab.png");
+	Resource::detailSprite = new Sprite(string(PATH)+"graphic/detail.png");
+	Resource::tolistSprite = new Sprite(string(PATH)+"graphic/tolist.png");
+	Resource::addlistSprite = new Sprite(string(PATH)+"graphic/addlist.png");
+	Resource::saveSprite = new Sprite(string(PATH)+"graphic/save.png");
 
 	defaultSearch = nullptr;
-	playerSprite = new Sprite("../../../graphic/player.png");
-	minimizeSprite = new Sprite("../../../graphic/minimize.png");
-	closeSprite = new Sprite("../../../graphic/exit.png");
-	playSprite = new Sprite("../../../graphic/playpause.png");
-	prevSprite = new Sprite("../../../graphic/prev.png");
-	nextSprite = new Sprite("../../../graphic/next.png");
-	searchSprite = new Sprite("../../../graphic/search.png");
+	playName = nullptr;
+	playerSprite = new Sprite(string(PATH)+"graphic/player.png");
+	minimizeSprite = new Sprite(string(PATH)+"graphic/minimize.png");
+	closeSprite = new Sprite(string(PATH)+"graphic/exit.png");
+	playSprite = new Sprite(string(PATH)+"graphic/playpause.png");
+	prevSprite = new Sprite(string(PATH)+"graphic/prev.png");
+	nextSprite = new Sprite(string(PATH)+"graphic/next.png");
+	searchSprite = new Sprite(string(PATH)+"graphic/search.png");
+	listSprite = new Sprite(string(PATH)+"graphic/listadd.png");
+	saveFileSprite = nullptr;
+	loadFileSprite = new Sprite(string(PATH)+"graphic/load.png");
 
-	addDirSprite = new Sprite("../../../graphic/folder.png");
-	scrollbackSprite = new Sprite("../../../graphic/scroll_background.png");
-	scrollSprite = new Sprite("../../../graphic/scroll.png");
+	addDirSprite = new Sprite(string(PATH)+"graphic/folder.png");
+	scrollbackSprite = new Sprite(string(PATH)+"graphic/scroll_background.png");
+	scrollSprite = new Sprite(string(PATH)+"graphic/scroll.png");
 
 	tab_song = nullptr;
 	tab_album = nullptr;
@@ -76,10 +83,13 @@ Application::Application()
 	genre_sprite = nullptr;
 	folder_sprite = nullptr;
 	playlist_sprite = nullptr;
+
 }
 
 Application::~Application()
 {
+	MakeEmpty();
+
 	player->Release(); //플레이어 메모리 해제
 	
 	ReleaseMainGraphic(); //렌더링 중인 모든 그래픽 해제. (렌더링 중이지 않은 건 Delete/Display 과정에서 개별적으로 해제되어 있음)
@@ -115,6 +125,15 @@ void Application::RenderMain()
 	}
 
 	if (updating) return; //업데이트 도중 미완성된 화면 렌더링 방지
+
+	if (playName->GetSize().x > playName->getDisplayRect().width) //긴 텍스트 애니메이션
+	{
+		playName->SetOffsetX(playName->GetOffset().x - 0.05);
+
+		if (playName->GetOffset().x < -playName->GetSize().x)
+			playName->SetOffsetX(playName->GetSize().x);
+	}
+
 	window.display();
 }
 
@@ -220,9 +239,9 @@ void Application::initMainGraphic()
 	closeSprite->SetMouseUpFunction(func_close);
 	AddGraphicToMain(closeSprite);
 
-	TextLabel* playName = new TextLabel(L"Artist - Song");
+	playName = new TextLabel(L"Artist - Song");
 	playName->setAlign(TextAlign::MIDDLE);
-	playName->setDisplayRect(240, 40);
+	playName->setDisplayRect(0, 0, 240, 40);
 	playName->setFont(*Resource::defaultFont);
 	playName->setCharacterSize(24);
 	playName->setTextColor(sf::Color::White);
@@ -237,10 +256,12 @@ void Application::initMainGraphic()
 
 	prevSprite->SetPosition(78, 95);
 	prevSprite->SetButton(true);
+	prevSprite->SetMouseUpFunction(func_prevMusic);
 	AddGraphicToMain(prevSprite);
 
 	nextSprite->SetPosition(249, 95);
 	nextSprite->SetButton(true);
+	nextSprite->SetMouseUpFunction(func_nextMusic);
 	AddGraphicToMain(nextSprite);
 
 	defaultSearch = new TextBox(10, 174, 260, 24, false);
@@ -375,10 +396,27 @@ void Application::initMainGraphic()
 	tab_playlist->AddGraphic(playlist_label);
 	AddGraphicToMain(tab_playlist);
 
+	saveFileSprite = Resource::saveSprite->clone();
+	saveFileSprite->SetPosition(296, 200);
+	saveFileSprite->SetButton(true);
+	saveFileSprite->SetMouseUpFunction(func_savefile);
+	AddGraphicToMain(saveFileSprite);
+
+	loadFileSprite->SetPosition(321, 200);
+	loadFileSprite->SetButton(true);
+	loadFileSprite->SetMouseUpFunction(func_loadfile);
+	AddGraphicToMain(loadFileSprite);
+
 	currentGroup = new Group();
 	currentGroup->SetPositionY(300);
 	currentGroup->SetViewRect(0, 0, 320, 280);
 	AddGraphicToMain(currentGroup);
+
+	listSprite->SetPosition(5, 265);
+	listSprite->SetTextureRect(25, 25);
+	listSprite->SetButton(true);
+	listSprite->SetMouseUpFunction(func_addlist);
+	AddGraphicToMain(listSprite);
 
 	ChangeState(0);
 }
@@ -547,7 +585,7 @@ void Application::initDisplay()
 Group* Application::CreateDisplayGraphic(const SimpleMusicType& data)
 {
 	Group* graphic = new Group();
-	graphic->SetData(String::WstrToStr(data.GetPath()));
+	graphic->SetData(data.GetID());
 	int id = displayList.GetLength();
 	graphic->setID(id);
 	graphic->SetPositionY(45 * id);
@@ -826,17 +864,6 @@ int Application::AddMusic(MusicType& music)
 		folderList.Add(folder);
 	}
 
-	if (newAddMusicList.IsFull()) //최근 추가한 리스트가 꽉 차 있으면
-	{
-		SimpleMusicType temp;
-		newAddMusicList.DeQueue(temp);
-		addedCount--;
-	}
-
-	simple.SetID(music.GetID()); //primary key를 경로로 재설정
-	newAddMusicList.EnQueue(simple);
-	addedCount++;
-
 	return 1;
 }
 
@@ -1004,13 +1031,21 @@ int Application::EditMusic(const SimpleMusicType& music)
 	if (editor_opened) return 0;
 
 	editMusic = nullptr;
-	AVLTreeIterator<MusicType> iter(musicList);
+	SimpleMusicType simple;
+	simple.SetID(music.GetID());
+	nameList.Get(simple);
+
+	MusicType m;
+	m.SetID(String::WstrToStr(simple.GetPath()));
+
 	MusicType* data = nullptr;
 
-	while (iter.NotNull())
+	AVLTreeIterator<MusicType> iter(musicList);
+
+	while (iter.NotNull()) //포인터를 갖고와야 하므로 iterator로 찾는다.
 	{
 		data = iter.CurrentPtr();
-		int compare = wcscmp(data->GetPath().c_str(), music.GetPath().c_str());
+		int compare = strcmp(data->GetID().c_str(), m.GetID().c_str());
 		if (compare > 0) iter.GotoLeft();
 		else if (compare < 0) iter.GotoRight();
 		else break; //찾으면 종료
@@ -1074,6 +1109,8 @@ int Application::ReplaceMusic()
 
 	simple.SetID(check.GetID());
 
+	CircularQueueType<int> playID = CircularQueueType<int>(playLists.GetLength() + 1); //playlist 수정을 위한 queue
+
 	if (idChange)
 	{
 		Album album;
@@ -1105,6 +1142,8 @@ int Application::ReplaceMusic()
 		else genreList.Delete(genre);
 		
 		folder.DeleteMusic(simple);
+
+		playLists.Do([&](PlayList& play) { if (play.DeleteMusic(simple)) playID.EnQueue(play.GetID()); });
 	}
 
 	MusicType backup = *editMusic;
@@ -1210,6 +1249,7 @@ int Application::ReplaceMusic()
 	GenreType genre;
 	FolderType folder;
 
+	simple.SetID(editMusic->GetName() + '_' + editMusic->GetArtist());
 	album.SetID(editMusic->GetAlbum() + '_' + editMusic->GetArtist());
 	artist.SetID(editMusic->GetArtist());
 	genre.SetGenre(editMusic->GetGenre());
@@ -1217,8 +1257,6 @@ int Application::ReplaceMusic()
 
 	if (!idChange)
 	{
-		simple.SetID(check.GetID());
-
 		nameList.Replace(simple);
 
 		if (albumList.Get(album))
@@ -1226,7 +1264,7 @@ int Application::ReplaceMusic()
 			if (!album.ReplaceMusic(simple)) album.AddMusic(simple);
 			albumList.Replace(album);
 		}
-		else
+		else if (!editMusic->GetAlbum().empty())
 		{
 			album.SetAlbumName(editMusic->GetAlbum());
 			album.SetArtist(editMusic->GetArtist());
@@ -1239,7 +1277,7 @@ int Application::ReplaceMusic()
 			if (!artist.ReplaceMusic(simple)) artist.AddMusic(simple);
 			artistList.Replace(artist);
 		}
-		else
+		else if (!editMusic->GetArtist().empty())
 		{
 			artist.SetName(editMusic->GetArtist());
 			artist.AddMusic(simple);
@@ -1252,7 +1290,7 @@ int Application::ReplaceMusic()
 			if (!genre.ReplaceMusic(simple)) genre.AddMusic(simple);
 			genreList.Replace(genre);
 		}
-		else
+		else if (!editMusic->GetGenre().empty())
 		{
 			genre.AddMusic(simple);
 			genreList.Add(genre);
@@ -1262,6 +1300,8 @@ int Application::ReplaceMusic()
 
 		if (!folder.ReplaceMusic(simple)) folder.AddMusic(simple);
 		folderList.Replace(folder);
+
+		playLists.Do([simple](PlayList& play) {play.ReplaceMusic(simple); });
 
 		UpdateList();
 		return 1;
@@ -1296,7 +1336,7 @@ int Application::ReplaceMusic()
 		album.AddMusic(simple);
 		albumList.Replace(album);
 	}
-	else
+	else if (!editMusic->GetAlbum().empty())
 	{
 		album.SetAlbumName(editMusic->GetAlbum());
 		album.SetArtist(editMusic->GetArtist());
@@ -1310,8 +1350,9 @@ int Application::ReplaceMusic()
 		artist.AddMusic(simple);
 		artistList.Replace(artist);
 	}
-	else
+	else if (!editMusic->GetArtist().empty())
 	{
+		artist.SetName(editMusic->GetArtist());
 		artist.AddMusic(simple);
 		artistList.Add(artist);
 	}
@@ -1321,7 +1362,7 @@ int Application::ReplaceMusic()
 		genre.AddMusic(simple);
 		genreList.Replace(genre);
 	}
-	else
+	else if (!editMusic->GetGenre().empty())
 	{
 		genre.AddMusic(simple);
 		genreList.Add(genre);
@@ -1330,6 +1371,22 @@ int Application::ReplaceMusic()
 	folder.AddMusic(simple);
 	folderList.Replace(folder);
 
+	int currentID = -1;
+	if (!playID.IsEmpty()) playID.DeQueue(currentID);
+	if (currentID >= 0)
+	{
+		playLists.Do([&](PlayList& play)
+		{
+			if (currentID == -1) return;
+			if (play.GetID() == currentID)
+			{
+				play.AddMusic(simple);
+				if (playID.IsEmpty()) currentID = -1;
+				else playID.DeQueue(currentID);
+			}
+		});
+	}
+		
 	UpdateList();
 
 	editMusic = nullptr;
@@ -1340,14 +1397,26 @@ int Application::DeleteMusic(const SimpleMusicType& music)
 {	
 	updating = true;
 
-	MusicType data;
-	data.SetID(String::WstrToStr(music.GetPath()));
+	SimpleMusicType simple;
+	simple.SetID(music.GetID());
 
-	if (!musicList.Get(data)) return 0;
+	nameList.Get(simple);
+
+	MusicType data;
+	data.SetID(String::WstrToStr(simple.GetPath()));
+
+	if (!musicList.Get(data)) {
+		updating = false;
+		return 0;
+	}
+
 	musicList.Delete(data);
 
-	SimpleMusicType simple;
-	simple.SetID(data.GetName() + '_' + data.GetArtist());
+	if (currentMusic.GetID() == data.GetID())
+	{
+		StopMusic();
+		currentMusic.SetID("");
+	}
 
 	Album album;
 	Artist artist;
@@ -1384,6 +1453,8 @@ int Application::DeleteMusic(const SimpleMusicType& music)
 	if (folder.GetLength() > 0) folderList.Replace(folder);
 	else folderList.Delete(folder);
 
+	playLists.Do([simple](PlayList& play) {play.DeleteMusic(simple); });
+
 	CircularQueueType<SimpleMusicType> newQueue = CircularQueueType<SimpleMusicType>(31);
 
 	newAddMusicList.ResetQueue();
@@ -1404,7 +1475,7 @@ int Application::DeleteMusic(const SimpleMusicType& music)
 	return 1;
 }
 
-int Application::OpenInFile(char *fileName)
+int Application::OpenInFile(wstring fileName)
 {
 	m_inputFile.open(fileName);	// file open for reading.
 
@@ -1413,7 +1484,7 @@ int Application::OpenInFile(char *fileName)
 	return 1;
 }
 
-int Application::OpenOutFile(char *fileName)
+int Application::OpenOutFile(wstring fileName)
 {
 	m_outFile.open(fileName);	// file open for writing.
 
@@ -1425,16 +1496,16 @@ int Application::OpenOutFile(char *fileName)
 int Application::ReadDataFromFile()
 {
 	//have to work with genre file i/o
+	MakeEmpty();
 
 	int index = 0;
 	MusicType data;	// 읽기용 임시 변수
-	Album album;
-	Artist artist;
 	SimpleMusicType music;
+	PlayList play;
 
-	char filename[FILENAMESIZE];
-	cout << "\n\tEnter Input file Name : ";
-	cin.getline(filename, FILENAMESIZE);
+	wstring filename;
+	FileDialog loadFile;
+	if (loadFile.openFileDialog(filename, L"Music Player Data", L"mpd") != DIALOG_SUCCESS) return 0;
 
 	// file open, open error가 발생하면 0을 리턴
 	if (!OpenInFile(filename))
@@ -1442,7 +1513,8 @@ int Application::ReadDataFromFile()
 
 	MakeEmpty();
 
-	int musicLen, albumLen, artistLen;
+	int musicLen, playLen;
+
 	m_inputFile >> musicLen;
 	m_inputFile.ignore();
 
@@ -1452,22 +1524,13 @@ int Application::ReadDataFromFile()
 		AddMusic(data);
 	}
 
-	m_inputFile >> albumLen;
+	m_inputFile >> playLen;
 	m_inputFile.ignore();
 
-	for (int i = 0; i < albumLen; i++)
+	for (int i = 0; i < playLen; i++)
 	{
-		album.ReadDataFromFile(m_inputFile);
-		albumList.Add(album);
-	}
-	
-	m_inputFile >> artistLen;
-	m_inputFile.ignore();
-
-	for (int i = 0; i < artistLen; i++)
-	{
-		artist.ReadDataFromFile(m_inputFile);
-		artistList.Add(artist);
+		play.ReadDataFromFile(m_inputFile);
+		AddPlayList(play);
 	}
 
 	m_inputFile >> addedCount;
@@ -1479,19 +1542,10 @@ int Application::ReadDataFromFile()
 		newAddMusicList.EnQueue(music);
 	}
 
-	m_inputFile >> recentPlayCount;
-	m_inputFile.ignore();
-
-	for (int i = 0; i < recentPlayCount; i++)
-	{
-		music.ReadDataFromFile(m_inputFile);
-		recentPlayedList.Add(music);
-	}
-
 	m_inputFile.close();	// file close
 
 	// 현재 list 출력
-	DisplayAllMusic();
+	ChangeState(0);
 
 	return 1;
 }
@@ -1503,9 +1557,13 @@ int Application::WriteDataToFile()
 	Artist* artist;
 	SimpleMusicType music;
 
-	char filename[FILENAMESIZE];
-	cout << "\n\tEnter Output file Name : ";
-	cin.getline(filename, FILENAMESIZE);
+	wstring filename;
+
+	UINT type;
+	FileDialog saveFile;
+	if (saveFile.saveFileDialog(filename, L"Music Player Data", L"mpd", type) != DIALOG_SUCCESS) return 0;
+
+	if (filename.substr(filename.size() - 4, 4) != L".mpd") filename += L".mpd";
 
 	// file open, open error가 발생하면 0을 리턴
 	if (!OpenOutFile(filename))
@@ -1516,13 +1574,9 @@ int Application::WriteDataToFile()
 	// list의 모든 데이터를 파일에 쓰기
 	musicList.Do([this](MusicType& music) { music.WriteDataToFile(m_outFile); });
 
-	m_outFile << albumList.GetLength() << endl;
+	m_outFile << playLists.GetLength() << endl; //플레이 리스트 수 기록
 
-	albumList.Do([this](Album& album) { album.WriteDataToFile(m_outFile); });
-
-	m_outFile << artistList.GetLength() << endl;
-
-	artistList.Do([this](Artist& artist) { artist.WriteDataToFile(m_outFile); });
+	playLists.Do([this](PlayList& play) { play.WriteDataToFile(m_outFile); });
 
 	m_outFile << addedCount << endl;
 
@@ -1532,19 +1586,6 @@ int Application::WriteDataToFile()
 	{
 		newAddMusicList.GetNextItem(music);
 		music.WriteDataToFile(m_outFile);
-	}
-
-	m_outFile << recentPlayCount << endl;
-
-	SimpleMusicType* simple;
-
-	DoublyIterator<SimpleMusicType> iter_s(recentPlayedList);
-
-	while (iter_s.NotNull())
-	{
-		simple = iter_s.CurrentPtr();
-		simple->WriteDataToFile(m_outFile);
-		iter_s.Next();
 	}
 
 	m_outFile.close();	// file close
@@ -1560,20 +1601,9 @@ void Application::MakeEmpty()
 	albumList.MakeEmpty();
 	artistList.MakeEmpty();
 	newAddMusicList.MakeEmpty();
-	recentPlayedList.MakeEmpty();
 	mostPlayedList.MakeEmpty();
-}
-
-void Application::AddToRecentPlayed(const SimpleMusicType& music)
-{
-	recentPlayedList.Delete(music); //만약 있다면 제거
-	recentPlayedList.Add(music);
-
-	if (recentPlayedList.GetLength() > 30)
-	{
-		DoublyIterator<SimpleMusicType> iter(recentPlayedList);
-		recentPlayedList.Delete(iter.First());
-	}
+	folderList.MakeEmpty();
+	playLists.MakeEmpty();
 }
 
 void Application::AddToMostPlayed(const SimpleMusicType& music)
@@ -1593,19 +1623,41 @@ void Application::AddToMostPlayed(const SimpleMusicType& music)
 
 int Application::PlayMusic(const SimpleMusicType& music)
 {
-	SimpleMusicType simple;
+	StopMusic(); //음악 재생 종료
 
-	if (simple.GetID().empty())
+	currentPlay.SetID(-1); //단일 재생만 할 것이므로 현재 플레이 리스트의 ID를 -1로 한다.
+	SimpleMusicType simple;
+	simple.SetID(music.GetID());
+
+	if (simple.GetID().empty()) //id가 비어있으면
 	{
 		AVLTreeIterator<SimpleMusicType> iter(nameList);
 		simple = iter.Current();
 	}
-	else if (!nameList.Get(simple)) return 0;
+	else if (!nameList.Get(simple)) return 0; //찾지 못하면 0 반환
 
-	currentMusic = simple;
+	currentMusic = simple; //currentMusic에 복사
 
-	//play
-	AddToRecentPlayed(simple);
+	MusicType m;
+	m.SetID(String::WstrToStr(currentMusic.GetPath()));
+	musicList.Get(m);
+	playName->setText(String::StrToWstr(m.GetArtist() + " - " + m.GetName()));
+	playName->SetOffsetX(0);
+
+	if (!player->openFile(currentMusic.GetPath()))
+	{
+		System::AlertError("음악 열기에 실패했습니다.", "Cannot open the music", MB_OK);
+		return 0;
+	}
+
+	if (!player->play())
+	{
+		System::AlertError("음악 재생에 실패했습니다.", "Cannot play the music", MB_OK);
+		return 0;
+	}
+
+	playSprite->SetTexturePos(41, 0);
+
 	AddToMostPlayed(simple);
 
 	simple.SetPlayedTime(simple.GetPlayedTime() + 1);
@@ -1613,7 +1665,7 @@ int Application::PlayMusic(const SimpleMusicType& music)
 	nameList.Replace(simple);
 
 	MusicType data;
-	data.SetPath(simple.GetPath());
+	data.SetID(String::WstrToStr(simple.GetPath()));
 	musicList.Get(data);
 	data.SetPlayedTime(simple.GetPlayedTime());
 	musicList.Replace(data);
@@ -1623,6 +1675,8 @@ int Application::PlayMusic(const SimpleMusicType& music)
 void Application::UpdateList()
 {
 	updating = true;
+
+	Sleep(50); //update를 위해 잠시 대기
 
 	switch (displayMode)
 	{
@@ -1670,6 +1724,7 @@ void Application::UpdateScroll()
 
 void Application::ChangeState(int state)
 {
+	if (displayMode == 7) return; //플레이리스트 수정 중이면 return
 	displayMode = state;
 	UpdateMode();
 	UpdateList();
@@ -2003,7 +2058,7 @@ Group* Application::CreateDisplayGraphic(const PlayList& play)
 
 	Sprite* saveButton = Resource::saveSprite->clone();
 	saveButton->SetButton(true);
-	saveButton->SetPosition(292, 20);
+	saveButton->SetPosition(260, 20);
 	saveButton->SetMouseUpFunction(func_savelist);
 
 	Sprite* removeButton = Resource::removeSprite->clone();
@@ -2025,6 +2080,7 @@ Group* Application::CreateDisplayGraphic(const PlayList& play)
 	graphic->AddGraphic(removeButton);
 	graphic->AddGraphic(player);
 	graphic->AddGraphic(detailButton);
+	graphic->AddGraphic(saveButton);
 
 	return graphic;
 }
@@ -2150,6 +2206,79 @@ void Application::Search(const string& keyword, int mode)
 
 		iter.Next();
 	}
+	else if (mode == 0) //music 내 검색
+	{
+		currentGroup->MakeEmpty();
+		displayList.MakeEmpty();
+
+		iter.ResetToLastPointer();
+
+		int flag = 0;
+		while (iter.NotNull()) //특수 필터를 찾는다.
+		{
+			string check = iter.Current();
+			check = String::Strip_LR(check);
+			if (check == "recentadd:") flag = 1;
+			if (check == "mostplay:") flag = 2;
+
+			if (flag != 0) break;
+			iter.Prev();
+		}
+
+		if (flag != 0)
+		{
+			if (flag == 1)
+			{
+				newAddMusicList.ResetQueue();
+				SimpleMusicType simple;
+
+				for (int i = 0; i < newAddMusicList.GetLength(); i++)
+				{
+					newAddMusicList.GetNextItem(simple);
+					displayList.Add(CreateDisplayGraphic(simple));
+				}
+
+			}
+			else if (flag == 2)
+			{
+				DoublyIterator<SimpleMusicType> iter_m(mostPlayedList);
+
+				while (iter_m.NotNull())
+				{
+					displayList.Add(CreateDisplayGraphic(iter_m.Current()));
+				}
+			}
+		}
+		else
+		{
+			function<void(SimpleMusicType&)> func = [&](SimpleMusicType& data)
+			{
+				displayList.Add(CreateDisplayGraphic(data));
+			};
+
+			nameList.Do(func); //모두 추가 후 필터링
+
+			iter.Reset();
+			while (iter.NotNull())
+			{
+				string label = iter.Current();
+				string content;
+				int tag = label.find(':');
+				if (tag > 0)
+				{
+					content = label.substr(tag + 1);
+					label = label.substr(0, tag);
+				}
+				else content = label;
+
+				label = String::Strip(label);
+				content = String::Strip_LR(content);
+
+				FilterDisplay(label, content, notLabel);
+				iter.Next();
+			}
+		}
+	}
 
 	currentGroup->MakeEmpty(false); //이 아래부터는 displaylist를 초기화하지 않음
 
@@ -2216,27 +2345,6 @@ void Application::Search(const string& keyword, int mode)
 		playLists.Get(play);
 
 		displayList.Add(CreateDisplayGraphic(play));
-	}
-	else if (mode == 0) //music 내 검색
-	{
-		while (iter.NotNull())
-		{
-			string label = iter.Current();
-			string content;
-			int tag = label.find(':');
-			if (tag > 0)
-			{
-				content = label.substr(tag + 1);
-				label = label.substr(0, tag);
-			}
-			else content = label;
-
-			label = String::Strip(label);
-			content = String::Strip_LR(content);
-
-			FilterDisplay(label, content, notLabel);
-			iter.Next();
-		}
 	}
 
 	if (mode == 6) mode = 0;
@@ -2308,25 +2416,54 @@ void Application::UpdateMode()
 		playlist_sprite->SetTexturePos(60, 0);
 		break;
 	}
+
+	if (displayMode == 0)
+	{
+		listSprite->Show();
+		listSprite->SetTexturePos(0, 0);
+	}
+	else if (displayMode == 5)
+	{
+		listSprite->Show();
+		listSprite->SetTexturePos(25, 0);
+	}
+	else if (displayMode == 7)
+	{
+		listSprite->Show();
+		listSprite->SetTexturePos(50, 0);
+	}
+	else
+		listSprite->Hide();
 }
 
 void Application::FilterDisplay(const std::string& filter, const std::string& content, bool& notLabel)
 {
 	DoublyIterator<Graphic*> iter(displayList);
+	SimpleMusicType simple;
+
+	int count = 0;
 
 	if (filter == "album")
 	{
 		while (iter.NotNull())
 		{
+			simple.SetID(iter.Current()->GetData());
+			nameList.Get(simple);
+
 			MusicType music;
-			music.SetID(iter.Current()->GetData());
+			music.SetID(String::WstrToStr(simple.GetPath()));
 			musicList.Get(music);
 
-			if ((int)music.GetAlbum().find(content) >= 0) iter.Next();
+			if ((int)music.GetAlbum().find(content) >= 0)
+			{
+				iter.Current()->SetPositionY(count * 45);
+				count++;
+				iter.Next();
+			}
 			else
 			{
-				displayList.Delete(iter);
 				delete iter.Current();
+				displayList.Delete(iter);
 			}
 		}
 	}
@@ -2334,15 +2471,23 @@ void Application::FilterDisplay(const std::string& filter, const std::string& co
 	{
 		while (iter.NotNull())
 		{
+			simple.SetID(iter.Current()->GetData());
+			nameList.Get(simple);
+
 			MusicType music;
-			music.SetID(iter.Current()->GetData());
+			music.SetID(String::WstrToStr(simple.GetPath()));
 			musicList.Get(music);
 
-			if ((int)music.GetArtist().find(content) >= 0) iter.Next();
+			if ((int)music.GetArtist().find(content) >= 0)
+			{
+				iter.Current()->SetPositionY(count * 45);
+				count++;
+				iter.Next();
+			}
 			else
 			{
-				displayList.Delete(iter);
 				delete iter.Current();
+				displayList.Delete(iter);
 			}
 		}
 	}
@@ -2350,15 +2495,23 @@ void Application::FilterDisplay(const std::string& filter, const std::string& co
 	{
 		while (iter.NotNull())
 		{
+			simple.SetID(iter.Current()->GetData());
+			nameList.Get(simple);
+
 			MusicType music;
-			music.SetID(iter.Current()->GetData());
+			music.SetID(String::WstrToStr(simple.GetPath()));
 			musicList.Get(music);
 
-			if ((int)music.GetGenre().find(content) >= 0) iter.Next();
+			if ((int)music.GetGenre().find(content) >= 0)
+			{
+				iter.Current()->SetPositionY(count * 45);
+				count++;
+				iter.Next();
+			}
 			else
 			{
-				displayList.Delete(iter);
 				delete iter.Current();
+				displayList.Delete(iter);
 			}
 		}
 	}
@@ -2367,15 +2520,23 @@ void Application::FilterDisplay(const std::string& filter, const std::string& co
 		wstring path = String::StrToWstr(content);
 		while (iter.NotNull())
 		{
+			simple.SetID(iter.Current()->GetData());
+			nameList.Get(simple);
+
 			MusicType music;
-			music.SetID(iter.Current()->GetData());
+			music.SetID(String::WstrToStr(simple.GetPath()));
 			musicList.Get(music);
 
-			if ((int)music.GetPath().find(path) >= 0) iter.Next();
+			if ((int)music.GetPath().find(path) >= 0)
+			{
+				iter.Current()->SetPositionY(count * 45);
+				count++;
+				iter.Next();
+			}
 			else
 			{
-				displayList.Delete(iter);
 				delete iter.Current();
+				displayList.Delete(iter);
 			}
 		}
 	}
@@ -2383,15 +2544,23 @@ void Application::FilterDisplay(const std::string& filter, const std::string& co
 	{
 		while (iter.NotNull())
 		{
+			simple.SetID(iter.Current()->GetData());
+			nameList.Get(simple);
+
 			MusicType music;
-			music.SetID(iter.Current()->GetData());
+			music.SetID(String::WstrToStr(simple.GetPath()));
 			musicList.Get(music);
 
-			if ((int)music.GetComposer().find(content) >= 0) iter.Next();
+			if ((int)music.GetComposer().find(content) >= 0)
+			{
+				iter.Current()->SetPositionY(count * 45);
+				count++;
+				iter.Next();
+			}
 			else
 			{
-				displayList.Delete(iter);
 				delete iter.Current();
+				displayList.Delete(iter);
 			}
 		}
 	}
@@ -2399,15 +2568,23 @@ void Application::FilterDisplay(const std::string& filter, const std::string& co
 	{
 		while (iter.NotNull())
 		{
+			simple.SetID(iter.Current()->GetData());
+			nameList.Get(simple);
+
 			MusicType music;
-			music.SetID(iter.Current()->GetData());
+			music.SetID(String::WstrToStr(simple.GetPath()));
 			musicList.Get(music);
 
-			if ((int)music.GetWriter().find(content) >= 0) iter.Next();
+			if ((int)music.GetWriter().find(content) >= 0)
+			{
+				iter.Current()->SetPositionY(count * 45);
+				count++;
+				iter.Next();
+			}
 			else
 			{
-				displayList.Delete(iter);
 				delete iter.Current();
+				displayList.Delete(iter);
 			}
 		}
 	}
@@ -2415,34 +2592,39 @@ void Application::FilterDisplay(const std::string& filter, const std::string& co
 	{
 		while (iter.NotNull())
 		{
+			simple.SetID(iter.Current()->GetData());
+			nameList.Get(simple);
+
 			MusicType music;
-			music.SetID(iter.Current()->GetData());
+			music.SetID(String::WstrToStr(simple.GetPath()));
 			musicList.Get(music);
 
-			if ((int)music.GetLyrics().find(content) >= 0) iter.Next();
+			if ((int)music.GetLyrics().find(content) >= 0)
+			{
+				iter.Current()->SetPositionY(count * 45);
+				count++;
+				iter.Next();
+			}
 			else
 			{
-				displayList.Delete(iter);
 				delete iter.Current();
+				displayList.Delete(iter);
 			}
 		}
 	}
 	else if (notLabel)
 	{
 		notLabel = false;
-		
-		int num = 0;
 
 		while (iter.NotNull())
 		{
-			MusicType music;
-			music.SetID(iter.Current()->GetData());
-			musicList.Get(music);
+			simple.SetID(iter.Current()->GetData());
+			bool b = nameList.Get(simple);
 
-			if ((int)music.GetName().find(content) >= 0)
+			if ((int)simple.GetName().find(content) >= 0)
 			{
-				iter.Current()->SetPosition(0, num * 45);
-				num++;
+				iter.Current()->SetPosition(0, count * 45);
+				count++;
 				iter.Next();
 			}
 			else
@@ -2456,14 +2638,21 @@ void Application::FilterDisplay(const std::string& filter, const std::string& co
 
 void Application::CreatePlayList(const std::string& id)
 {
-	displayMode = 7;
 
 	PlayList play;
 	play.SetID(playLists.GetLength()+1);
 
-	if (id.empty()) //현재 음악 리스트를 기반으로 생성
+	if (displayMode == 0) //현재 음악 리스트를 기반으로 생성
 	{
+		DoublyIterator<Graphic*> iter_m(displayList);
+		SimpleMusicType simple;
 
+		while (iter_m.NotNull())
+		{
+			simple.SetID(iter_m.Current()->GetData());
+			if (nameList.Get(simple)) play.AddMusic(simple);
+			iter_m.Next();
+		}
 	}
 	else if (displayMode == 1) //앨범을 기반으로 생성
 	{
@@ -2522,7 +2711,9 @@ void Application::CreatePlayList(const std::string& id)
 		}
 	}
 
-	playLists.Add(play);
+	if (play.GetMusicNum() > 0) playLists.Add(play);
+
+	ChangeState(5);
 }
 
 void Application::DisplayMusicForList(int id)
@@ -2532,7 +2723,7 @@ void Application::DisplayMusicForList(int id)
 
 	if (!playLists.Get(play)) return;
 
-	editList = true;
+	displayMode = 7;
 	currentEdit = play;
 	currentGroup->MakeEmpty();
 
@@ -2550,6 +2741,9 @@ void Application::DisplayMusicForList(int id)
 	};
 
 	nameList.Do(func);
+
+	listSprite->Show();
+	listSprite->SetTexturePos(50, 0);
 
 	initDisplay();
 	updating = false;
@@ -2583,7 +2777,7 @@ Group* Application::CreatePlayGraphic(const SimpleMusicType& data, bool found)
 	listButton->SetTextureRect(25, 25);
 	if (found) listButton->SetTexturePos(25, 0);
 	listButton->SetButton(true);
-	listButton->SetPosition(261, 20);
+	listButton->SetPosition(292, 20);
 	listButton->SetMouseUpFunction(func_togglelist);
 
 	graphic->AddGraphic(listButton);
@@ -2696,8 +2890,14 @@ void Application::SaveMusicList(int id)
 	{
 		FileDialog dialog;
 		wstring path;
-		dialog.saveFileDialog(path, L"Window Media Play List;Zune Play List;M3U8 File", L"*.wpl;*.zpl;*.m3u8");
 
+		UINT type = 0;
+		if (dialog.saveFileDialog(path, L"Window Media Play List;Zune Play List;M3U8 File", L"wpl;zpl;m3u8", type) != DIALOG_SUCCESS) return;
+
+		if (type == 1) if (path.substr(path.size()-4,4) != L".wpl") path += L".wpl";
+		else if (type == 2) if (path.substr(path.size() - 4, 4) != L".zpl") path += L".zpl";
+		else if (type == 3) if (path.substr(path.size() - 5, 5) != L".m3u8") path += L".m3u8";
+		
 		if (path.size() < 4)
 		{
 			System::AlertError("올바르지 않은 경로입니다.", "Invalid Path", MB_OK);
@@ -2719,8 +2919,10 @@ void Application::SaveMusicList(int id)
 			}
 
 			writer.close();
+			return;
 		}
-		else if (format == L".m3u8")
+		format = path.substr(path.size() - 5, 5);
+		if (format == L".m3u8")
 		{
 			M3U8Writer writer;
 			writer.open(path);
@@ -2738,13 +2940,178 @@ void Application::SaveMusicList(int id)
 			}
 
 			writer.close();
+			return;
+		}
+		System::AlertError("올바르지 않은 파일 형식입니다.", "Invalid File Format", MB_OK);
+		return;		
+
+	} else System::AlertError("플레이 리스트를 찾지 못했습니다.", "Cannot Find Playlist", MB_OK);
+}
+
+void Application::AddPlayList()
+{
+	PlayList play;
+	play.SetID(playLists.GetLength() + 1);
+	playLists.Add(play);
+
+	UpdateList();
+}
+
+void Application::PausePlay()
+{
+	if (player->GetState() == PlayerState::Started)
+	{
+		player->pause();
+	}
+}
+
+void Application::ResumePlay()
+{
+	if (player->GetState() == PlayerState::Paused) //재생 중이었다면
+	{
+		player->play();
+	}
+	else //재생이 끝났거나 시작하지 않았다면
+	{
+		if (currentPlay.GetID() < 0) //플레이 리스트 재생 중이 아닐 때
+		{
+			if (currentMusic.GetID().empty()) //단일 재생도 아니라면 플레이 리스트를 임의로 찾아 재생
+			{
+				AVLTreeIterator<PlayList> iter(playLists);
+				currentPlay = iter.Current();
+				PlayMusicList();
+				return;
+			}
+			else
+				PlayMusic(currentMusic); //단일 재생인 경우 현재 음악을 재생
 		}
 		else
 		{
-			System::AlertError("올바르지 않은 파일 형식입니다.", "Invalid File Format", MB_OK);
-			return;
-		}		
+			if (playLists.Get(currentPlay)) PlayMusicList();
+			else
+			{
+				AVLTreeIterator<PlayList> iter(playLists);
+				currentPlay = iter.Current();
+				PlayMusicList();
+			}
+		}
+	}
+}
+
+void Application::PlayMusicList()
+{
+	PlayerState state = player->GetState();
+	if (state == PlayerState::Started || state == PlayerState::Paused) //재생 중이었다면
+	{
+		StopMusic();
 	}
 
-	System::AlertError("플레이 리스트를 찾지 못했습니다.", "Cannot Find Playlist", MB_OK);
+	currentPlayIterator = currentPlay.GetIterator();
+
+	currentMusic = currentPlayIterator.Current();
+
+	while (!player->openFile(currentMusic.GetPath()) || !player->play()) //재생에 문제가 있으면 자동으로 다음 곡으로
+	{
+		currentPlayIterator.Next();
+		if (!currentPlayIterator.NotNull()) return; //끝을 만나면 (재생 가능한 곡을 찾을 수 없으면 반환하여 종료)
+		currentMusic = currentPlayIterator.Current();
+	}
+
+	MusicType m;
+	m.SetID(String::WstrToStr(currentMusic.GetPath()));
+	musicList.Get(m);
+	playName->setText(String::StrToWstr(m.GetArtist() + " - " + m.GetName()));
+	playName->SetOffsetX(0);
+
+	playSprite->SetTexturePos(41, 0);
+
+	AddToMostPlayed(currentMusic);
+
+	currentMusic.SetPlayedTime(currentMusic.GetPlayedTime() + 1);
+
+	nameList.Replace(currentMusic);
+
+	MusicType data;
+	data.SetID(String::WstrToStr(currentMusic.GetPath()));
+	musicList.Get(data);
+	data.SetPlayedTime(currentMusic.GetPlayedTime());
+	musicList.Replace(data);
+}
+
+void Application::Prev()
+{
+	PlayerState state = player->GetState();
+	if (state == PlayerState::Started || state == PlayerState::Paused) //재생 중이거나 일시 정지되었을 때
+	{
+		if (player->getPosition() > 5) //재생한 지 5초 이상이면 처음부터 재생한다.
+		{
+			player->stop();
+			playSprite->SetTexturePos(0, 0);
+			player->openFile(currentMusic.GetPath());
+			player->play();
+			playSprite->SetTexturePos(41, 0);
+		}
+		else //아닌 경우 이전 음악으로
+		{
+			player->stop();
+			playSprite->SetTexturePos(0, 0);
+			currentPlayIterator.Prev();
+			while (currentPlayIterator.NotNull())
+			{
+				currentMusic = currentPlayIterator.Current();
+
+				if (player->openFile(currentMusic.GetPath()) && player->play())
+				{
+					MusicType m;
+					m.SetID(String::WstrToStr(currentMusic.GetPath()));
+					musicList.Get(m);
+					playName->setText(String::StrToWstr(m.GetArtist() + " - " + m.GetName()));
+					playName->SetOffsetX(0);
+
+					playSprite->SetTexturePos(41, 0);
+					break;
+				}
+				currentPlayIterator.Prev();
+			}
+		}
+	}
+	else ResumePlay();
+}
+
+void Application::Next()
+{
+	PlayerState state = player->GetState();
+	if (state == PlayerState::Started || state == PlayerState::Paused || state == PlayerState::Stopped) //재생 중이거나 정지되었을 때
+	{
+		player->stop();
+		playSprite->SetTexturePos(0, 0);
+		currentPlayIterator.Next();
+		while (currentPlayIterator.NotNull())
+		{
+			currentMusic = currentPlayIterator.Current();
+
+			if (player->openFile(currentMusic.GetPath()) && player->play())
+			{
+				MusicType m;
+				m.SetID(String::WstrToStr(currentMusic.GetPath()));
+				musicList.Get(m);
+				playName->setText(String::StrToWstr(m.GetArtist() + " - " + m.GetName()));
+				playName->SetOffsetX(0);
+
+				playSprite->SetTexturePos(41, 0);
+				break;
+			}
+			currentPlayIterator.Next();
+		}
+	}
+}
+
+void Application::StopMusic()
+{
+	player->stop();
+}
+
+void Application::AddPlayList(PlayList& play)
+{
+	playLists.Add(play);
 }

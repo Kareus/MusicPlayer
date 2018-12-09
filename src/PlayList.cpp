@@ -1,4 +1,5 @@
 #include "PlayList.h"
+#include "GlobalFunctions.h"
 
 PlayList::PlayList()
 {
@@ -14,6 +15,7 @@ PlayList::~PlayList()
 PlayList::PlayList(const PlayList& data)
 {
 	list = data.list;
+	id = data.GetID();
 }
 
 int PlayList::AddMusic(const SimpleMusicType& data)
@@ -49,6 +51,7 @@ DoublyIterator<SimpleMusicType> PlayList::GetIterator()
 PlayList& PlayList::operator=(const PlayList& data)
 {
 	list = data.list;
+	id = data.GetID();
 	return *this;
 }
 
@@ -75,4 +78,45 @@ void PlayList::SetID(int id)
 int PlayList::GetID() const
 {
 	return id;
+}
+
+int PlayList::ReadDataFromFile(ifstream& fin)
+{
+	if (!fin) return 0;
+
+	int len = 0;
+	fin >> id;
+	fin >> len;
+	fin.ignore();
+
+	for (int i = 0; i < len; i++)
+	{
+		SimpleMusicType simple;
+		string data;
+		getline(fin, data);
+		simple.SetID(data);
+		getline(fin, data);
+		simple.SetPath(String::StrToWstr(data));
+		list.Add(simple);
+	}
+
+	return 1;
+};
+
+int PlayList::WriteDataToFile(ofstream& fout)
+{
+	if (!fout) return 0;
+
+	fout << id << ' ';
+	fout << list.GetLength() << endl;
+
+	DoublyIterator<SimpleMusicType> iter(list);
+	while (iter.NotNull())
+	{
+		fout << iter.CurrentPtr()->GetID() << endl;
+		fout << String::WstrToStr(iter.CurrentPtr()->GetPath()) << endl;
+		iter.Next();
+	}
+
+	return 1;
 }

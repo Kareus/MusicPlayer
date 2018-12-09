@@ -49,6 +49,6 @@ public:
 
 	DialogResult openDirectoryDialog(std::wstring& resultPath);
 	DialogResult openFileDialog(std::wstring& resultPath, const std::wstring& description, const std::wstring& filter);
-	DialogResult saveFileDialog(std::wstring& resultPath, const std::wstring& description, const std::wstring& filter);
+	DialogResult saveFileDialog(std::wstring& resultPath, const std::wstring& description, const std::wstring& filter, UINT& filterType);
 };
 #endif

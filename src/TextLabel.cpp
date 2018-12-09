@@ -9,8 +9,12 @@ TextLabel::TextLabel(const std::wstring& str)
 	text.setFillColor(sf::Color::Black);
 	position.x = 0;
 	position.y = 0;
-	rect.x = -1;
-	rect.y = 0;
+	rect.left = -1;
+	rect.top = 0;
+	rect.width = 0;
+	rect.height = 0;
+	offset.x = 0;
+	offset.y = 0;
 	align = LEFT;
 
 	focus = false;
@@ -20,14 +24,14 @@ TextLabel::TextLabel(const std::wstring& str)
 
 void TextLabel::draw(sf::RenderWindow* window)
 {
-	if (rect.x < 0)
+	if (rect.left < 0)
 	{
 		window->draw(text);
 		return;
 	}
 	else {
 		glEnable(GL_SCISSOR_TEST);
-		glScissor(position.x, window->getSize().y - position.y - rect.y, rect.x, rect.y);
+		glScissor(position.x + rect.left, window->getSize().y - position.y - rect.height - rect.top, rect.width, rect.height);
 		window->draw(text);
 		glDisable(GL_SCISSOR_TEST);
 	}
@@ -76,9 +80,9 @@ bool TextLabel::pollEvent(CustomWinEvent e)
 
 void TextLabel::updateText()
 {
-	if (rect.x < 0 || align == LEFT)
+	if (rect.left < 0 || align == LEFT)
 	{
-		text.setPosition(position);
+		text.setPosition(position - offset);
 		return;
 	}
 
@@ -87,11 +91,11 @@ void TextLabel::updateText()
 	{
 
 	case MIDDLE:
-		text.setPosition(position.x + (rect.x - bound.width) / 2, position.y);
+		text.setPosition(position.x + (rect.width - bound.width) / 2 - offset.x, position.y - offset.y);
 		break;
 
 	case RIGHT:
-		text.setPosition(position.x + rect.x - bound.width, position.y);
+		text.setPosition(position.x + rect.height - bound.width - offset.x, position.y - offset.y);
 		break;
 	}
 }
@@ -162,15 +166,17 @@ sf::Font& TextLabel::getFont()
 	return font;
 }
 
-void TextLabel::setDisplayRect(float width, float height)
+void TextLabel::setDisplayRect(float x, float y, float width, float height)
 {
-	rect.x = width;
-	rect.y = height;
+	rect.left = x;
+	rect.top = y;
+	rect.width = width;
+	rect.height = height;
 
 	updateText();
 }
 
-sf::Vector2f TextLabel::getDisplayRect()
+sf::FloatRect TextLabel::getDisplayRect()
 {
 	return rect;
 }
@@ -193,4 +199,21 @@ void TextLabel::SetMouseDownFunction(const std::function<void(TextLabel*)>& func
 void TextLabel::SetMouseUpFunction(const std::function<void(TextLabel*)>& func)
 {
 	this->mouseUpFunc = func;
+}
+
+void TextLabel::SetOffsetX(float x)
+{
+	offset.x = x;
+	updateText();
+}
+
+void TextLabel::SetOffsetY(float y)
+{
+	offset.y = y;
+	updateText();
+}
+
+sf::Vector2f TextLabel::GetOffset()
+{
+	return offset;
 }

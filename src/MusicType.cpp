@@ -132,13 +132,26 @@ int MusicType::ReadDataFromFile(ifstream& fin)
 	getline(fin, artist);
 	getline(fin, composer);
 	getline(fin, writer);
-	getline(fin, lyrics);
+	int count;
+	fin >> count;
+	fin.ignore();
+
+	string line;
+	for (int i = 0; i < count; i++)
+	{
+		getline(fin, line);
+		lyrics += line + '\n';
+	}
+
 	getline(fin, album);
 	getline(fin, genre);
 
 	fin >> date;
 	fin >> time;
 	fin.ignore();
+	string data;
+	getline(fin, data);
+	path = String::StrToWstr(data);
 
 	return 1;
 };
@@ -152,12 +165,21 @@ int MusicType::WriteDataToFile(ofstream& fout)
 	fout << artist << endl;
 	fout << composer << endl;
 	fout << writer << endl;
+
+	int count = 1;
+
+	for (int i = 0; i < lyrics.size(); i++)
+	{
+		if (lyrics.at(i) == '\n') count++;
+	}
+
+	fout << count << endl;
 	fout << lyrics << endl;
 	fout << album << endl;
 	fout << genre << endl;
 	fout << date << " ";
 	fout << time << endl;
-	fout << endl;
+	fout << String::WstrToStr(path) << endl;
 
 	return 1;
 }

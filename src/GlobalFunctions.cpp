@@ -86,7 +86,12 @@ namespace System
 
 void Update(HWND hwnd, PlayerState state)
 {
-
+	switch (state)
+	{
+	case PlayerState::Stopped:
+		app->Next();
+		break;
+	}
 }
 
 LRESULT CALLBACK NumericProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
@@ -147,6 +152,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_CREATE:
 		Update(hWnd, Closed);
+		break;
+
+	case WM_APP_PLAYER_EVENT:
+		OnPlayerEvent(hWnd, wParam);
 		break;
 
 	case WM_ACTIVATE:

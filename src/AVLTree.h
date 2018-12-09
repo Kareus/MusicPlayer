@@ -300,6 +300,7 @@ int AVLTree<T>::DeleteNode(AVLTreeNode<T>*& node, const T& data)
 		success = DeleteNode(node->right, data);
 	else //찾은 경우
 	{
+		success = 1;
 		if (node->left && node->right) //child가 둘인 경우
 		{
 			AVLTreeNode<T>* r = node->right;

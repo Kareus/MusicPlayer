@@ -234,9 +234,9 @@ int CircularQueueType<T>::GetNextItem(T& Item)
 	if (IsEmpty()) throw EmptyQueue();
 
 	++m_curPointer %= m_nMaxQueue;
-	if (m_curPointer == (m_iRear+1) % m_nMaxQueue) return -1; //큐의 끝에 도달하면 -1을 반환
+	if (m_curPointer == (m_iRear+1) % m_nMaxQueue) return 0; //큐의 끝에 도달하면 0을 반환
 	Item = m_pItems[m_curPointer];
-	return m_curPointer;
+	return 1;
 }
 
 template <typename T>

@@ -18,6 +18,7 @@
 #include "GraphicElements.h"
 #include "CustomWinEvent.h"
 #include "GlobalFunctions.h"
+#include "DoublyIterator.h"
 
 #define FILENAMESIZE 1024
 
@@ -36,9 +37,9 @@ private:
 
 	bool editor_opened;
 	bool updating;
-	bool editList;
 
 	TextBox* defaultSearch;
+	TextLabel* playName;
 	Sprite* playerSprite;
 	Sprite* minimizeSprite;
 	Sprite* closeSprite;
@@ -49,6 +50,10 @@ private:
 	Sprite* addDirSprite;
 	Sprite* scrollbackSprite;
 	Sprite* scrollSprite;
+	Sprite* listSprite;
+	Sprite* backSprite;
+	Sprite* saveFileSprite;
+	Sprite* loadFileSprite;
 
 	Group* tab_song;
 	Group* tab_album;
@@ -97,12 +102,10 @@ private:
 	AVLTree<SimpleMusicType> nameList; ///<이름 순으로 음악을 저장하는 리스트. 이름_아티스트 순으로 정렬.
 	AVLTree<Album> albumList;
 	AVLTree<Artist> artistList;
-	DoublyLinkedList<SimpleMusicType> recentPlayedList;
 	DoublyLinkedList<SimpleMusicType> mostPlayedList;
 	AVLTree<FolderType> folderList;
 	AVLTree<PlayList> playLists;
 
-	int recentPlayCount; ///<최근 재생한 음악 수
 	int addedCount; ///<최근 추가한 음악 수
 
 	sf::RenderWindow window; ///<뮤직 플레이어의 윈도우 객체
@@ -116,25 +119,12 @@ private:
 	MusicType* editMusic; ///<에디터 윈도우에서 수정할 음악 타입
 	PlayList currentEdit; ///<현재 수정하는 플레이리스트
 	PlayList currentPlay; ///<현재 재생하는 플레이리스트
+	DoublyIterator<SimpleMusicType> currentPlayIterator = currentPlay.GetIterator(); ///<현재 재생하는 플레이리스트의 반복자
+	SimpleMusicType currentMusic; ///<현재 재생하는 음악
 	bool scrolling; ///<스크롤바 드래그 여부
-	bool mouseDown;
+	bool mouseDown; ///<마우스 클릭 여부
 	
 	int displayMode; ///<출력할 리스트 모드 (0 : Music 1 : Album 2 : Artist 3 : Genre 4 : Playlist)
-
-
-	function<int(const SimpleMusicType&, const SimpleMusicType&)> compareMusicName = [] (const SimpleMusicType& m1, const SimpleMusicType& m2) {
-		if (m1.GetName().size() > 0 && m2.GetName().size() > 0) //둘 모두 유효한 이름을 가지고 있을 때
-		{
-			int compare = strcmp(m1.GetName().c_str(), m2.GetName().c_str());
-			if (compare) return compare;
-		}
-		return strcmp(m1.GetID().c_str(), m2.GetID().c_str());
-	};
-
-	function<int(const SimpleMusicType&, const SimpleMusicType&)> compareToLast = [](const SimpleMusicType& m1, const SimpleMusicType& m2) {
-		if (m1 == m2) return 0; //같은 항목은 같다고 반환
-		return -1; //아닌 경우 last까지
-	};
 
 	function<int(const SimpleMusicType&, const SimpleMusicType&)> comparePlayedTime = [](const SimpleMusicType& m1, const SimpleMusicType& m2) {
 		if (m1 == m2) return 0; //같은 항목은 같다고 반환
@@ -156,16 +146,29 @@ private:
 		if (player->GetState() == PlayerState::Started)
 		{
 			sprite->SetTexturePos(0, 0);
-			//pause
+			PausePlay();
 		}
 		else
 		{
 			sprite->SetTexturePos(41, 0);
-			PlayMusic(currentMusic);
+			ResumePlay();
 		}
 		sprite->ResetMouseOver(); //마우스 오버 상태를 리셋
 		sprite->TriggerMouseOver(); //마우스 오버 다시 트리거
 	};
+
+	function<void(Sprite*)> func_prevMusic = [this](Sprite* sprite) {
+		Prev();
+		sprite->ResetMouseOver();
+		sprite->TriggerMouseOver();
+	};
+
+	function<void(Sprite*)> func_nextMusic = [this](Sprite* sprite) {
+		Next();
+		sprite->ResetMouseOver();
+		sprite->TriggerMouseOver();
+	};
+
 	function<void(Sprite*)> func_addMusic = [this](Sprite*) {
 		AddMusic();
 	};
@@ -175,19 +178,19 @@ private:
 
 	function<void(Sprite*)> func_editData = [this](Sprite* sprite) { 
 		SimpleMusicType data;
-		data.SetPath(String::StrToWstr(sprite->GetData()));
+		data.SetID(sprite->GetData());
 		EditMusic(data);
 	};
 
 	function<void(Sprite*)> func_removeData = [this](Sprite* sprite) { 
 		SimpleMusicType data;
-		data.SetPath(String::StrToWstr(sprite->GetData()));
+		data.SetID(sprite->GetData());
 		DeleteMusic(data);
 	};
 
 	function<void(Sprite*)> func_playData = [this](Sprite* sprite) {
 		SimpleMusicType data;
-		data.SetPath(String::StrToWstr(sprite->GetData()));
+		data.SetID(sprite->GetData());
 		PlayMusic(data);
 	};
 
@@ -228,12 +231,13 @@ private:
 
 	function<void(Sprite*)> func_playlist = [this](Sprite* sprite) {
 		currentPlay.SetID(stoi(sprite->GetData()));
+		playLists.Get(currentPlay);
 		PlayMusicList();
 	};
 
 	function<void(Sprite*)> func_savelist = [this](Sprite* sprite) {
-		SavePlayList(stoi(sprite->GetData()));
-	}
+		SaveMusicList(stoi(sprite->GetData()));
+	};
 
 	function<void(Sprite*)> func_togglelist = [this](Sprite* sprite) {
 		SimpleMusicType simple;
@@ -244,6 +248,20 @@ private:
 
 		sprite->SetTexturePos(25 - x, 0);
 	};
+
+	function<void(Sprite*)> func_addlist = [this](Sprite*) {
+		if (displayMode == 0) CreatePlayList();
+		else if (displayMode == 5) AddPlayList();
+		else if (displayMode == 7)
+		{
+			displayMode = 5;
+			UpdateMode();
+			UpdateList();
+		}
+	};
+
+	function<void(Sprite*)> func_savefile = [this](Sprite*) { WriteDataToFile(); };
+	function<void(Sprite*)> func_loadfile = [this](Sprite*) { ReadDataFromFile(); };
 
 	//윈도우를 렌더링할 때 쓸 함수
 	void RenderMain();
@@ -326,7 +344,7 @@ public:
 	*	@param	fileName	읽을 파일의 이름.
 	*	@return	성공하면 1, 아니면 0을 반환.
 	*/
-	int OpenInFile(char *fileName);
+	int OpenInFile(wstring fileName);
 
 	/**
 	*	@brief	정보를 저장하기 위한 파일을 연다.
@@ -335,7 +353,7 @@ public:
 	*	@param	fileName	쓸 파일의 이름.
 	*	@return	성공하면 1, 아니면 0을 반환.
 	*/
-	int OpenOutFile(char *fileName);
+	int OpenOutFile(wstring fileName);
 
 	/**
 	*	@brief	파일을 열어 데이터를 모두 읽고, 리스트에 저장한다.
@@ -359,14 +377,6 @@ public:
 	*	@post	리스트의 아이템이 모두 비워진다.
 	*/
 	void MakeEmpty();
-
-	/**
-	*	@brief	parameter로 받은 음악을 최근 재생한 리스트에 추가한다.
-	*	@pre	paramter는 유효한 값이어야 한다.
-	*	@post	parameter의 음악이 최근 재생한 음악 리스트에 추가된다.
-	*	@param	music	추가할 음악.
-	*/
-	void AddToRecentPlayed(const SimpleMusicType& music);
 
 	/**
 	*	@brief	parameter로 받은 음악을 가장 많이 재생한 리스트에 추가한다.
@@ -445,6 +455,8 @@ public:
 
 	void DeleteMusicFromPlayList(const SimpleMusicType& data);
 
+	void AddPlayList();
+
 	void PlayMusicList();
 
 	void StopMusicList();
@@ -454,6 +466,18 @@ public:
 	void SearchInPlayList(const std::string& keyword);
 
 	void DeletePlayList(int id);
+
+	void ResumePlay();
+
+	void PausePlay();
+
+	void Prev();
+
+	void Next();
+
+	void StopMusic();
+
+	void AddPlayList(PlayList& play);
 };
 #pragma once
 #endif

@@ -338,7 +338,7 @@ end:
 	return dialogResult;
 }
 
-DialogResult FileDialog::saveFileDialog(std::wstring& resultPath, const std::wstring& description, const std::wstring& filter)
+DialogResult FileDialog::saveFileDialog(std::wstring& resultPath, const std::wstring& description, const std::wstring& filter, UINT& filterType)
 {
 	DialogResult dialogResult = DIALOG_ERROR;
 	bool setFilter = false;
@@ -400,6 +400,8 @@ DialogResult FileDialog::saveFileDialog(std::wstring& resultPath, const std::wst
 
 		resultPath = filePath;
 		CoTaskMemFree(filePath);
+
+		fileSaveDialog->GetFileTypeIndex(&filterType);
 
 		dialogResult = DIALOG_SUCCESS;
 		shellItem->Release();

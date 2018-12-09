@@ -94,7 +94,7 @@ HRESULT MediaPlayer::Init()
 	return result;
 }
 
-HRESULT MediaPlayer::openFile(const wstring& filepath)
+bool MediaPlayer::openFile(const wstring& filepath)
 {
 	IMFTopology *topology = NULL;
 	IMFPresentationDescriptor* sourcePD = NULL;
@@ -145,7 +145,7 @@ done:
 	SafeRelease(&sourcePD);
 	SafeRelease(&topology);
 
-	return hr; //reference 해제 후 종료
+	return SUCCEEDED(hr); //reference 해제 후 종료
 }
 
 HRESULT MediaPlayer::CreateSession()
@@ -173,6 +173,9 @@ HRESULT MediaPlayer::CreateSession()
 	}
 
 	playState = Ready; //미디어를 재생할 준비가 됨
+
+	startTime = 0;
+	startPosition = 0;
 
 done:
 	return hr;
@@ -288,10 +291,15 @@ HRESULT MediaPlayer::StartPlayback()
 
 	HRESULT hr = session->Start(&GUID_NULL, &varStart); //재생 시작
 
+	Sleep(100); //재생을 위해 대기
+
 	if (SUCCEEDED(hr))
 	{
 		playState = Started; //세션 시작은 비동기적으로 작동하므로, 여기서는 [시작했음]으로 설정함
 		// 후에 만약 결과가 실패했을 경우에는 MESessionStarted Event에서 문제가 발생했음을 수신하므로, 그때 처리함
+		
+		if (playState != Paused) startPosition = 0;
+		startTime = time(NULL);
 	}
 
 	PropVariantClear(&varStart);
@@ -300,11 +308,6 @@ HRESULT MediaPlayer::StartPlayback()
 
 bool MediaPlayer::play()
 {
-	if (playState != Paused && playState != Stopped) //상태가 일시정지 혹은 정지된 것이 아니라면 실패
-	{
-		return 0;
-	}
-
 	if (session == NULL || source == NULL) //session이나 source가 유효하지 않은 경우 또한 실패
 	{
 		return 0;
@@ -327,8 +330,12 @@ bool MediaPlayer::pause()
 
 	HRESULT hr = session->Pause(); //일시 정지
 
+	Sleep(100); //정지를 위해 대기
+
 	if (SUCCEEDED(hr))
 	{
+		startPosition = getPosition();
+		startTime = 0;
 		playState = Paused; //성공하면 상태를 [일시 정지]로 변경
 		return 1;
 	}
@@ -349,9 +356,13 @@ bool MediaPlayer::stop()
 
 	HRESULT hr = session->Stop(); //정지
 
+	Sleep(100); //정지를 위해 대기
+
 	if (SUCCEEDED(hr))
 	{
 		playState = Stopped; //성공하면 상태를 [정지]로 변경
+		startTime = 0;
+		startPosition = 0;
 		return 1;
 	}
 	return 0;
@@ -473,4 +484,32 @@ HRESULT MediaPlayer::HandleEvent(UINT_PTR pEventPtr)
 done:
 	SafeRelease(&pEvent);
 	return hr;
+}
+
+unsigned int MediaPlayer::getLength()
+{
+	if (source == NULL) return 0;
+
+	IMFPresentationDescriptor *pPD = NULL;
+
+	HRESULT hr = source->CreatePresentationDescriptor(&pPD);
+	if (SUCCEEDED(hr))
+	{
+		UINT64 duration;
+		hr = pPD->GetUINT64(MF_PD_DURATION, &duration);
+		pPD->Release();
+
+		return (unsigned int)(duration / 10000000); //100ns 단위이므로 /10 (마이크로) /1000 (밀리) / 1000 (초)
+	}
+	return 0;
+}
+
+unsigned int MediaPlayer::getPosition()
+{
+	if (source == NULL) return 0;
+
+	if (playState == Started) return time(NULL) - startTime + startPosition;
+	else if (playState == Paused) return startPosition;
+	
+	return 0;
 }

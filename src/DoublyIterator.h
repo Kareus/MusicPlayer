@@ -85,6 +85,11 @@ public:
 	*/
 	void ResetToLastPointer();
 
+	/**
+	*	대상 반복자를 바탕으로 다시 생성하는 할당 연산자.
+	*/
+	DoublyIterator<T>& operator=(const DoublyIterator<T>& data);
+
 private:
 	const DoublyLinkedList<T>& m_List;
 	DoublyNodeType<T>* m_pCurPointer;
@@ -162,5 +167,13 @@ template <typename T>
 void DoublyIterator<T>::ResetToLastPointer()
 {
 	m_pCurPointer = m_List.m_pLast;
+}
+
+template <typename T>
+DoublyIterator<T>& DoublyIterator<T>::operator=(const DoublyIterator<T>& data)
+{
+	DoublyIterator(data.m_List);
+	m_pCurPointer = data.m_pCurPointer;
+	return *this;
 }
 #endif

@@ -129,24 +129,6 @@ public:
 	Artist& operator=(const Artist& data);
 
 	/**
-	*	@brief	파일로부터 아티스트의 정보를 읽는다.
-	*	@pre	해당 파일의 스트림이 열려 있어야 한다.
-	*	@post	아티스트의 정보를 할당한다.
-	*	@param	fin	읽을 파일의 스트림.
-	*	@return	성공하면 1, 아니면 0을 반환.
-	*/
-	int ReadDataFromFile(ifstream& fin);
-
-	/**
-	*	@brief	파일에 아티스트의 정보를 저장한다.
-	*	@pre	해당 파일의 스트림이 열려 있어야 하며, 데이터 리스트가 초기화되어 있어야 한다.
-	*	@post	해당 파일에 아티스트의 정보가 저장된다.
-	*	@param	fout	정보를 쓸 파일의 스트림.
-	*	@return	성공하면 1, 아니면 0을 반환.
-	*/
-	int WriteDataToFile(ofstream& fout);
-
-	/**
 	*	@brief	앨범 리스트에 관련한 iterator를 생성한다.
 	*	@pre	없음.
 	*	@post	iterator 객체가 생성된다.
