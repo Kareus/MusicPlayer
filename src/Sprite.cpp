@@ -218,3 +218,8 @@ void Sprite::TriggerMouseOver()
 	mouseOver = true;
 	sprite->setColor(overColor);
 }
+
+sf::Vector2f Sprite::GetTexturePos()
+{
+	return sf::Vector2f(textureRect.left, textureRect.top);
+}

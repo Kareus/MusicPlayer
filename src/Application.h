@@ -36,6 +36,7 @@ private:
 
 	bool editor_opened;
 	bool updating;
+	bool editList;
 
 	TextBox* defaultSearch;
 	Sprite* playerSprite;
@@ -113,7 +114,8 @@ private:
 	Group* currentGroup; ///<현재 출력중인 그룹
 	bool running; ///<애플리케이션 구동 여부
 	MusicType* editMusic; ///<에디터 윈도우에서 수정할 음악 타입
-	SimpleMusicType currentMusic; ///<마지막으로 재생한 음악 데이터
+	PlayList currentEdit; ///<현재 수정하는 플레이리스트
+	PlayList currentPlay; ///<현재 재생하는 플레이리스트
 	bool scrolling; ///<스크롤바 드래그 여부
 	bool mouseDown;
 	
@@ -203,11 +205,47 @@ private:
 
 	function<void(Sprite*)> func_search = [this](Sprite* sprite) {
 		string data = String::WstrToStr(defaultSearch->getText());
+		if (displayMode == 7)
+		{
+			SearchInPlayList(data);
+			return;
+		}
 		if (!data.empty()) Search(data, displayMode);
 		else UpdateList();
 	};
 
-	//멀티 쓰레드에서 윈도우를 렌더링할 때 쓸 함수
+	function<void(Sprite*)> func_tolist = [this](Sprite* sprite) {
+		CreatePlayList(sprite->GetData());
+	};
+
+	function<void(Sprite*)> func_editlist = [this](Sprite* sprite) {
+		DisplayMusicForList(stoi(sprite->GetData()));
+	};
+
+	function<void(Sprite*)> func_removelist = [this](Sprite* sprite) {
+		DeletePlayList(stoi(sprite->GetData()));
+	};
+
+	function<void(Sprite*)> func_playlist = [this](Sprite* sprite) {
+		currentPlay.SetID(stoi(sprite->GetData()));
+		PlayMusicList();
+	};
+
+	function<void(Sprite*)> func_savelist = [this](Sprite* sprite) {
+		SavePlayList(stoi(sprite->GetData()));
+	}
+
+	function<void(Sprite*)> func_togglelist = [this](Sprite* sprite) {
+		SimpleMusicType simple;
+		simple.SetID(sprite->GetData());
+		int x = sprite->GetTexturePos().x;
+		if (x > 0) DeleteMusicFromPlayList(simple);
+		else AddMusicToPlayList(simple);
+
+		sprite->SetTexturePos(25 - x, 0);
+	};
+
+	//윈도우를 렌더링할 때 쓸 함수
 	void RenderMain();
 
 	void initMainGraphic();
@@ -369,6 +407,8 @@ public:
 
 	Group* CreateDisplayGraphic(const FolderType& data);
 
+	Group* CreateDisplayGraphic(const PlayList& data);
+
 	int InputNumeric(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 	void CloseEditor();
@@ -387,12 +427,33 @@ public:
 
 	void DisplayAllFolder();
 
+	void DisplayAllPlayList();
+
+	void DisplayMusicForList(int id);
+
 	void Search(const std::string& keyword, int mode = 0);
 
 	void SendToDetail(const std::string& data);
 
 	void FilterDisplay(const std::string& label, const std::string& content, bool& notLabel);
 
+	void CreatePlayList(const std::string& id = "");
+
+	Group* CreatePlayGraphic(const SimpleMusicType& data, bool found);
+
+	void AddMusicToPlayList(const SimpleMusicType& data);
+
+	void DeleteMusicFromPlayList(const SimpleMusicType& data);
+
+	void PlayMusicList();
+
+	void StopMusicList();
+
+	void SaveMusicList(int id);
+
+	void SearchInPlayList(const std::string& keyword);
+
+	void DeletePlayList(int id);
 };
 #pragma once
 #endif

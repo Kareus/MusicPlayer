@@ -17,6 +17,8 @@ namespace Resource
 		delete tabSprite;
 		delete detailSprite;
 		delete tolistSprite;
+		delete addlistSprite;
+		delete saveSprite;
 	}
 }
 

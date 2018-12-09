@@ -52,6 +52,8 @@ public:
 
 	sf::Vector2f GetPosition() override;
 
+	sf::Vector2f GetTexturePos();
+
 	sf::Vector2f GetSize() override;
 
 	void SetButton(bool b);

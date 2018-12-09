@@ -3,6 +3,7 @@
 PlayList::PlayList()
 {
 	list.MakeEmpty();
+	id = -1;
 }
 
 PlayList::~PlayList()
@@ -35,6 +36,16 @@ int PlayList::GetMusic(SimpleMusicType& data)
 	return list.Get(data);
 }
 
+int PlayList::GetMusicNum() const
+{
+	return list.GetLength();
+}
+
+DoublyIterator<SimpleMusicType> PlayList::GetIterator()
+{
+	return DoublyIterator<SimpleMusicType>(list);
+}
+
 PlayList& PlayList::operator=(const PlayList& data)
 {
 	list = data.list;
@@ -43,15 +54,25 @@ PlayList& PlayList::operator=(const PlayList& data)
 
 bool PlayList::operator<(const PlayList& data) const
 {
-	return 1;
+	return id < data.GetID();
 }
 
 bool PlayList::operator>(const PlayList& data) const
 {
-	return 0;
+	return id > data.GetID();
 }
 
 bool PlayList::operator==(const PlayList& data) const
 {
-	return &list == &data.list;
+	return id == data.GetID();
+}
+
+void PlayList::SetID(int id)
+{
+	this->id = id;
+}
+
+int PlayList::GetID() const
+{
+	return id;
 }

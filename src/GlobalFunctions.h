@@ -25,6 +25,8 @@ namespace Resource
 	static Sprite* tabSprite = nullptr;
 	static Sprite* detailSprite = nullptr;
 	static Sprite* tolistSprite = nullptr;
+	static Sprite* addlistSprite = nullptr;
+	static Sprite* saveSprite = nullptr;
 
 	void ReleaseResource();
 }

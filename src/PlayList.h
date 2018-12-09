@@ -3,7 +3,7 @@
 #define __PLAYLIST__
 
 #include "SimpleMusicType.h"
-#include "AVLTree.h"
+#include "DoublyLinkedList.h"
 
 /**
 * 재생 목록을 저장하는 클래스
@@ -14,6 +14,7 @@ class PlayList
 {
 private:
 	AVLTree<SimpleMusicType> list;
+	int id;
 
 public:
 	PlayList();
@@ -29,6 +30,14 @@ public:
 	int ReplaceMusic(const SimpleMusicType& data);
 
 	int GetMusic(SimpleMusicType& data);
+
+	int GetMusicNum() const;
+
+	void SetID(int id);
+
+	int GetID() const;
+
+	DoublyIterator<SimpleMusicType> GetIterator();
 
 	PlayList& operator=(const PlayList& data);
 	
