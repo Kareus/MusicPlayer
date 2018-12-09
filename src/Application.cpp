@@ -2246,6 +2246,7 @@ void Application::Search(const string& keyword, int mode)
 				while (iter_m.NotNull())
 				{
 					displayList.Add(CreateDisplayGraphic(iter_m.Current()));
+					iter_m.Next();
 				}
 			}
 		}

@@ -38,6 +38,7 @@ namespace String
 
 	std::string Strip(const std::string& str)
 	{
+		if (str.empty()) return str;
 		std::string newString = "";
 		for (int i = 0; i < str.size(); i++)
 			if (str.at(i) != ' ') newString += str.at(i);
@@ -46,6 +47,7 @@ namespace String
 
 	std::string Strip_LR(const std::string& str)
 	{
+		if (str.empty()) return str;
 		int start = 0;
 		int end = str.size() - 1;
 		while (str.at(start) == ' ') start++;
