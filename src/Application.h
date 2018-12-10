@@ -38,6 +38,7 @@ private:
 
 	bool editor_opened; ///<에디터가 열렸는지 여부
 	bool updating; ///<데이터를 수정하여 그래픽을 업데이트 중인지 여부
+	bool blockNext; ///<다음 음악 이벤트 차단 여부
 
 	TextBox* defaultSearch; ///<검색창 용 텍스트 박스
 	TextLabel* playName; ///<재생하는 음악 이름을 출력하는 텍스트

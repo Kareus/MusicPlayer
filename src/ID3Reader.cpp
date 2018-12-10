@@ -45,7 +45,7 @@ bool ID3Reader::canRead(char* id)
 {
 	for (int i = 0; i < 4; i++)
 	{
-		if (id[i] < 20 || id[i] > 90) return false;
+		if (id[i] < 30 || id[i] > 90) return false;
 	}
 
 	return true;
@@ -152,8 +152,12 @@ bool ID3Reader::read(const wstring& filepath)
 			m_inFile.read(frameSize, 4); //property의 크기를 읽어온다. sync되어 있다.
 
 			int realSize;
+
 			if (minorVersion == 4) realSize = decodeSync(frameSize); //2.4에서는 frameSize가 sync되어 있다.
 			else realSize = (frameSize[0] << 24) + (frameSize[1] << 16) + (frameSize[2] << 8) + frameSize[3]; //아닌 경우는 decode하지 않음
+
+			if (realSize < 0) break; //오류 방지
+
 			char* data = new char[realSize];
 
 			m_inFile.seekg(2, ios::cur); //frame flag 2개는 skip
@@ -379,17 +383,18 @@ wstring ID3Reader::getGenre()
 			}
 		}
 
-		if (count < 2 || index1 < 0 || index2 < 0) return L""; //content에서 유효한 genre를 찾지 못한 경우 빈 문자열 반환
+		if (count < 2 || index1 < 0 || index2 < 0) return content; //content에서 유효한 genre를 찾지 못한 경우 원본 반환
 		
 		int genreNum = 0;
 
 		for (int j = index1 + 1; j < index2; j++) genreNum = genreNum * 10 + content.at(j) - 48; //getYearAsIntenger과 마찬가지로, 장르 번호 추출
 
-		if (genreNum == -1 || genreNum > ID3GenreTable::MAXGENRE) return L""; //해당하는 장르가 없을 경우 빈 문자열 반환
+		if (genreNum == -1 || genreNum > ID3GenreTable::MAXGENRE) return content; //해당하는 장르가 없을 경우 원본 반환
 
 		return ID3GenreTable::genreTable[genreNum];
 	}
 
+	//id3 v1
 	if (genre == -1 || genre > ID3GenreTable::MAXGENRE) return L""; //해당하는 장르가 없을 경우 빈 문자열 반환
 
 	return ID3GenreTable::genreTable[genre]; //lookup table에서 해당 장르명을 찾아서 반환

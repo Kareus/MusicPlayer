@@ -20,6 +20,7 @@ extern MediaPlayer* player;
 Application::Application()
 {
 	focus = nullptr;
+	blockNext = false;
 	m_Command = 0;
 	addedCount = 0;
 	mostPlayedList.SetCompareFunction(comparePlayedTime);
@@ -129,7 +130,7 @@ void Application::RenderMain()
 
 	if (playName->GetSize().x > playName->getDisplayRect().width) //긴 텍스트 애니메이션
 	{
-		playName->SetOffsetX(playName->GetOffset().x - 0.05);
+		playName->SetOffsetX(playName->GetOffset().x - 0.02);
 
 		if (playName->GetOffset().x < -playName->GetSize().x)
 			playName->SetOffsetX(playName->GetSize().x);
@@ -635,7 +636,7 @@ Group* Application::CreateDisplayGraphic(const SimpleMusicType& data)
 	graphic->AddGraphic(nameLabel);
 
 	std::wstring wstr = String::StrToWstr(data.GetName());
-	if (wstr.size() >= 25) wstr = wstr.substr(0, 22) + L'\n' + wstr.substr(22);
+	if (wstr.size() >= 40) wstr = wstr.substr(0, 40) + L'\n' + wstr.substr(40);
 	nameLabel->setText(wstr);
 
 	Sprite* editButton = Resource::editSprite->clone();
@@ -1890,12 +1891,12 @@ Group* Application::CreateDisplayGraphic(const Album& data)
 	graphic->AddGraphic(artistLabel);
 
 	std::wstring wstr = String::StrToWstr(data.GetAlbumName());
-	if (wstr.size() >= 25) wstr = wstr.substr(0, 22) + L"...";
+	if (wstr.size() >= 40) wstr = wstr.substr(0, 37) + L"...";
 	nameLabel->setText(wstr);
 
 	wstr = String::StrToWstr(data.GetArtist() + " - num : " + to_string(data.GetMusicNum()));
 
-	if (wstr.size() >= 25) wstr = wstr.substr(0, 22) + L"...";
+	if (wstr.size() >= 40) wstr = wstr.substr(0, 37) + L"...";
 	artistLabel->setText(wstr);
 
 	Sprite* detailButton = Resource::detailSprite->clone();
@@ -1943,7 +1944,7 @@ Group* Application::CreateDisplayGraphic(const Artist& data)
 	graphic->AddGraphic(numLabel);
 
 	std::wstring wstr = String::StrToWstr(data.GetName());
-	if (wstr.size() >= 25) wstr = wstr.substr(0, 22) + L"...";
+	if (wstr.size() >= 40) wstr = wstr.substr(0, 37) + L"...";
 	nameLabel->setText(wstr);
 
 	wstr = L"Music num : " + to_wstring(data.GetMusicNum());
@@ -1994,7 +1995,7 @@ Group* Application::CreateDisplayGraphic(const GenreType& data)
 	graphic->AddGraphic(numLabel);
 
 	std::wstring wstr = String::StrToWstr(data.GetGenre());
-	if (wstr.size() >= 25) wstr = wstr.substr(0, 22) + L"...";
+	if (wstr.size() >= 40) wstr = wstr.substr(0, 37) + L"...";
 	nameLabel->setText(wstr);
 
 	wstr = L"Music num : " + to_wstring(data.GetMusicNum());
@@ -2045,7 +2046,7 @@ Group* Application::CreateDisplayGraphic(const FolderType& data)
 	graphic->AddGraphic(numLabel);
 
 	std::wstring wstr = data.GetPath();
-	if (wstr.size() >= 25) wstr = wstr.substr(0, 22) + L"...";
+	if (wstr.size() >= 40) wstr = wstr.substr(0, 37) + L"...";
 	nameLabel->setText(wstr);
 
 	wstr = L"Music num : " + to_wstring(data.GetLength());
@@ -2096,7 +2097,7 @@ Group* Application::CreateDisplayGraphic(const PlayList& play)
 	graphic->AddGraphic(numLabel);
 
 	std::wstring wstr = L"PlayList " + to_wstring(play.GetID());
-	if (wstr.size() >= 25) wstr = wstr.substr(0, 22) + L"...";
+	if (wstr.size() >= 40) wstr = wstr.substr(0, 37) + L"...";
 	nameLabel->setText(wstr);
 
 	wstr = L"Music num : " + to_wstring(play.GetMusicNum());
@@ -2822,7 +2823,7 @@ Group* Application::CreatePlayGraphic(const SimpleMusicType& data, bool found)
 	graphic->AddGraphic(nameLabel);
 
 	std::wstring wstr = String::StrToWstr(data.GetName());
-	if (wstr.size() >= 25) wstr = wstr.substr(0, 22) + L'\n' + wstr.substr(22);
+	if (wstr.size() >= 40) wstr = wstr.substr(0, 40) + L'\n' + wstr.substr(40);
 	nameLabel->setText(wstr);
 
 	Sprite* listButton = Resource::addlistSprite->clone();
@@ -2933,9 +2934,9 @@ void Application::DeletePlayList(int id)
 
 void Application::StopMusicList()
 {
+	blockNext = true;
 	StopMusic();
-	AVLTreeIterator<PlayList> iter(playLists);
-	currentPlay = iter.Current(); //처음 플레이 리스트로 임시 대체
+	currentPlay.SetID(-1); //id를 -1로 설정
 }
 
 void Application::SaveMusicList(int id)
@@ -3146,8 +3147,13 @@ void Application::Prev()
 
 void Application::Next()
 {
+	if (blockNext) //다음 음악 이벤트가 차단되어 있으면
+	{
+		blockNext = false;
+		return; //플래그를 해제하고 반환
+	}
+
 	StopMusic();
-	playSprite->SetTexturePos(0, 0);
 	currentPlayIterator.Next();
 	while (currentPlayIterator.NotNull()) //유효한 파일이 나올때까지 넘긴다
 	{
@@ -3171,6 +3177,7 @@ void Application::Next()
 void Application::StopMusic()
 {
 	player->stop();
+	playSprite->SetTexturePos(0, 0);
 }
 
 void Application::AddPlayList(PlayList& play)
