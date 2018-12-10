@@ -220,7 +220,7 @@ bool ID3Reader::read(const wstring& filepath)
 				}
 				else if (encoder == 3)
 				{
-					for (int i = 1; i < realSize; i += 2) frame += *(uint8_t*)(data + i); //UTF8의 경우 BOM이 없거나 상관 없으므로 1번째 문자부터 옮긴다.
+					for (int i = 1; i < realSize; i ++) frame += *(uint8_t*)(data + i); //UTF8의 경우 BOM이 없거나 상관 없으므로 1번째 문자부터 옮긴다.
 				}
 			}
 			

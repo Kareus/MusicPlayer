@@ -2951,9 +2951,18 @@ void Application::SaveMusicList(int id)
 		UINT type = 0;
 		if (dialog.saveFileDialog(path, L"Window Media Play List;Zune Play List;M3U8 File", L"wpl;zpl;m3u8", type) != DIALOG_SUCCESS) return;
 
-		if (type == 1) if (path.substr(path.size()-4,4) != L".wpl") path += L".wpl";
-		else if (type == 2) if (path.substr(path.size() - 4, 4) != L".zpl") path += L".zpl";
-		else if (type == 3) if (path.substr(path.size() - 5, 5) != L".m3u8") path += L".m3u8";
+		if (type == 1)
+		{
+			if (path.substr(path.size() - 4, 4) != L".wpl") path += L".wpl";
+		}
+		else if (type == 2)
+		{
+			if (path.substr(path.size() - 4, 4) != L".zpl") path += L".zpl";
+		}
+		else if (type == 3)
+		{
+			if (path.substr(path.size() - 5, 5) != L".m3u8") path += L".m3u8";
+		}
 		
 		if (path.size() < 4)
 		{
@@ -3167,4 +3176,9 @@ void Application::StopMusic()
 void Application::AddPlayList(PlayList& play)
 {
 	playLists.Add(play);
+}
+
+HWND Application::GetHandle()
+{
+	return Handle;
 }

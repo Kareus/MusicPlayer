@@ -281,10 +281,19 @@ private:
 
 public:
 
-	HWND GetHandle() { return Handle; }
+	/**
+	*	@brief	플레이어의 윈도우 핸들을 반환하는 함수
+	*	@return	플레이어의 윈도우 핸들
+	*/
+	HWND GetHandle();
 
+	/**
+	*	@brief	음악 정보를 수정 중인지 여부를 반환하는 함수
+	*	@return	수정 중이면 true, 아니면 false를 반환한다
+	*/
 	bool IsEditing();
 
+	//플레이어 위에 에디터 윈도우가 오도록 변경하는 함수
 	void SwapEditor();
 
 	/**
@@ -305,21 +314,27 @@ public:
 	*/
 	void Run(HINSTANCE instance);
 
+	/**
+	*	@brief	플레이어가 작동 중인지 여부를 반환하는 함수
+	*	@return	플레이어가 작동 중이면 true, 아니면 false를 반환한다.
+	*/
 	bool IsRunning();
 
 	/**
-	*	@brief	리스트에 새로운 아이템을 추가한다.
-	*	@pre	리스트가 초기화되어 있어야 한다.
-	*	@post	새 아이템이 리스트에 추가된다.
+	*	@brief	파일 상자를 열어 음악 파일을 불러와 추가한다.
 	*	@return	성공하면 1, 아니면 0을 반환.
 	*/
 	int AddMusic();
 
+	/**
+	*	@brief	파일 상자를 열어 폴더 경로를 불러와 그 폴더의 음악을 모두 추가한다.
+	*	@return	성공하면 1, 아니면 0을 반환.
+	*/
 	int AddMusicFromDirectory();
 
 	/**
-	*	@brief	사용자로부터 정보를 입력받아 아이템을 삭제한다.
-	*	@pre	없음.
+	*	@brief	입력받은 음악의 정보를 이용해 리스트에서 찾아 그 음악을 삭제하는 함수
+	*	@pre	입력받는 음악에 primary key가 입력되어 있어야 한다.
 	*	@post	찾은 아이템이 리스트에서 삭제된다.
 	*	@param	music	삭제할 음악 데이터
 	*	@return 성공하면 1, 아니면 0을 반환.
@@ -327,24 +342,18 @@ public:
 	int DeleteMusic(const SimpleMusicType& music);
 
 	/**
-	*	@brief	사용자로부터 정보를 입력받아 아이템을 교체한다.
-	*	@pre	없음.
-	*	@post	찾은 아이템이 리스트에서 교체된다.
-	*	@return 성공하면 1, 아니면 0을 반환.
+	*	@brief	에디터 윈도우를 통해 수정한 음악 데이터를 리스트에서 교체한다.
+	*	@return	성공하면 1, 아니면 0을 반환.
 	*/
 	int ReplaceMusic();
 
 	/**
-	*	@brief	모든 정보를 화면에 출력한다.
-	*	@pre	없음.
-	*	@post	없음.
+	*	@brief	모든 음악 정보를 플레이어에 표시한다.
 	*/
 	void DisplayAllMusic();
 
 	/**
 	*	@brief	정보를 입력받을 파일을 연다.
-	*	@pre	읽을 파일이 존재해야 한다.
-	*	@post	파일을 읽기 모드로 연다.
 	*	@param	fileName	읽을 파일의 이름.
 	*	@return	성공하면 1, 아니면 0을 반환.
 	*/
@@ -352,8 +361,6 @@ public:
 
 	/**
 	*	@brief	정보를 저장하기 위한 파일을 연다.
-	*	@pre	리스트가 초기화되어 있어야 한다.
-	*	@post	파일을 쓰기 모드로 연다.
 	*	@param	fileName	쓸 파일의 이름.
 	*	@return	성공하면 1, 아니면 0을 반환.
 	*/
@@ -393,22 +400,51 @@ public:
 	/**
 	*	@brief	음악을 재생한다.
 	*	@pre	없음.
-	*	@post	음악을 재생하고 최근 재생한/많이 재생한 음악 리스트에 추가한다.
+	*	@post	음악을 재생하고 가장 많이 재생한 음악 리스트에 추가한다.
 	*	@param	music	재생할 음악 데이터
 	*	@return	성공하면 1, 실패하면 0을 반환한다.
 	*/
 	int PlayMusic(const SimpleMusicType& music);
 
+	/**
+	*	@brief	윈도우 프로시저로부터 수신한 이벤트를 실행한다.
+	*	@param	e	실행할 이벤트
+	*	@return	이벤트가 성공적으로 실행되면 true, 아니면 false를 반환한다.
+	*/
 	bool pollEvent(CustomWinEvent e);
 
+	/**
+	*	@brief	해당 그래픽 객체를 렌더링 리스트에 추가한다.
+	*	@param	graphic	추가할 그래픽 객체
+	*	@return	성공하면 1, 아니면 0을 반환.
+	*/
 	int AddGraphicToMain(Graphic* graphic);
 
+	/**
+	*	@brief	플레이어를 종료한다.
+	*/
 	void Close();
 
+	/**
+	*	@brief	음악 정보 교체를 위해 에디터 윈도우를 연다.
+	*	@pre	수정할 음악의 primary key가 유효해야 한다.
+	*	@post	에디터 윈도우를 연다.
+	*	@param	music	수정할 음악의 primary key를 가진 음악 데이터
+	*	@return 성공하면 1, 아니면 0을 반환.
+	*/
 	int EditMusic(const SimpleMusicType& music);
 
+	/**
+	*	@brief	parameter의 음악 데이터를 리스트에 추가한다.
+	*	@pre	parameter는 필요한 데이터를 모두 가지고 있어야 한다.
+	*	@post	해당 음악이 리스트에 추가된다.
+	*	@return 성공하면 1, 아니면 0을 반환.
+	*/
 	int AddMusic(MusicType& music);
 
+	/**
+	*	@brief	변경된 내용을 바탕으로 렌더링할 그래픽을 다시 추가한다.
+	*/
 	void UpdateList();
 
 	Group* CreateDisplayGraphic(const SimpleMusicType& data);
