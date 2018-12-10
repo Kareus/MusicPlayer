@@ -248,6 +248,7 @@ int DoublyLinkedList<T>::Add(const T& item)
 	if (IsFull()) return 0; //꽉 찼으면 실패
 
 	DoublyNodeType<T>* node = new DoublyNodeType<T>; //추가할 노드 생성
+	DoublyNodeType<T>* current;	// iterator에서 접근할 노드
 	DoublyIterator<T> iter(*this);
 	DoublyIterator<T> iter2(*this);
 	iter2.ResetToLastPointer();
@@ -260,11 +261,11 @@ int DoublyLinkedList<T>::Add(const T& item)
 	{ //비어 있는 경우
 		m_pFirst = node;
 		m_pLast = m_pFirst;
+		m_nLength++;
+		return 1;
 	}
 	else
 	{ //아닌 경우
-
-		DoublyNodeType<T>* current;	// iterator에서 접근할 노드
 		do
 		{
 			if (!iter.NotNull() || !iter.NotNull()) return 0;
@@ -282,7 +283,8 @@ int DoublyLinkedList<T>::Add(const T& item)
 
 				node->prev = current->prev; //이전 노드를 current의 이전 노드로 설정
 				current->prev = node; //current의 이전 노드를 node로 설정
-				break;
+				m_nLength++;
+				return 1;
 			}
 			else if (compare > 0) iter.Next();
 			//추가하려는 노드가 현재보다 크다면 (node > current) 다음으로 넘긴다. (iter과 iter2가 중간에서 만남이 보장되므로 null 체크는 하지 않음.)
@@ -304,7 +306,8 @@ int DoublyLinkedList<T>::Add(const T& item)
 
 				node->next = current->next; //다음 노드를 current의 다음 노드로 설정
 				current->next = node; //current의 다음 노드를 node로 설정
-				break;
+				m_nLength++;
+				return 1;
 			}
 			else if (compare < 0) iter2.Prev();
 			//추가하려는 노드가 현재보다 작다면 (node < current) 이전으로 넘긴다. (iter과 iter2가 중간에서 만남이 보장되므로 null 체크는 하지 않음.)
@@ -314,11 +317,30 @@ int DoublyLinkedList<T>::Add(const T& item)
 				return 0;
 			}
 
-		} while (iter.NotNull() && iter2.NotNull());
+		} while (!(iter.Current() > iter2.Current()));
 	}
 
-	m_nLength++;
-	return 1;
+	if (!iter.NotNull() || !iter.NotNull()) return 0;
+
+	//정중앙에 삽입할 수 있으므로 마지막 체크
+	current = iter.m_pCurPointer;
+
+	int compare = compareFunc(node->data, current->data);
+	if (compare < 0)
+	{  //추가하려는 노드가 현재보다 작다면 (node < current)
+		node->next = current; //다음 노드를 current로 설정
+
+		if (current == m_pFirst) m_pFirst = node; //맨 앞인 경우 first로 설정
+		else current->prev->next = node; //아닌 경우 current의 이전 노드가 다음을 node로 가리키도록 설정
+
+		node->prev = current->prev; //이전 노드를 current의 이전 노드로 설정
+		current->prev = node; //current의 이전 노드를 node로 설정
+		m_nLength++;
+		return 1;
+	}
+
+	delete node; //메모리를 해제하고 0 반환
+	return 0;
 }
 
 template <typename T>
@@ -339,20 +361,21 @@ int DoublyLinkedList<T>::Get(T& item)
 		int compare = compareFunc(iter.m_pCurPointer->data, item);
 		int compare2 = compareFunc(iter2.m_pCurPointer->data, item);
 
-		if (compare == 0) item = iter.m_pCurPointer->data;
-		else if (compare2 == 0) item = iter2.m_pCurPointer->data;
+		if (compare == 0) item = iter.m_pCurPointer->data; //찾으면
+		else if (compare2 == 0) item = iter2.m_pCurPointer->data; //찾으면
 		else //찾지 못하면
 		{
 			if (compare < 0) iter.Next();
 			else notFound1 = true;
 			if (compare2 > 0) iter2.Prev();
 			else notFound2 = true;
-			if (iter.NotNull() && iter2.NotNull() && !(notFound1 && notFound2)) continue;
+			if (!(notFound1 && notFound2)) continue; //더 찾을 수 있으면 continue하여 위에서부터 다시 실행
 			return 0;
 		}
 
+		//찾으면
 		return 1;
-	} while (iter.NotNull() && iter2.NotNull());
+	} while (!(iter.Current() > iter2.Current()));
 
 	return 0; //없으면 0 반환
 }
@@ -376,18 +399,19 @@ int DoublyLinkedList<T>::Delete(const T& item)
 		int compare = compareFunc(iter.m_pCurPointer->data, item);
 		int compare2 = compareFunc(iter2.m_pCurPointer->data, item);
 
-		if (compare == 0) node = iter.m_pCurPointer;
-		else if (compare2 == 0) node = iter2.m_pCurPointer;
+		if (compare == 0) node = iter.m_pCurPointer; //찾으면
+		else if (compare2 == 0) node = iter2.m_pCurPointer; //찾으면
 		else //찾지 못하면
 		{
 			if (compare < 0) iter.Next();
 			else notFound1 = true;
 			if (compare2 > 0) iter2.Prev();
 			else notFound2 = true;
-			if (iter.NotNull() && iter2.NotNull() && !(notFound1 && notFound2)) continue;
+			if (!(notFound1 && notFound2)) continue; //더 찾을 수 있으면 continue하여 위에서부터 다시 실행
 			return 0;
 		}
 
+		//찾으면
 		if (node->prev != nullptr) node->prev->next = node->next; //이전 노드의 다음을 다음 노드로 설정
 		else m_pFirst = node->next; //이전 노드가 nullptr이면 처음 노드
 		if (node->next != nullptr) node->next->prev = node->prev; //다음 노드의 이전을 이전 노드로 설정
@@ -397,7 +421,7 @@ int DoublyLinkedList<T>::Delete(const T& item)
 		m_nLength--;
 		return 1;
 
-	} while (iter.NotNull() && iter2.NotNull());
+	} while (!(iter.Current() > iter2.Current()));
 
 	return 0; //못 찾았다면 0 반환
 }
@@ -420,20 +444,21 @@ int DoublyLinkedList<T>::Replace(const T& item)
 		int compare = compareFunc(iter.m_pCurPointer->data, item);
 		int compare2 = compareFunc(iter2.m_pCurPointer->data, item);
 
-		if (compare == 0) iter.m_pCurPointer->data = item;
-		else if (compare2 == 0) iter2.m_pCurPointer->data = item;
+		if (compare == 0) iter.m_pCurPointer->data = item; //찾으면
+		else if (compare2 == 0) iter2.m_pCurPointer->data = item; //찾으면
 		else //찾지 못하면
 		{
 			if (compare < 0) iter.Next();
 			else notFound1 = true;
 			if (compare2 > 0) iter2.Prev();
 			else notFound2 = true;
-			if (iter.NotNull() && iter2.NotNull() && !(notFound1 && notFound2)) continue;
+			if (!(notFound1 && notFound2)) continue; //더 찾을 수 있으면 continue하여 위에서부터 다시 실행
 			return 0;
 		}
 
+		//찾으면
 		return 1;
-	} while (iter.NotNull() && iter2.NotNull());
+	} while (!(iter.Current() > iter2.Current()));
 
 	return 0; //없으면 0 반환
 }
