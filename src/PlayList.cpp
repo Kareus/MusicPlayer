@@ -18,6 +18,11 @@ PlayList::PlayList(const PlayList& data)
 	id = data.GetID();
 }
 
+void PlayList::MakeEmpty()
+{
+	list.MakeEmpty();
+}
+
 int PlayList::AddMusic(const SimpleMusicType& data)
 {
 	return list.Add(data);

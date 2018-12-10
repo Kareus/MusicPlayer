@@ -55,6 +55,7 @@ Application::Application()
 
 	defaultSearch = nullptr;
 	playName = nullptr;
+	playTime = nullptr;
 	playerSprite = new Sprite(string(PATH)+"graphic/player.png");
 	minimizeSprite = new Sprite(string(PATH)+"graphic/minimize.png");
 	closeSprite = new Sprite(string(PATH)+"graphic/exit.png");
@@ -132,6 +133,28 @@ void Application::RenderMain()
 
 		if (playName->GetOffset().x < -playName->GetSize().x)
 			playName->SetOffsetX(playName->GetSize().x);
+	}
+
+	if (player->GetState() == PlayerState::Started)
+	{
+		unsigned int time = player->getPosition();
+		wstring pos = L"";
+		if (time / 60 < 10) pos += L'0';
+		pos += to_wstring(time / 60);
+		pos += L':';
+		if (time % 60 < 10) pos += L'0';
+		pos += to_wstring(time % 60);
+
+		pos += L'-';
+
+		time = player->getLength();
+		if (time / 60 < 10) pos += L'0';
+		pos += to_wstring(time / 60);
+		pos += L':';
+		if (time % 60 < 10) pos += L'0';
+		pos += to_wstring(time % 60);
+
+		playTime->setText(pos);
 	}
 
 	window.display();
@@ -245,8 +268,17 @@ void Application::initMainGraphic()
 	playName->setFont(*Resource::defaultFont);
 	playName->setCharacterSize(24);
 	playName->setTextColor(sf::Color::White);
-	playName->SetPosition(55, 45);
+	playName->SetPosition(65, 45);
 	AddGraphicToMain(playName);
+
+	playTime = new TextLabel(L"00:00-00:00");
+	playTime->setAlign(TextAlign::MIDDLE);
+	playTime->setDisplayRect(0, 0, 130, 25);
+	playTime->setFont(*Resource::defaultFont);
+	playTime->setCharacterSize(16);
+	playTime->setTextColor(sf::Color::White);
+	playTime->SetPosition(116, 145);
+	AddGraphicToMain(playTime);
 
 	playSprite->SetPosition(161, 87);
 	playSprite->SetButton(true);
@@ -1625,7 +1657,26 @@ int Application::PlayMusic(const SimpleMusicType& music)
 {
 	StopMusic(); //음악 재생 종료
 
-	currentPlay.SetID(-1); //단일 재생만 할 것이므로 현재 플레이 리스트의 ID를 -1로 한다.
+	currentPlay.MakeEmpty();
+	currentPlay.SetID(-1); //추가하지 않은 플레이리스트이므로 -1로 한다.
+
+	DoublyIterator<Graphic*> iter_m(displayList);
+	SimpleMusicType temp;
+
+	int count = 0; //iterator 세팅용 카운트
+	bool flag = false;
+	while (iter_m.NotNull())
+	{
+		temp.SetID(iter_m.Current()->GetData());
+		if (nameList.Get(temp)) currentPlay.AddMusic(temp);
+		if (temp.GetID() == music.GetID()) flag = true;
+		if (!flag) count++;
+		iter_m.Next();
+	}
+
+	currentPlayIterator = currentPlay.GetIterator();
+	for (int i = 0; i < count; i++) currentPlayIterator.Next();
+
 	SimpleMusicType simple;
 	simple.SetID(music.GetID());
 
@@ -2872,7 +2923,12 @@ void Application::DeletePlayList(int id)
 
 	if (currentPlay.GetID() == id) StopMusicList(); //재생 중이던 음악 리스트면 정지
 
-	if (playLists.Delete(play)) UpdateList();
+	if (playLists.Delete(play))
+	{
+		int count = 1;
+		playLists.Do([&](PlayList& p) {p.SetID(count); count++; });
+		UpdateList();
+	}
 }
 
 void Application::StopMusicList()
@@ -2984,7 +3040,7 @@ void Application::ResumePlay()
 				return;
 			}
 			else
-				PlayMusic(currentMusic); //단일 재생인 경우 현재 음악을 재생
+				PlayMusic(currentMusic);
 		}
 		else
 		{
@@ -3081,29 +3137,25 @@ void Application::Prev()
 
 void Application::Next()
 {
-	PlayerState state = player->GetState();
-	if (state == PlayerState::Started || state == PlayerState::Paused || state == PlayerState::Stopped) //재생 중이거나 정지되었을 때
+	StopMusic();
+	playSprite->SetTexturePos(0, 0);
+	currentPlayIterator.Next();
+	while (currentPlayIterator.NotNull()) //유효한 파일이 나올때까지 넘긴다
 	{
-		player->stop();
-		playSprite->SetTexturePos(0, 0);
-		currentPlayIterator.Next();
-		while (currentPlayIterator.NotNull())
+		currentMusic = currentPlayIterator.Current();
+
+		if (player->openFile(currentMusic.GetPath()) && player->play())
 		{
-			currentMusic = currentPlayIterator.Current();
+			MusicType m;
+			m.SetID(String::WstrToStr(currentMusic.GetPath()));
+			musicList.Get(m);
+			playName->setText(String::StrToWstr(m.GetArtist() + " - " + m.GetName()));
+			playName->SetOffsetX(0);
 
-			if (player->openFile(currentMusic.GetPath()) && player->play())
-			{
-				MusicType m;
-				m.SetID(String::WstrToStr(currentMusic.GetPath()));
-				musicList.Get(m);
-				playName->setText(String::StrToWstr(m.GetArtist() + " - " + m.GetName()));
-				playName->SetOffsetX(0);
-
-				playSprite->SetTexturePos(41, 0);
-				break;
-			}
-			currentPlayIterator.Next();
+			playSprite->SetTexturePos(41, 0);
+			break;
 		}
+		currentPlayIterator.Next();
 	}
 }
 

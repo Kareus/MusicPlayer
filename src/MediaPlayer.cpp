@@ -295,10 +295,10 @@ HRESULT MediaPlayer::StartPlayback()
 
 	if (SUCCEEDED(hr))
 	{
+		if (playState != Paused) startPosition = 0;
 		playState = Started; //세션 시작은 비동기적으로 작동하므로, 여기서는 [시작했음]으로 설정함
 		// 후에 만약 결과가 실패했을 경우에는 MESessionStarted Event에서 문제가 발생했음을 수신하므로, 그때 처리함
-		
-		if (playState != Paused) startPosition = 0;
+
 		startTime = time(NULL);
 	}
 

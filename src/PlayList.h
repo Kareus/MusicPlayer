@@ -23,6 +23,8 @@ public:
 
 	~PlayList();
 
+	void MakeEmpty();
+
 	int AddMusic(const SimpleMusicType& data);
 
 	int DeleteMusic(const SimpleMusicType& data);

@@ -91,6 +91,7 @@ void Update(HWND hwnd, PlayerState state)
 	switch (state)
 	{
 	case PlayerState::Stopped:
+		Sleep(100); //음악 완전히 종료 대기
 		app->Next();
 		break;
 	}

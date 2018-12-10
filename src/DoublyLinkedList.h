@@ -314,7 +314,7 @@ int DoublyLinkedList<T>::Add(const T& item)
 				return 0;
 			}
 
-		} while (!(iter.m_pCurPointer->data > iter2.m_pCurPointer->data));
+		} while (iter.NotNull() && iter2.NotNull());
 	}
 
 	m_nLength++;
@@ -331,6 +331,9 @@ int DoublyLinkedList<T>::Get(T& item)
 
 	iter2.ResetToLastPointer();
 
+	bool notFound1 = false;
+	bool notFound2 = false;
+
 	do
 	{
 		int compare = compareFunc(iter.m_pCurPointer->data, item);
@@ -341,13 +344,15 @@ int DoublyLinkedList<T>::Get(T& item)
 		else //찾지 못하면
 		{
 			if (compare < 0) iter.Next();
+			else notFound1 = true;
 			if (compare2 > 0) iter2.Prev();
-			if (iter.NotNull() && iter2.NotNull()) continue;
+			else notFound2 = true;
+			if (iter.NotNull() && iter2.NotNull() && !(notFound1 && notFound2)) continue;
 			return 0;
 		}
 
 		return 1;
-	} while (!(iter.m_pCurPointer->data > iter2.m_pCurPointer->data));
+	} while (iter.NotNull() && iter2.NotNull());
 
 	return 0; //없으면 0 반환
 }
@@ -363,6 +368,9 @@ int DoublyLinkedList<T>::Delete(const T& item)
 
 	iter2.ResetToLastPointer();
 
+	bool notFound1 = false;
+	bool notFound2 = false;
+
 	do
 	{
 		int compare = compareFunc(iter.m_pCurPointer->data, item);
@@ -373,8 +381,10 @@ int DoublyLinkedList<T>::Delete(const T& item)
 		else //찾지 못하면
 		{
 			if (compare < 0) iter.Next();
+			else notFound1 = true;
 			if (compare2 > 0) iter2.Prev();
-			if (iter.NotNull() && iter2.NotNull()) continue;
+			else notFound2 = true;
+			if (iter.NotNull() && iter2.NotNull() && !(notFound1 && notFound2)) continue;
 			return 0;
 		}
 
@@ -387,7 +397,7 @@ int DoublyLinkedList<T>::Delete(const T& item)
 		m_nLength--;
 		return 1;
 
-	} while (!(iter.m_pCurPointer->data > iter2.m_pCurPointer->data));
+	} while (iter.NotNull() && iter2.NotNull());
 
 	return 0; //못 찾았다면 0 반환
 }
@@ -402,6 +412,9 @@ int DoublyLinkedList<T>::Replace(const T& item)
 
 	iter2.ResetToLastPointer();
 
+	bool notFound1 = false;
+	bool notFound2 = false;
+
 	do
 	{
 		int compare = compareFunc(iter.m_pCurPointer->data, item);
@@ -412,13 +425,15 @@ int DoublyLinkedList<T>::Replace(const T& item)
 		else //찾지 못하면
 		{
 			if (compare < 0) iter.Next();
+			else notFound1 = true;
 			if (compare2 > 0) iter2.Prev();
-			if (iter.NotNull() && iter2.NotNull()) continue;
+			else notFound2 = true;
+			if (iter.NotNull() && iter2.NotNull() && !(notFound1 && notFound2)) continue;
 			return 0;
 		}
 
 		return 1;
-	} while (!(iter.m_pCurPointer->data > iter2.m_pCurPointer->data));
+	} while (iter.NotNull() && iter2.NotNull());
 
 	return 0; //없으면 0 반환
 }

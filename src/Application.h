@@ -35,61 +35,61 @@ private:
 	HWND Handle; ///<실제 윈도우 핸들
 	HWND editor; ///<에디터 용 콘솔
 
-	bool editor_opened;
-	bool updating;
+	bool editor_opened; ///<에디터가 열렸는지 여부
+	bool updating; ///<데이터를 수정하여 그래픽을 업데이트 중인지 여부
 
-	TextBox* defaultSearch;
-	TextLabel* playName;
-	Sprite* playerSprite;
-	Sprite* minimizeSprite;
-	Sprite* closeSprite;
-	Sprite* playSprite;
-	Sprite* prevSprite;
-	Sprite* nextSprite;
-	Sprite* searchSprite;
-	Sprite* addDirSprite;
-	Sprite* scrollbackSprite;
-	Sprite* scrollSprite;
-	Sprite* listSprite;
-	Sprite* backSprite;
-	Sprite* saveFileSprite;
-	Sprite* loadFileSprite;
+	TextBox* defaultSearch; ///<검색창 용 텍스트 박스
+	TextLabel* playName; ///<재생하는 음악 이름을 출력하는 텍스트
+	TextLabel* playTime; ///<재생 시간:길이 정보를 출력하는 텍스트
+	Sprite* playerSprite; ///<플레이어 배경
+	Sprite* minimizeSprite; ///<최소화 버튼
+	Sprite* closeSprite; ///<닫기 버튼
+	Sprite* playSprite; ///<재생 버튼
+	Sprite* prevSprite; ///<이전 버튼
+	Sprite* nextSprite; ///<다음 버튼
+	Sprite* searchSprite; ///<검색 버튼
+	Sprite* addDirSprite; ///<폴더 추가 버튼
+	Sprite* scrollbackSprite; ///<스크롤바 백그라운드
+	Sprite* scrollSprite; ///<스크롤바
+	Sprite* listSprite; ///<플레이 리스트 추가 관련 버튼
+	Sprite* saveFileSprite; ///<파일 저장 버튼
+	Sprite* loadFileSprite; ///<파일 로드 버튼
 
-	Group* tab_song;
-	Group* tab_album;
-	Group* tab_artist;
-	Group* tab_genre;
-	Group* tab_folder;
-	Group* tab_playlist;
+	Group* tab_song; ///<음악 탭
+	Group* tab_album; ///<앨범 탭
+	Group* tab_artist; ///<아티스트 탭
+	Group* tab_genre; ///<장르 탭
+	Group* tab_folder; ///<폴더 탭
+	Group* tab_playlist; ///<플레이 리스트 탭
 
-	Sprite* song_sprite;
-	Sprite* album_sprite;
-	Sprite* artist_sprite;
-	Sprite* genre_sprite;
-	Sprite* folder_sprite;
-	Sprite* playlist_sprite;
+	Sprite* song_sprite; ///<음악 탭에 사용하는 그래픽
+	Sprite* album_sprite; ///앨범 탭에 사용하는 그래픽
+	Sprite* artist_sprite; ///<아티스트 탭에 사용하는 그래픽
+	Sprite* genre_sprite; ///<장르 탭에서 사용하는 그래픽
+	Sprite* folder_sprite; ///<폴더 탭에서 사용하는 그래픽
+	Sprite* playlist_sprite; ///<플레이 리스트 탭에서 사용하는 그래픽
 
-	HWND edit_nameLabel;
-	HWND edit_nameEdit;
-	HWND edit_artistLabel;
-	HWND edit_artistEdit;
-	HWND edit_albumLabel;
-	HWND edit_albumEdit;
-	HWND edit_genreLabel;
-	HWND edit_genreEdit;
-	HWND edit_composerLabel;
-	HWND edit_composerEdit;
-	HWND edit_writerLabel;
-	HWND edit_writerEdit;
-	HWND edit_dateLabel;
-	HWND edit_dateEdit;
-	HWND edit_lyricsLabel;
-	HWND edit_lyricsEdit;
-	HWND edit_timeLabel;
-	HWND edit_pathLabel;
-	HWND edit_ok;
+	HWND edit_nameLabel; ///<에디터의 이름 태그
+	HWND edit_nameEdit; ///<에디터의 이름 수정 창
+	HWND edit_artistLabel; ///<에디터의 아티스트 태그
+	HWND edit_artistEdit; ///<에디터의 아티스트 수정 창
+	HWND edit_albumLabel; ///<에디터의 앨범 태그
+	HWND edit_albumEdit; ///<에디터의 앨범 수정 창
+	HWND edit_genreLabel; ///<에디터의 장르 태그
+	HWND edit_genreEdit; ///<에디터의 장르 수정 창
+	HWND edit_composerLabel; ///<에디터의 작곡가 태그
+	HWND edit_composerEdit; ///<에디터의 작곡가 수정 창
+	HWND edit_writerLabel; ///<에디터의 작사가 태그
+	HWND edit_writerEdit; ///<에디터의 작사가 수정 창
+	HWND edit_dateLabel; ///<에디터의 날짜 태그
+	HWND edit_dateEdit; ///<에디터의 날짜 수정 창
+	HWND edit_lyricsLabel; ///<에디터의 가사 태그
+	HWND edit_lyricsEdit; ///<에디터의 가사 수정 창 
+	HWND edit_timeLabel; ///<에디터의 재생횟수 태그
+	HWND edit_pathLabel; ///<에디터의 경로 태그
+	HWND edit_ok; ///<에디터의 확인 버튼
 
-	WNDPROC oldProc;
+	WNDPROC oldProc; ///<에디터의 컨트롤에서 호출할 프로시저 함수
 
 	int m_Command; ///< 사용자로부터 입력받은 현재 커맨드
 	std::ifstream m_inputFile; ///< 파일 입력을 받기 위한 스트림
@@ -100,11 +100,11 @@ private:
 	//30개 데이터를 추가해야 하므로 MAXSIZE = 31
 	
 	AVLTree<SimpleMusicType> nameList; ///<이름 순으로 음악을 저장하는 리스트. 이름_아티스트 순으로 정렬.
-	AVLTree<Album> albumList;
-	AVLTree<Artist> artistList;
-	DoublyLinkedList<SimpleMusicType> mostPlayedList;
-	AVLTree<FolderType> folderList;
-	AVLTree<PlayList> playLists;
+	AVLTree<Album> albumList; ///<앨범별로 음악을 저장하는 리스트. 앨범명 순으로 정렬
+	AVLTree<Artist> artistList; ///<아티스트별로 음악을 저장하는 리스트. 아티스트명 순으로 정렬
+	DoublyLinkedList<SimpleMusicType> mostPlayedList; ///<가장 많이 재생한 음악을 저장하는 리스트. 재생횟수 순, ID 순으로 저장.
+	AVLTree<FolderType> folderList; ///<폴더별로 음악을 저장하는 리스트. 경로 순으로 정렬.
+	AVLTree<PlayList> playLists; ///<플레이리스트를 저장하는 리스트. ID 순으로 정렬.
 
 	int addedCount; ///<최근 추가한 음악 수
 
@@ -133,15 +133,15 @@ private:
 		if (time) return time; //횟수가 더 많은 순으로
 
 		return (m1 > m2) - (m1 < m2); //횟수가 같으면 ID 순으로
-	};
+	}; ///<재생횟수를 비교하는 함수
 
 	function<int(Graphic* const&, Graphic* const&)> compareGraphics = [](Graphic* const& g1, Graphic* const& g2) {
 		return (*g1 > *g2) - (*g1 < *g2); //포인터는 주소값을 비교하므로, 가리키는 객체의 비교 관계를 반환한다.
-	};
+	}; ///<그래픽이 포인터이므로 객체를 비교하는 함수
 
-	function<void(Sprite*)> func_dragStart = [this](Sprite*) { SendMessage(Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0); };
-	function<void(Sprite*)> func_minimize = [this](Sprite*) { ShowWindow(Handle, SW_MINIMIZE); };
-	function<void(Sprite*)> func_close = [this](Sprite*) { Close(); };
+	function<void(Sprite*)> func_dragStart = [this](Sprite*) { SendMessage(Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0); }; ///<플레이어 드래그를 시작하는 함수
+	function<void(Sprite*)> func_minimize = [this](Sprite*) { ShowWindow(Handle, SW_MINIMIZE); }; ///<플레이어를 최소화하는 함수
+	function<void(Sprite*)> func_close = [this](Sprite*) { Close(); }; ///<플레이어를 종료하는 함수
 	function<void(Sprite*)> func_playMusic = [this](Sprite* sprite) {
 		if (player->GetState() == PlayerState::Started)
 		{
@@ -155,56 +155,57 @@ private:
 		}
 		sprite->ResetMouseOver(); //마우스 오버 상태를 리셋
 		sprite->TriggerMouseOver(); //마우스 오버 다시 트리거
-	};
+	}; ///<음악 재생/정지하는 함수
 
 	function<void(Sprite*)> func_prevMusic = [this](Sprite* sprite) {
 		Prev();
 		sprite->ResetMouseOver();
 		sprite->TriggerMouseOver();
-	};
+	}; ///<이전 음악으로 이동하는 함수
 
 	function<void(Sprite*)> func_nextMusic = [this](Sprite* sprite) {
 		Next();
 		sprite->ResetMouseOver();
 		sprite->TriggerMouseOver();
-	};
+	}; ///<다음 음악으로 이동하는 함수
 
 	function<void(Sprite*)> func_addMusic = [this](Sprite*) {
 		AddMusic();
-	};
+	}; ///<음악을 파일별로 추가하는 함수
+
 	function<void(Sprite*)> func_addDirMusic = [this](Sprite*) {
 		AddMusicFromDirectory();
-	};
+	}; ///<음악을 폴더별로 추가하는 함수
 
 	function<void(Sprite*)> func_editData = [this](Sprite* sprite) { 
 		SimpleMusicType data;
 		data.SetID(sprite->GetData());
 		EditMusic(data);
-	};
+	}; ///<음악 정보를 수정하는 함수
 
 	function<void(Sprite*)> func_removeData = [this](Sprite* sprite) { 
 		SimpleMusicType data;
 		data.SetID(sprite->GetData());
 		DeleteMusic(data);
-	};
+	}; ///<음악을 삭제하는 함수
 
 	function<void(Sprite*)> func_playData = [this](Sprite* sprite) {
 		SimpleMusicType data;
 		data.SetID(sprite->GetData());
 		PlayMusic(data);
-	};
+	}; ///<음악을 재생하는 함수
 
 	function<void(Sprite*)> func_scrollDown = [this](Sprite*) {
 		scrolling = true;
-	};
+	}; ///<스크롤을 시작하는 함수
 
 	function<void(Sprite*)> func_scrollUp = [this](Sprite*) {
 		scrolling = false;
-	};
+	}; ///<스크롤 종료 함수
 
 	function<void(Sprite*)> func_detail = [this](Sprite* sprite) {
 		SendToDetail(sprite->GetData());
-	};
+	}; ///<자세한 정보를 검색하는 함수
 
 	function<void(Sprite*)> func_search = [this](Sprite* sprite) {
 		string data = String::WstrToStr(defaultSearch->getText());
@@ -215,29 +216,29 @@ private:
 		}
 		if (!data.empty()) Search(data, displayMode);
 		else UpdateList();
-	};
+	}; ///<입력받은 데이터를 파싱하여 검색하는 함수
 
 	function<void(Sprite*)> func_tolist = [this](Sprite* sprite) {
 		CreatePlayList(sprite->GetData());
-	};
+	}; ///<현재 목록을 플레이 리스트로 변환하는 함수
 
 	function<void(Sprite*)> func_editlist = [this](Sprite* sprite) {
 		DisplayMusicForList(stoi(sprite->GetData()));
-	};
+	}; ///<플레이 리스트를 수정하는 함수
 
 	function<void(Sprite*)> func_removelist = [this](Sprite* sprite) {
 		DeletePlayList(stoi(sprite->GetData()));
-	};
+	}; ///<플레이 리스트를 제거하는 함수
 
 	function<void(Sprite*)> func_playlist = [this](Sprite* sprite) {
 		currentPlay.SetID(stoi(sprite->GetData()));
 		playLists.Get(currentPlay);
 		PlayMusicList();
-	};
+	}; ///<플레이 리스트를 재생하는 함수
 
 	function<void(Sprite*)> func_savelist = [this](Sprite* sprite) {
 		SaveMusicList(stoi(sprite->GetData()));
-	};
+	}; ///<플레이 리스트를 파일로 저장하는 함수
 
 	function<void(Sprite*)> func_togglelist = [this](Sprite* sprite) {
 		SimpleMusicType simple;
@@ -247,7 +248,7 @@ private:
 		else AddMusicToPlayList(simple);
 
 		sprite->SetTexturePos(25 - x, 0);
-	};
+	}; ///<플레이 리스트와 음악 탭을 전환하는 함수
 
 	function<void(Sprite*)> func_addlist = [this](Sprite*) {
 		if (displayMode == 0) CreatePlayList();
@@ -258,22 +259,25 @@ private:
 			UpdateMode();
 			UpdateList();
 		}
-	};
+	}; ///<플레이 리스트를 생성하는 함수
 
-	function<void(Sprite*)> func_savefile = [this](Sprite*) { WriteDataToFile(); };
-	function<void(Sprite*)> func_loadfile = [this](Sprite*) { ReadDataFromFile(); };
+	function<void(Sprite*)> func_savefile = [this](Sprite*) { WriteDataToFile(); }; ///<현재 데이터를 저장하는 함수
+	function<void(Sprite*)> func_loadfile = [this](Sprite*) { ReadDataFromFile(); }; ///<데이터를 불러오는 함수
 
 	//윈도우를 렌더링할 때 쓸 함수
 	void RenderMain();
 
+	//메인 그래픽을 생성하는 함수
 	void initMainGraphic();
+
+	//에디터 그래픽을 생성하는 함수
 	void initEditor();
 
+	//메인 그래픽을 해제하는 함수
 	void ReleaseMainGraphic();
 
+	//음악 데이터 관련 그래픽 리스트를 초기화 및 생성하는 함수
 	void initDisplay();
-
-	void OpenEditor();
 
 public:
 
@@ -420,6 +424,9 @@ public:
 	Group* CreateDisplayGraphic(const PlayList& data);
 
 	int InputNumeric(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+
+	//에디터를 여는 함수
+	void OpenEditor();
 
 	void CloseEditor();
 
