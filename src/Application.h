@@ -447,79 +447,208 @@ public:
 	*/
 	void UpdateList();
 
+	/**
+	*	@brief	음악 데이터를 바탕으로 정보 그래픽을 생성한다.
+	*	@param	data	정보에 해당하는 음악 데이터
+	*	@return	생성된 그래픽 그룹
+	*/
 	Group* CreateDisplayGraphic(const SimpleMusicType& data);
 
+	/**
+	*	@brief	앨범 데이터를 바탕으로 정보 그래픽을 생성한다.
+	*	@param	data	정보에 해당하는 앨범 데이터
+	*	@return	생성된 그래픽 그룹
+	*/
 	Group* CreateDisplayGraphic(const Album& data);
 
+	/**
+	*	@brief	아티스트 데이터를 바탕으로 정보 그래픽을 생성한다.
+	*	@param	data	정보에 해당하는 아티스트 데이터
+	*	@return	생성된 그래픽 그룹
+	*/
 	Group* CreateDisplayGraphic(const Artist& data);
 
+	/**
+	*	@brief	장르 데이터를 바탕으로 정보 그래픽을 생성한다.
+	*	@param	data	정보에 해당하는 장르 데이터
+	*	@return	생성된 그래픽 그룹
+	*/
 	Group* CreateDisplayGraphic(const GenreType& data);
 
+	/**
+	*	@brief	폴더 데이터를 바탕으로 정보 그래픽을 생성한다.
+	*	@param	data	정보에 해당하는 폴더 데이터
+	*	@return	생성된 그래픽 그룹
+	*/
 	Group* CreateDisplayGraphic(const FolderType& data);
 
+	/**
+	*	@brief	플레이 리스트 데이터를 바탕으로 정보 그래픽을 생성한다.
+	*	@param	data	정보에 해당하는 플레이 리스트 데이터
+	*	@return	생성된 그래픽 그룹
+	*/
 	Group* CreateDisplayGraphic(const PlayList& data);
 
+	/**
+	*	@brief	숫자 입력 제어를 위한 프로시저 함수
+	*	@param	hWnd	프로시저 호출 윈도우
+	*	@param	iMessage	프로시저 메시지
+	*	@param	wParam	호출 파라미터
+	*	@param	lParam	호출 파라미터
+	*	@return	프로시저 호출 값
+	*/
 	int InputNumeric(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 	//에디터를 여는 함수
 	void OpenEditor();
 
+	//에디터를 닫는 함수
 	void CloseEditor();
 
+	//스크롤바에 따른 그래픽을 업데이트하는 함수
 	void UpdateScroll();
 
+	/**
+	*	@brief	입력받은 상태에 따라 그래픽을 초기화하고 렌더링하는 함수
+	*	@param	state	렌더할 그래픽 상태 (음악, 앨범, 아티스트 등)
+	*/
 	void ChangeState(int state);
 
+	//그래픽 상태에 따라 그래픽 이미지를 변경하는 함수
 	void UpdateMode();
 
+	//모든 앨범을 렌더링 리스트에 추가하는 함수
 	void DisplayAllAlbum();
 
+	//모든 아티스트를 렌더링 리스트에 추가하는 함수
 	void DisplayAllArtist();
 
+	//모든 장르를 렌더링 리스트에 추가하는 함수
 	void DisplayAllGenre();
 
+	//모든 폴더를 렌더링 리스트에 추가하는 함수
 	void DisplayAllFolder();
 
+	//모든 플레이리스트를 렌더링 리스트에 추가하는 함수
 	void DisplayAllPlayList();
 
+	/**
+	*	@brief	입력받은 id에 해당하는 플레이 리스트의 음악만을 렌더링 리스트에 추가하는 함수
+	*	@param	id	플레이 리스트의 primary key
+	*/
 	void DisplayMusicForList(int id);
 
+	/**
+	*	@brief	입력받은 키워드와 검색할 영역을 바탕으로 검색하여 결과를 렌더링 리스트에 추가하는 함수
+	*	@param	keyword	파싱되지 않은 검색할 키워드
+	*	@param	mode	검색할 영역 (음악, 앨범, 아티스트 등)
+	*/
 	void Search(const std::string& keyword, int mode = 0);
 
+	/**
+	*	@brief	다른 탭에서 음악 탭을 검색하기 위해 호출하는 함수
+	*	@param	data	검색할 데이터
+	*/
 	void SendToDetail(const std::string& data);
 
+	/**
+	*	@brief	현재 렌더링되는 데이터 리스트 중에서 해당 조건을 만족하는 데이터만 남기는 함수
+	*	@param	label	검색할 데이터의 종류 (앨범, 작곡가, 가사 등)
+	*	@param	content	검색할 데이터
+	*	@param	notLabel	유효한 데이터 종류인지 여부
+	*/
 	void FilterDisplay(const std::string& label, const std::string& content, bool& notLabel);
 
+	/**
+	*	@brief	입력받은 id와 현재 데이터 종류에 따라 플레이 리스트를 생성하는 함수
+	*	@param	id	음악 이외의 종류 데이터에 대한 primary key
+	*/
 	void CreatePlayList(const std::string& id = "");
 
+	/**
+	*	@brief	플레이 리스트에 목록을 추가/삭제하기 위한 음악 데이터를 그래픽 렌더링하는 함수
+	*	@param	data	렌더링할 음악 데이터
+	*	@param	found	해당 데이터가 플레이 리스트에 포함되어 있는지 여부
+	*	@return	생성된 그래픽 그룹
+	*/
 	Group* CreatePlayGraphic(const SimpleMusicType& data, bool found);
 
+	/**
+	*	@brief	플레이 리스트에 해당 음악을 추가하는 함수
+	*	@param	data	추가할 음악
+	*/
 	void AddMusicToPlayList(const SimpleMusicType& data);
 
+	/**
+	*	@brief	플레이 리스트에 해당 음악을 삭제하는 함수
+	*	@param	data	삭제할 음악
+	*/
 	void DeleteMusicFromPlayList(const SimpleMusicType& data);
 
+	//플레이 리스트를 새로 생성하는 함수
 	void AddPlayList();
 
+	//플레이 리스트를 재생하는 함수
 	void PlayMusicList();
 
+	//플레이 리스트 재생을 종료하는 함수
 	void StopMusicList();
 
+	/**
+	*	@brief	해당 플레이 리스트를 실제 재생 목록 파일로 저장하는 함수
+	*	@param	id	저장할 플레이 리스트의 primary key
+	*/
 	void SaveMusicList(int id);
 
+	/**
+	*	@brief	플레이 리스트 추가/삭제 모드에서 음악을 검색할 때 사용하는 함수
+	*	@param	keyword	검색 키워드
+	*/
 	void SearchInPlayList(const std::string& keyword);
 
+	/**
+	*	@brief	플레이 리스트를 삭제하는 함수
+	*	@param	id	삭제할 플레이 리스트의 primary key
+	*/
 	void DeletePlayList(int id);
 
+	/**
+	*	@brief	일시정지된 음악을 다시 재생하는 함수
+	*	@pre	없음.
+	*	@post	일시정지된 음악이 있으면 그 음악을, 아니면 임의로 플레이 리스트를 생성하여 처음 음악을 재생한다.
+	*/
 	void ResumePlay();
 
+	/**
+	*	@brief	재생하고 있는 음악을 일시 정지하는 함수
+	&	@pre	음악이 재생되고 있어야 한다.
+	*	@post	음악이 일시정지된다.
+	*/
 	void PausePlay();
 
+	/**
+	*	@brief	재생하고 있는 음악의 이전 음악으로 이동하여 재생하는 함수
+	*	@pre	이전 음악이 존재해야 한다.
+	*	@post	현재 재생 중인 음악이 5초 이상 재생되면 그 음악을 처음부터, 아니면 이전 음악을 재생한다. 이전 음악이 없으면 재생을 정지한다.
+	*/
 	void Prev();
 
+	/**
+	*	@brief	재생하고 있는 음악의 다음 음악을 이동하여 재생하는 함수
+	*	@pre	다음 음악이 존재해야 한다.
+	*	@post	다음 음악이 존재하면 다음 음악을 재생하고, 아니면 재생을 정지한다.
+	*/
 	void Next();
 
+	//현재 재생 중인 음악을 정지한다.
 	void StopMusic();
 
+	/**
+	*	@brief	해당 플레이 리스트를 리스트에 추가한다.
+	*	@pre	리스트는 유효한 primary key를 가지고 있어야 한다.
+	*	@post	해당 플레이 리스트가 리스트에 추가된다.
+	*	@param	play	추가할 플레이 리스트
+	*/
 	void AddPlayList(PlayList& play);
 };
 #pragma once
