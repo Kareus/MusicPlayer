@@ -1,3 +1,4 @@
+#pragma once
 #ifndef __APPLICATION__
 #define __APPLICATION__
 
@@ -689,5 +690,4 @@ public:
 	*/
 	void AddPlayList(PlayList& play);
 };
-#pragma once
 #endif
