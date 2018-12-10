@@ -20,7 +20,7 @@ HRESULT MediaPlayer::QueryInterface(REFIID riid, void** ppv)
 	return QISearch(this, qit, riid, ppv); //QISearch를 통해 테이블에 따라 식별자를 찾고, this 포인터를 해당 타입으로 캐스팅하여 ppv에 저장한다.
 }
 
-ULONG MediaPlayer::AddRef()
+STDMETHODIMP_(ULONG) MediaPlayer::AddRef()
 {
 	return InterlockedIncrement(&refCount); //reference count 증가
 
@@ -30,7 +30,7 @@ ULONG MediaPlayer::AddRef()
 	//이런 문제에서 안전하게 메모리에 접근할 수 있는 함수들이 Thread safe한 함수들이다.
 }
 
-ULONG MediaPlayer::Release()
+STDMETHODIMP_(ULONG)  MediaPlayer::Release()
 {
 	ULONG uCount = InterlockedDecrement(&refCount); //reference count 감소
 
@@ -441,18 +441,17 @@ HRESULT MediaPlayer::HandleEvent(UINT_PTR pEventPtr)
 		return E_POINTER;
 	}
 
-	// Get the event type.
+	// 이벤트 타입이 무엇인지 가져온다.
 	HRESULT hr = pEvent->GetType(&meType);
 	if (FAILED(hr))
 	{
 		goto done;
 	}
 
-	// Get the event status. If the operation that triggered the event 
-	// did not succeed, the status is a failure code.
+	//이벤트 정보를 가져온다.
 	hr = pEvent->GetStatus(&hrStatus);
 
-	// Check if the async operation succeeded.
+	//비동기 함수가 성공적으로 종료되었는지 확인한다
 	if (SUCCEEDED(hr) && FAILED(hrStatus))
 	{
 		hr = hrStatus;
@@ -462,6 +461,7 @@ HRESULT MediaPlayer::HandleEvent(UINT_PTR pEventPtr)
 		goto done;
 	}
 
+	//각 이벤트 타입에 따라 각 callback을 호출한다.
 	switch (meType)
 	{
 	case MESessionTopologyStatus:

@@ -21,7 +21,7 @@ class DoublyLinkedList;
 template <typename T>
 class DoublyIterator
 {
-	friend class DoublyLinkedList<T>;
+	friend class DoublyLinkedList<T>; ///<더블 링크드 리스트를 friend로 선언
 public:
 	/**
 	*	기본 생성자

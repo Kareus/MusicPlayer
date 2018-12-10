@@ -231,7 +231,11 @@ bool MusicType::operator!=(const MusicType &data) const
 int MusicType::ReadDataFromID3()
 {
 	ID3Reader reader;
-	if (!reader.read(path)) return 0;
+	if (!reader.read(path))
+	{
+		reader.close();
+		return 0;
+	}
 	name = String::WstrToStr(reader.getTitle());
 	artist = String::WstrToStr(reader.getArtist());
 	album = String::WstrToStr(reader.getAlbum());

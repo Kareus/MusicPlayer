@@ -110,14 +110,12 @@ void WPLWriter::resetBody()
 M3U8Writer::M3U8Writer()
 {
 	if (m_outFile) m_outFile.close(); //만약 스트림이 열려있다면 닫는다.
-	title = L"";
 	resetBody();
 }
 
 M3U8Writer::M3U8Writer(const wstring& filepath)
 {
 	if (m_outFile) m_outFile.close(); //만약 스트림이 열려있다면 닫는다.
-	title = L"";
 	resetBody();
 	open(filepath);
 }
@@ -142,9 +140,6 @@ bool M3U8Writer::open(const wstring& filepath)
 	if (lastDir < 0) return 0; //아닌 경우 에러. 0 반환.
 
 	m_outFile.imbue(std::locale(std::locale::empty(), new std::codecvt_utf8<wchar_t, 0x10ffff, std::generate_header>)); //한글 등 글자가 깨지지 않도록 locale 설정
-
-	title = filepath.substr(lastDir + 1); //위에서 구한 인덱스를 이용해 그 뒤의 파일명만을 가져온다.
-	title = title.substr(0, title.find_last_of(L'.')); //파일 확장자를 제거한다.
 	return 1;
 }
 
@@ -174,15 +169,4 @@ void M3U8Writer::addMedia(unsigned int length, const wstring& name, const wstrin
 void M3U8Writer::addMedia(const MusicType& music)
 {
 	addMedia(0, String::StrToWstr(music.GetArtist() + " - " + music.GetName()), music.GetPath());
-}
-
-
-void M3U8Writer::setTitle(const wstring& title)
-{
-	this->title = title;
-}
-
-wstring M3U8Writer::getTitle()
-{
-	return title;
 }

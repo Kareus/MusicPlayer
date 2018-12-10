@@ -480,3 +480,8 @@ sf::Font& TextBox::getFont()
 {
 	return font;
 }
+
+bool TextBox::IsOnlyNumber()
+{
+	return onlyNumber;
+}

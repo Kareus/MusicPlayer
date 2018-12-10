@@ -10,6 +10,11 @@ DirectoryReader::DirectoryReader()
 	pathList.MakeEmpty();
 }
 
+DirectoryReader::~DirectoryReader()
+{
+	pathList.MakeEmpty();
+}
+
 void DirectoryReader::openDirWithFileBox()
 {
 	wstring path = L"";

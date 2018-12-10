@@ -136,6 +136,10 @@ public:
 	*/
 	CircularQueueType<T>& operator=(const CircularQueueType<T>& data);
 
+	/**
+	*	@brief	큐의 데이터의 개수를 반환한다.
+	*	@return	큐의 데이터 개수
+	*/
 	int GetLength() const;
 
 private:

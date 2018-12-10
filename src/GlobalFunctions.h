@@ -16,18 +16,19 @@
 
 namespace Resource
 {
-	static sf::Font* defaultFont = nullptr;
-	static Sprite* addSprite = nullptr;
-	static Sprite* editSprite = nullptr;
-	static Sprite* removeSprite = nullptr;
-	static Sprite* backSprite = nullptr;
-	static Sprite* playSprite = nullptr;
-	static Sprite* tabSprite = nullptr;
-	static Sprite* detailSprite = nullptr;
-	static Sprite* tolistSprite = nullptr;
-	static Sprite* addlistSprite = nullptr;
-	static Sprite* saveSprite = nullptr;
+	static sf::Font* defaultFont = nullptr; ///<기본 폰트
+	static Sprite* addSprite = nullptr; ///<추가 그래픽
+	static Sprite* editSprite = nullptr; ///<수정 그래픽
+	static Sprite* removeSprite = nullptr; ///<삭제 그래픽
+	static Sprite* backSprite = nullptr; ///<배경 그래픽
+	static Sprite* playSprite = nullptr; ///<재생 그래픽
+	static Sprite* tabSprite = nullptr; ///<탭 그래픽
+	static Sprite* detailSprite = nullptr; ///<자세한 정보 그래픽
+	static Sprite* tolistSprite = nullptr; ///<플레이 리스트 변환 그래픽
+	static Sprite* addlistSprite = nullptr; ///<플레이 리스트 추가 그래픽
+	static Sprite* saveSprite = nullptr; ///<저장 그래픽
 
+	//전역 그래픽 리소스를 해제하는 함수
 	void ReleaseResource();
 }
 
@@ -44,18 +45,6 @@ namespace String
 
 	//좌우 공백만 제거하는 함수 (ex: '  abc de  ' -> 'abc de')
 	std::string Strip_LR(const std::string& str);
-}
-
-namespace Stream
-{
-	//한 줄을 입력받아 더미 데이터를 무시하는 함수
-	void IgnoreJunk(std::istream& in);
-}
-
-namespace Internet
-{
-	//url을 브라우저의 새 탭으로 여는 함수
-	void OpenURL(const std::wstring& path);
 }
 
 namespace System

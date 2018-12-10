@@ -5,6 +5,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <functional>
+#include "GlobalFunctions.h"
 
 /**
 * AVL 트리의 노드
@@ -12,87 +13,217 @@
 template <typename T>
 struct AVLTreeNode
 {
-	T data;
-	AVLTreeNode<T>* left;
-	AVLTreeNode<T>* right;
-	int height;
+	T data; ///<데이터
+	AVLTreeNode<T>* left; ///<왼쪽 노드
+	AVLTreeNode<T>* right; ///<오른쪽 노드
+	int height; ///<높이
 };
 
 template <typename T>
 class AVLTreeIterator;
+
 /**
-* AVL 트리 클래스
-* @date 2018.11.21
-* @author 김성주
+*	@brief	AVL 트리 클래스
+*	@date	2018.11.21
+*	@author	김성주
 */
 template <typename T>
 class AVLTree
 {
 private:
-	friend class AVLTreeIterator<T>;
+	friend class AVLTreeIterator<T>; ///<반복자를 friend로 선언
 
-	AVLTreeNode<T>* root;
+	AVLTreeNode<T>* root; ///<루트 노드
 
+	/**
+	*	@brief	복사 생성을 위해 호출하는 재귀함수
+	*	@param	node	복사한 노드를 저장할 노드의 포인터 주소
+	*	@param	copy	복사해올 노드
+	*/
 	void CopyNode(AVLTreeNode<T>*& node, AVLTreeNode<T>* copy);
 
+	/**
+	*	@brief	메모리 해제를 위해 호출하는 재귀함수
+	*	@param	node	메모리를 해제할 노드의 포인터 주소
+	*/
 	void ClearNode(AVLTreeNode<T>*& node);
-
+	
+	/**
+	*	@brief	노드 개수를 세기 위해 호출하는 재귀함수
+	*	@param	node	노드의 포인터 주소
+	*/
 	int CountNode(const AVLTreeNode<T>* node) const;
 
+	/**
+	*	@brief	노드 추가를 위해 호출하는 재귀함수
+	*	@param	node	노드의 포인터 주소
+	*/
 	int AddNode(AVLTreeNode<T>*& node, const T& data);
 
+	/**
+	*	@brief	노드 삭제를 위해 호출하는 재귀함수
+	*	@param	node	노드의 포인터 주소
+	*/
 	int DeleteNode(AVLTreeNode<T>*& node, const T& data);
 
+	/**
+	*	@brief	노드 교체를 위해 호출하는 재귀함수
+	*	@param	node	노드의 포인터 주소
+	*/
 	int ReplaceNode(AVLTreeNode<T>*& node, const T& data);
 
+	/**
+	*	@brief	노드 데이터 반환을 위해 호출하는 재귀함수
+	*	@param	node	노드의 포인터 주소
+	*/
 	int GetNode(AVLTreeNode<T>*& node, T& data);
 
+	/**
+	*	@brief	노드의 높이를 계산하는 함수
+	*	@param	node	높이를 계산할 노드
+	*/
 	void CalculateHeight(AVLTreeNode<T>*& node);
 
+	/**
+	*	@brief	해당 노드의 높이를 반환하는 함수
+	*	@param	node	노드의 포인터 주소
+	*	@return	해당 노드가 NULL이면 -1, 아니면 그 노드의 높이를 반환한다.
+	*/
 	int height(AVLTreeNode<T>*& node);
 
+	/**
+	*	@brief	단순 left rotation을 실행하는 함수
+	*	@param	node	회전을 실행할 노드
+	*	@return	회전 후의 노드를 반환한다.
+	*/
 	AVLTreeNode<T>* SingleLeftRotate(AVLTreeNode<T>* node);
 
+	/**
+	*	@brief	단순 right rotation을 실행하는 함수
+	*	@param	node	회전을 실행할 노드
+	*	@return	회전 후의 노드를 반환한다.
+	*/
 	AVLTreeNode<T>* SingleRightRotate(AVLTreeNode<T>* node);
 
+	/**
+	*	@brief	이중 left rotation을 실행하는 함수
+	*	@param	node	회전을 실행할 노드
+	*	@return	회전 후의 노드를 반환한다.
+	*/
 	AVLTreeNode<T>* DoubleLeftRotate(AVLTreeNode<T>* node);
 
+	/**
+	*	@brief	이중 right rotation을 실행하는 함수
+	*	@param	node	회전을 실행할 노드
+	*	@return	회전 후의 노드를 반환한다.
+	*/
 	AVLTreeNode<T>* DoubleRightRotate(AVLTreeNode<T>* node);
 
+	/**
+	*	@brief	노드가 조건을 충족하면 특정 함수를 실행하는 재귀함수
+	*	@param	node	조건 충족을 시험할 노드
+	*	@param	search	조건 충족을 반환하는 함수
+	*	@param	todo	조건을 충족하면 실행할 함수
+	*/
 	void findNode(AVLTreeNode<T>*& node, const std::function<bool(T&)>& search, const std::function<void(T&)>& todo);
 
+	/**
+	*	@brief	노드에 대해 특정 함수를 실행하는 재귀함수
+	*	@param	node	시험할 노드
+	*	@param	todo	실행할 함수
+	*/
 	void doNode(AVLTreeNode<T>*& node, const std::function<void(T&)>& todo);
 
 	std::function<int(const T&, const T&)> compareFunc; ///< 데이터 비교 함수
 
 public:
 
+	/**
+	*	기본 생성자
+	*/
 	AVLTree();
 
+	/**
+	*	복사 생성자
+	*/
 	AVLTree(const AVLTree& tree);
 
+	/**
+	*	기본 소멸자
+	*/
 	~AVLTree();
 
+	/**
+	*	@brief	트리를 비우는 함수
+	*/
 	void MakeEmpty();
 
+	/**
+	*	@brief	트리가 비어있는지 반환한다
+	*	@return	트리가 비어있으면 true, 아니면 false를 반환한다.
+	*/
 	bool IsEmpty() const;
 
+	/**
+	*	@brief	트리가 꽉 차 있는지 반환한다
+	*	@return	트리가 꽉 차 있으면 true, 아니면 false를 반환한다.
+	*/
 	bool IsFull();
 
+	/**
+	*	@brief	트리에 데이터를 추가한다.
+	*	@param	data	추가할 데이터
+	*	@return	성공하면 1, 아니면 0을 반환한다.
+	*/
 	int Add(const T& data);
 
+	/**
+	*	@brief	트리에서 데이터를 삭제한다.
+	*	@param	data	삭제할 데이터
+	*	@return	성공하면 1, 아니면 0을 반환한다.
+	*/
 	int Delete(const T& data);
 
+	/**
+	*	@brief	트리에서 데이터를 교체한다.
+	*	@param	data	교체할 데이터
+	*	@return	성공하면 1, 아니면 0을 반환한다.
+	*/
 	int Replace(const T& data);
 
+	/**
+	*	@brief	트리에서 데이터를 찾는다.
+	*	@param	data	찾은 데이터를 저장할 데이터
+	*	@return	성공하면 1, 아니면 0을 반환한다.
+	*/
 	int Get(T& data);
 
+	/**
+	*	@brief	트리의 노드 개수를 반환한다.
+	*	@return	노드 개수
+	*/
 	int GetLength() const;
 
+	/**
+	*	@brief	현재 데이터에 대상 데이터의 값을 복사하여 대입한다.
+	*	@pre	대상 데이터의 변수가 할당되어 있어야 한다.
+	*	@post	대상 데이터의 변수 값이 현재 데이터에 복사된다.
+	*	@param	tree	복사할 대상 데이터
+	*	@return	복사 대입한 현재 데이터를 반환한다.
+	*/
 	AVLTree<T>& operator=(const AVLTree<T>& tree);
 
+	/**
+	*	@brief	조건을 만족하는 노드를 찾아 특정 함수를 실행한다.
+	*	@param	search	조건 만족을 시험할 함수
+	*	@param	todo	조건을 만족하면 시행할 함수
+	*/
 	void Find(const std::function<bool(T&)>& search, const std::function<void(T&)>& todo);
-
+	
+	/**
+	*	@brief	모든 노드에 대해 특정 함수를 실행한다.
+	*	@param	todo	조건을 만족하면 시행할 함수
+	*/
 	void Do(const std::function<void(T&)>& todo);
 
 	/**
@@ -149,7 +280,7 @@ bool AVLTree<T>::IsFull()
 	}
 	catch (std::bad_alloc& e)
 	{
-		std::cerr << "bad alloc exception: " << e.what() << std::endl;
+		System::AlertError("bad alloc exception: " + e.what() + '\n');
 		return true;
 	}
 }

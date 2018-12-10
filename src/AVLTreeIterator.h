@@ -4,12 +4,16 @@
 
 #include "AVLTree.h"
 
+/**
+*	@brief	AVLTree에서 사용하는 반복자 클래스
+*	@author	김성주
+*/
 template <typename T>
 class AVLTreeIterator
 {
 private:
-	const AVLTree<T>& m_list;
-	AVLTreeNode<T>* node;
+	const AVLTree<T>& m_list; ///<반복자에서 탐색할 트리
+	AVLTreeNode<T>* node; ///<현재 노든
 
 public:
 	/**

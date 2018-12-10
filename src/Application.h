@@ -264,19 +264,29 @@ private:
 	function<void(Sprite*)> func_savefile = [this](Sprite*) { WriteDataToFile(); }; ///<현재 데이터를 저장하는 함수
 	function<void(Sprite*)> func_loadfile = [this](Sprite*) { ReadDataFromFile(); }; ///<데이터를 불러오는 함수
 
-	//윈도우를 렌더링할 때 쓸 함수
+	/**
+	*	@brief	윈도우를 렌더링할 때 쓸 함수
+	*/
 	void RenderMain();
 
-	//메인 그래픽을 생성하는 함수
+	/**
+	*	@brief	메인 그래픽을 생성하는 함수
+	*/
 	void initMainGraphic();
 
-	//에디터 그래픽을 생성하는 함수
+	/**
+	*	@brief	에디터 그래픽을 생성하는 함수
+	*/
 	void initEditor();
 
-	//메인 그래픽을 해제하는 함수
+	/**
+	*	@brief	메인 그래픽을 해제하는 함수
+	*/
 	void ReleaseMainGraphic();
 
-	//음악 데이터 관련 그래픽 리스트를 초기화 및 생성하는 함수
+	/**
+	*	@brief	음악 데이터 관련 그래픽 리스트를 초기화 및 생성하는 함수
+	*/
 	void initDisplay();
 
 public:
@@ -293,7 +303,9 @@ public:
 	*/
 	bool IsEditing();
 
-	//플레이어 위에 에디터 윈도우가 오도록 변경하는 함수
+	/**
+	*	@brief	플레이어 위에 에디터 윈도우가 오도록 변경하는 함수
+	*/
 	void SwapEditor();
 
 	/**
@@ -499,13 +511,19 @@ public:
 	*/
 	int InputNumeric(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
-	//에디터를 여는 함수
+	/**
+	*	@brief	에디터를 여는 함수
+	*/
 	void OpenEditor();
 
-	//에디터를 닫는 함수
+	/**
+	*	@brief	에디터를 닫는 함수
+	*/
 	void CloseEditor();
 
-	//스크롤바에 따른 그래픽을 업데이트하는 함수
+	/**
+	*	@brief	스크롤바에 따른 그래픽을 업데이트하는 함수
+	*/
 	void UpdateScroll();
 
 	/**
@@ -514,22 +532,34 @@ public:
 	*/
 	void ChangeState(int state);
 
-	//그래픽 상태에 따라 그래픽 이미지를 변경하는 함수
+	/**
+	*	@brief	그래픽 상태에 따라 그래픽 이미지를 변경하는 함수
+	*/
 	void UpdateMode();
 
-	//모든 앨범을 렌더링 리스트에 추가하는 함수
+	/**
+	*	@brief	모든 앨범을 렌더링 리스트에 추가하는 함수
+	*/
 	void DisplayAllAlbum();
 
-	//모든 아티스트를 렌더링 리스트에 추가하는 함수
+	/**
+	*	@brief	모든 아티스트를 렌더링 리스트에 추가하는 함수
+	*/
 	void DisplayAllArtist();
 
-	//모든 장르를 렌더링 리스트에 추가하는 함수
+	/**
+	*	@brief	모든 장르를 렌더링 리스트에 추가하는 함수
+	*/
 	void DisplayAllGenre();
 
-	//모든 폴더를 렌더링 리스트에 추가하는 함수
+	/**
+	*	@brief	모든 폴더를 렌더링 리스트에 추가하는 함수
+	*/
 	void DisplayAllFolder();
 
-	//모든 플레이리스트를 렌더링 리스트에 추가하는 함수
+	/**
+	*	@brief	모든 플레이리스트를 렌더링 리스트에 추가하는 함수
+	*/
 	void DisplayAllPlayList();
 
 	/**
@@ -585,13 +615,19 @@ public:
 	*/
 	void DeleteMusicFromPlayList(const SimpleMusicType& data);
 
-	//플레이 리스트를 새로 생성하는 함수
+	/**
+	*	@brief	플레이 리스트를 새로 생성하는 함수
+	*/
 	void AddPlayList();
 
-	//플레이 리스트를 재생하는 함수
+	/**
+	*	@brief	플레이 리스트를 재생하는 함수
+	*/
 	void PlayMusicList();
 
-	//플레이 리스트 재생을 종료하는 함수
+	/**
+	*	@brief	플레이 리스트 재생을 종료하는 함수
+	*/
 	void StopMusicList();
 
 	/**
@@ -640,7 +676,9 @@ public:
 	*/
 	void Next();
 
-	//현재 재생 중인 음악을 정지한다.
+	/**
+	*	현재 재생 중인 음악을 정지한다.
+	*/
 	void StopMusic();
 
 	/**

@@ -9,6 +9,8 @@
 #ifndef DIRENT_H
 #define DIRENT_H
 
+//폴더 목록을 읽어오기 위한 헤더
+
 /*
  * Include windows.h without Windows Sockets 1.1 to prevent conflicts with
  * Windows Sockets 2.0.

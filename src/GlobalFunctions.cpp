@@ -56,23 +56,6 @@ namespace String
 	}
 }
 
-namespace Stream
-{
-	void IgnoreJunk(std::istream& in)
-	{
-		std::string temp;
-		getline(in, temp);
-	}
-}
-
-namespace Internet
-{
-	void OpenURL(const std::wstring& path)
-	{
-		ShellExecute(0, 0, path.c_str(), 0, 0, SW_SHOW);
-	}
-}
-
 namespace System
 {
 	int AlertError(const std::string& mes, const std::string& caption, UINT BUTTONS)
@@ -116,6 +99,7 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam
 	{
 	case WM_CTLCOLORSTATIC:
 	{
+		//배경색을 투명으로 한다.
 		HDC hdcStatic = (HDC)wParam;
 		SetBkColor(hdcStatic, RGB(0xbd, 0xbd, 0xbd));
 
@@ -123,6 +107,7 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam
 	}
 
 	case WM_COMMAND:
+		//커맨드 중 버튼 클릭 처리
 		if (HIWORD(wParam) == BN_CLICKED)
 		{
 			app->CloseEditor();
@@ -139,7 +124,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	if (!app->IsRunning()) return DefWindowProc(hWnd, iMessage, wParam, lParam);
 
 	CustomWinEvent e;
-	e.hWnd = hWnd;
 
 	static bool mouseIn = false;
 	TRACKMOUSEEVENT tme;
@@ -153,20 +137,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 	switch (iMessage)
 	{
-	case WM_CREATE:
+	case WM_CREATE: //윈도우 생성
 		Update(hWnd, Closed);
 		break;
 
-	case WM_APP_PLAYER_EVENT:
+	case WM_APP_PLAYER_EVENT: //미디어 플레이어
 		OnPlayerEvent(hWnd, wParam);
 		break;
 
-	case WM_ACTIVATE:
+	case WM_ACTIVATE: //창 활성화
 		BringWindowToTop(hWnd);
 		if (app->GetHandle() == hWnd && app->IsEditing()) app->SwapEditor(); //editor가 무조건 상위에 오도록 설정
 		break;
 
-	case WM_LBUTTONDOWN:
+	case WM_LBUTTONDOWN: //마우스 좌클릭
 		xClick = LOWORD(lParam);
 		yClick = HIWORD(lParam);
 
@@ -178,10 +162,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		app->pollEvent(e);
 		break;
 
-	case WM_SYSCHAR:
+	case WM_SYSCHAR: //시스템 키보드 입력 이벤트
 		break;
 
-	case WM_IME_STARTCOMPOSITION:
+	case WM_IME_STARTCOMPOSITION: //IME 시작
 		return 0;
 
 	case WM_IME_COMPOSITION:
@@ -216,19 +200,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		ImmReleaseContext(hWnd, imc); //핸들 해제
 		break;
 
-	case WM_IME_ENDCOMPOSITION:
+	case WM_IME_ENDCOMPOSITION: //IME 종료
 		e.type = CustomWinEvent::IMEResult;
 		app->pollEvent(e);
 		break;
 
-	case WM_CHAR:
+	case WM_CHAR: //텍스트 입력
 		if (GetAsyncKeyState(VK_MENU) || GetAsyncKeyState(VK_CONTROL)) break;
 		e.type = CustomWinEvent::TextEntered;
 		e.text.unicode = (wchar_t)wParam;
 		app->pollEvent(e);
 		break;
 
-	case WM_KEYDOWN:
+	case WM_KEYDOWN: //키보드 입력 시작
 		e.type = CustomWinEvent::KeyPressed;
 		e.key = CustomWinEvent::KeyEvent();
 		e.key.shift = false;
@@ -241,10 +225,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		app->pollEvent(e);
 		break;
 
-	case WM_KEYUP:
+	case WM_KEYUP: //키보드 입력 종료
 		break;
 
-	case WM_MOUSEMOVE:
+	case WM_MOUSEMOVE: //마우스 움직임
 		if (!mouseIn)
 		{
 			tme.cbSize = sizeof(TRACKMOUSEEVENT);
@@ -260,7 +244,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		app->pollEvent(e);
 		break;
 
-	case WM_MOUSEHOVER:
+	case WM_MOUSEHOVER: //마우스가 윈도우 위에 있음
 		mouseIn = true;
 		tme.cbSize = sizeof(TRACKMOUSEEVENT);
 		tme.dwFlags = TME_LEAVE;
@@ -269,13 +253,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		TrackMouseEvent(&tme); //mouseLeave에 대한 이벤트 추적
 		break;
 
-	case WM_MOUSELEAVE:
+	case WM_MOUSELEAVE: //마우스가 윈도우 바깥으로 나감
 		mouseIn = false;
 		e.type = CustomWinEvent::MouseLeft;
 		app->pollEvent(e);
 		break;
 
-	case WM_LBUTTONUP:
+	case WM_LBUTTONUP: //마우스 좌클릭 종료
 		e.type = CustomWinEvent::MouseUp;
 		e.mouse = CustomWinEvent::MouseEvent();
 		e.mouse.button = CustomWinEvent::MouseButton::Left;
@@ -284,10 +268,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 		app->pollEvent(e);
 		break;
 
-	case WM_CLOSE:
+	case WM_CLOSE: //윈도우 종료
 		DestroyWindow(hWnd);
 		break;
-	case WM_DESTROY:
+	case WM_DESTROY: //윈도우 해제
 		PostQuitMessage(0);
 		break;
 	}

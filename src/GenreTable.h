@@ -9,7 +9,7 @@
 
 namespace ID3GenreTable
 {
-	unsigned int MAXGENRE = 191;
+	unsigned int MAXGENRE = 191; ///<총 장르 수
 
 	const wchar_t* genreTable[] = {
 	L"Blues",
@@ -213,6 +213,6 @@ namespace ID3GenreTable
 						L"Dubstep",
 						L"Garage Rock",
 						L"Psybient"
-	};
+	}; ///<장르 테이블
 }
 #endif
