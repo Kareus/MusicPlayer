@@ -375,7 +375,7 @@ int DoublyLinkedList<T>::Get(T& item)
 
 		//찾으면
 		return 1;
-	} while (!(iter.Current() > iter2.Current()));
+	} while (iter.NotNull() && iter2.NotNull() && !(iter.Current() > iter2.Current()));
 
 	return 0; //없으면 0 반환
 }
@@ -395,7 +395,8 @@ int DoublyLinkedList<T>::Delete(const T& item)
 	bool notFound2 = false;
 
 	do
-	{
+	{		
+
 		int compare = compareFunc(iter.m_pCurPointer->data, item);
 		int compare2 = compareFunc(iter2.m_pCurPointer->data, item);
 
@@ -421,7 +422,7 @@ int DoublyLinkedList<T>::Delete(const T& item)
 		m_nLength--;
 		return 1;
 
-	} while (!(iter.Current() > iter2.Current()));
+	} while (iter.NotNull() && iter2.NotNull() && !(iter.Current() > iter2.Current()));
 
 	return 0; //못 찾았다면 0 반환
 }
@@ -458,7 +459,7 @@ int DoublyLinkedList<T>::Replace(const T& item)
 
 		//찾으면
 		return 1;
-	} while (!(iter.Current() > iter2.Current()));
+	} while (iter.NotNull() && iter2.NotNull() && !(iter.Current() > iter2.Current()));
 
 	return 0; //없으면 0 반환
 }

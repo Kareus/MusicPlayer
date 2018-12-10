@@ -192,7 +192,7 @@ bool ID3Reader::read(const wstring& filepath)
 				{
 					for (int i = ignore; i < realSize; i++) frame += data[i];
 				}
-				else if (encoder == 1)
+				else if (encoder == 1 || encoder == 2)
 				{
 					if (data[ignore] == -1 && data[ignore + 1] == -2) //little endian
 						for (int i = ignore + 2; i < realSize; i += 2) frame += *(uint16_t*)(data + i); //인코딩 타입, BOM을 제외하고 3번째 문자부터 옮긴다.
@@ -201,7 +201,12 @@ bool ID3Reader::read(const wstring& filepath)
 				}
 				else if (encoder == 3)
 				{
-					for (int i = ignore; i < realSize; i++) frame += *(uint8_t*)(data + i); //UTF8의 경우 BOM이 없거나 상관 없으므로 1번째 문자부터 옮긴다.
+					//UTF8의 경우 API를 사용하여 변환
+
+					USES_CONVERSION;
+					frame = A2W_CP(data + 1, CP_UTF8);
+
+					frame = frame.substr(0, frame.find(65533)); //불필요한 부분 잘라내기
 				}
 			}
 			else
@@ -220,7 +225,12 @@ bool ID3Reader::read(const wstring& filepath)
 				}
 				else if (encoder == 3)
 				{
-					for (int i = 1; i < realSize; i ++) frame += *(uint8_t*)(data + i); //UTF8의 경우 BOM이 없거나 상관 없으므로 1번째 문자부터 옮긴다.
+					//UTF8의 경우 API를 사용하여 변환
+					
+					USES_CONVERSION;
+					frame = A2W_CP(data + 1, CP_UTF8);
+					
+					frame = frame.substr(0, frame.find(65533)); //불필요한 부분 잘라내기
 				}
 			}
 			
