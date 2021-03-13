@@ -17,7 +17,7 @@ enum RelationType { LESS, GREATER, EQUAL };
 
 /**
 *	음악 정보를 저장하는 클래스
-*	@author	김성주
+*	@author	Kareus
 *	@date	2018.09.23
 */
 

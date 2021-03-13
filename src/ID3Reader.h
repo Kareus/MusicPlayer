@@ -101,7 +101,7 @@ public:
 * mp3파일에서 ID3 Tag에서 정보를 읽어오는 클래스. 지원 버전 : v1/1.1, v2.3/2.4
 * 참고: 1] http://id3.org/id3v2.3.0  2] http://id3.org/id3v2.4.0-structure 3] http://id3.org/id3v2.4.0-frames 4] https://en.wikipedia.org/wiki/ID3
 * @date 2018.11.04
-* @author 김성주
+* @author Kareus
 */
 
 class ID3Reader

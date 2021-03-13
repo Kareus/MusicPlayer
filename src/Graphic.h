@@ -9,7 +9,7 @@
 
 /**
 *	@brief	렌더링할 그래픽에 관련된 base class (추상 클래스이다)
-*	@author	김성주
+*	@author	Kareus
 */
 class Graphic
 {

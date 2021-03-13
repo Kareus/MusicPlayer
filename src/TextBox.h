@@ -9,7 +9,7 @@
 /**
 *	사용자로부터 텍스트를 입력받을 수 있는 텍스트 상자 클래스.
 *	@date	2018.11.28
-*	@author	김성주
+*	@author	Kareus
 */
 class TextBox : public Graphic
 {

@@ -8,7 +8,7 @@
 /**
 * 재생 목록을 저장하는 클래스
 * @date 2018.11.26
-* @author 김성주
+* @author Kareus
 */
 class PlayList
 {

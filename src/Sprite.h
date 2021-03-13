@@ -11,7 +11,7 @@
 /**
 * 그래픽 구현을 위해 텍스처를 shared-pointer로 가지는 클래스.
 * @date 2018.11.26
-* @author 김성주
+* @author Kareus
 */
 class Sprite : public Graphic
 {

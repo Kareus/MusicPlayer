@@ -8,7 +8,7 @@
 
 /**
 *	@brief	그래픽을 상속받아 여러 그래픽 항목들을 그룹별로 렌더링하는 클래스.
-*	@author	김성주
+*	@author	Kareus
 */
 class Group : public Graphic
 {

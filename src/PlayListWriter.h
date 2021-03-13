@@ -13,7 +13,7 @@ using namespace std;
 * 재생목록을 wpl 파일로 출력하는 클래스. wpl 파일은 utf-8로 작성되어야 하므로, wide char (wstring, wofstream)로 작성한다.
 * 또한 zpl이 wpl과 파일 구조가 유사하여 zpl 파일도 작성할 수 있다.
 * @date 2018.10.27
-* @author 김성주
+* @author Kareus
 */
 
 class WPLWriter
@@ -93,7 +93,7 @@ public:
 /**
 * 재생목록을 m3u8 파일로 출력하는 클래스. m3u 파일구조를 따르며, utf-8 인코딩을 명시하기 때문에 m3u8 파일로 출력한다.
 * @data 2018.11.19
-* @author 김성주
+* @author Kareus
 */
 
 class MusicType; ///<음악의 정보를 받아와야 하므로 클래스를 언급한다.

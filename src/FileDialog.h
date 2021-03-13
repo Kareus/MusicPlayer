@@ -17,7 +17,7 @@ enum DialogResult
 
 /**
 *	@brief	파일 상자에서 발생한 오류를 반환하는 예외 클래스
-*	@author	김성주
+*	@author	Kareus
 */
 
 class filedialog_error : public std::exception
@@ -44,7 +44,7 @@ public:
 * path에 한국어 등 비라틴계 문자가 포함되어 있을 때 제대로 표시되지 않는 문제가 있어 개량하였음.
 * 또한 ShellItem에 다이얼로그의 result를 가져오는 과정에서 문제가 발생해도 success를 반환하는 오류를 수정함.
 * @date 2018.11.11
-* @author 김성주
+* @author Kareus
 */
 
 class FileDialog

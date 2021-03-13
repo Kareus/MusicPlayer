@@ -9,7 +9,7 @@
 /**
 * 폴더 별로 음악을 저장하기 위한 클래스.
 * @date 2018.11.26
-* @author 김성주
+* @author Kareus
 */
 class FolderType
 {

@@ -6,7 +6,7 @@
 
 /**
 *	@brief	이벤트 처리를 위한 클래스
-*	@author	김성주
+*	@author	Kareus
 */
 
 class CustomWinEvent

@@ -9,7 +9,7 @@
 
 /**
 *	@brief	폴더 경로에서 파일 목록을 읽어오는 클래스
-*	@author	김성주
+*	@author	Kareus
 */
 class DirectoryReader
 {

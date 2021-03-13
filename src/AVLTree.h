@@ -25,7 +25,7 @@ class AVLTreeIterator;
 /**
 *	@brief	AVL 트리 클래스
 *	@date	2018.11.21
-*	@author	김성주
+*	@author	Kareus
 */
 template <typename T>
 class AVLTree

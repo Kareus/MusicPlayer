@@ -27,7 +27,7 @@ extern MediaPlayer* player;
 
 /**
 *	자료구조를 이용한 음악 플레이어 클래스
-*	@author	김성주
+*	@author	Kareus
 *	@date	2018.09.20
 */
 

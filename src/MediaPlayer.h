@@ -27,7 +27,7 @@ enum PlayerState
 * 이 클래스는 다음 튜토리얼 페이지를 참고하여 작성하였습니다. - https://docs.microsoft.com/en-us/windows/desktop/medfound/audio-video-playback
 * 주석은 코드 동작에 대해 본인의 주관적인 해석을 작성한 것이므로, 사실이 아닐 수가 있습니다.
 * @date 2018.11.26
-* @author 김성주
+* @author Kareus
 */
 
 class MediaPlayer : public IMFAsyncCallback ///<Media Foundation은 컴포넌트 오브젝트 모델(COM)을 사용하므로 상속받음

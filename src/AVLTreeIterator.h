@@ -6,7 +6,7 @@
 
 /**
 *	@brief	AVLTree에서 사용하는 반복자 클래스
-*	@author	김성주
+*	@author	Kareus
 */
 template <typename T>
 class AVLTreeIterator
